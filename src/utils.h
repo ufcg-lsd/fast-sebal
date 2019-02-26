@@ -17,7 +17,6 @@ struct PixelReader{
 	PixelReader(uint16 _sampleFormat, uint8 _byteSize,tdata_t _buffer);
 
 	double read_pixel(uint32 colunm);
-
 };
 
 struct MTL{
@@ -26,6 +25,19 @@ struct MTL{
 
     MTL();
     MTL(string metadata_path);
+};
+
+struct Sensor{
+	double parameters[8][4];
+	const int GRESCALE = 0;
+	const int BRESCALE = 1;
+	const int ESUN = 2;
+	const int WB = 3;
+
+	Sensor();
+	Sensor(int number_sensor, int year);
+	string capture_parameter_path(int number_sensor, int year);
+	void load_parameter_values(string sensor_path);
 };
 
 bool analisy_shadow(TIFF* read_bands[], TIFF* write_bands[], int number_sensor);

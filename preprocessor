@@ -2,6 +2,7 @@
 
 image_data_path=$1
 bounding_box_path=$2
+raster_elevation_path=$3
 
 for tif in $(find $image_data_path -iname "*.tif");
 do
@@ -14,3 +15,11 @@ do
 
   rm -rf $tif_no_tiled
 done
+
+raster_elevation_no_tiled=${raster_elevation_path%.*}_no_tiled.tif
+raster_elevation_cropped=${raster_elevation_path%.*}_cropped.tif
+
+gdal_translate -co "TILED=NO" $raster_elevation_path $raster_elevation_no_tiled
+gdalwarp --config GDALWARP_IGNORE_BAD_CUTLINE YES -cutline $bounding_box_path $raster_elevation_no_tiled $raster_elevation_cropped -dstnodata -nan -crop_to_cutline
+
+rm -rf $raster_elevation_no_tiled

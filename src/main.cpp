@@ -28,6 +28,8 @@ void setup(TIFF* new_tif, TIFF* base_tif){
 int main(int argc, char *argv[]){
     string metadata_path = argv[9];
     MTL mtl = MTL(metadata_path);
+    
+    Sensor sensor = Sensor(mtl.number_sensor, mtl.year);
 
     TIFF *read_bands[9], *write_bands[9];
     for(int i = 1; i < 9; i++){

@@ -88,6 +88,8 @@ MTL::MTL(string metadata_path){
         mtl[nline[0]] = nline[2];
     }
 
+    in.close();
+
     char julian_day[3];
     julian_day[0] = mtl["LANDSAT_SCENE_ID"][14];
     julian_day[1] = mtl["LANDSAT_SCENE_ID"][15];
@@ -105,6 +107,52 @@ MTL::MTL(string metadata_path){
     this->sun_elevation = atof(mtl["SUN_ELEVATION"].c_str());
     this->distance_earth_sun = atof(mtl["EARTH_SUN_DISTANCE"].c_str());
 };
+
+Sensor::Sensor(int number_sensor, int year){
+    string sensor_path = capture_parameter_path(number_sensor, year);
+    load_parameter_values(sensor_path);
+}
+
+string Sensor::capture_parameter_path(int number_sensor, int year){
+    switch(number_sensor){
+        case 8:
+            return "src/parametros/LC.data";
+            break;
+        case 7:
+            return "src/parametros/ETM.data";
+            break;
+        case 5:
+            if(year < 1992)
+                return "src/parametros/TM1.data";
+            else
+                return "src/parametros/TM2.data";
+            break;
+        default:
+            cerr << "Sensor problem" << endl;
+            exit(6);
+    }
+}
+
+void Sensor::load_parameter_values(string sensor_path){
+    ifstream in(sensor_path);
+    if(!in.is_open() || !in) exit(1);
+
+    string line, token;
+    for(int i = 1; i < 8; i++){
+        getline(in, line);
+        stringstream lineReader(line);
+        vector<string> nline;
+        while(lineReader >> token)
+            nline.push_back(token);
+
+        this->parameters[i][this->GRESCALE] = atof(nline[0].c_str());
+        this->parameters[i][this->BRESCALE] = atof(nline[1].c_str());
+        this->parameters[i][this->ESUN] = atof(nline[2].c_str());
+        this->parameters[i][this->WB] = atof(nline[3].c_str());
+    }
+
+    in.close();
+}
 
 bool analisy_shadow(TIFF* read_bands[], TIFF* write_bands[], int number_sensor){
     int mask = set_mask(number_sensor);
