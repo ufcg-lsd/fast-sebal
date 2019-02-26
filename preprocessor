@@ -1,0 +1,16 @@
+#!/bin/bash
+
+image_data_path=$1
+bounding_box_path=$2
+
+for tif in $(find $image_data_path -iname "*.tif");
+do
+  tif_no_extension=${tif%.*}
+  tif_no_tiled=${tif_no_extension}_no_tiled.tif
+  tif_cropped=${tif_no_extension}_cropped.tif
+
+  gdal_translate -co "TILED=NO" $tif $tif_no_tiled
+  gdalwarp --config GDALWARP_IGNORE_BAD_CUTLINE YES -cutline $bounding_box_path $tif_no_tiled $tif_cropped -dstnodata -nan -crop_to_cutline
+
+  rm -rf $tif_no_tiled
+done
