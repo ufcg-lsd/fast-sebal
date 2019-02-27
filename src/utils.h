@@ -1,12 +1,6 @@
 #pragma once
 
 #include "types.h"
-#include <iostream>
-#include <string.h>
-#include <fstream>
-#include <sstream>
-#include <map>
-#include <vector>
 
 struct PixelReader{
 	uint16 sampleFormat;
@@ -22,6 +16,7 @@ struct PixelReader{
 struct MTL{
     int number_sensor, julian_day, year;
     double sun_elevation, distance_earth_sun;
+	double rad_mult_10, rad_add_10;
 
     MTL();
     MTL(string metadata_path);
@@ -43,3 +38,7 @@ struct Sensor{
 bool analisy_shadow(TIFF* read_bands[], TIFF* write_bands[], int number_sensor);
 
 int set_mask(int number_sensor);
+
+void setup(TIFF* new_tif, TIFF* base_tif);
+
+void close_tifs(TIFF* tifs[], int quant_tifs);

@@ -1,43 +1,24 @@
 #include "utils.h"
-#include <tiffio.h>
-#include <string>
-#include <iostream>
+#include "landsat.h"
+#include "products.h"
 
 using namespace std;
 
-void setup(TIFF* new_tif, TIFF* base_tif){
-    uint32 image_width, image_length;
-
-    TIFFGetField(base_tif, TIFFTAG_IMAGEWIDTH,      &image_width);
-    TIFFGetField(base_tif, TIFFTAG_IMAGELENGTH,     &image_length);
-    
-    TIFFSetField(new_tif, TIFFTAG_IMAGEWIDTH     , image_width); 
-    TIFFSetField(new_tif, TIFFTAG_IMAGELENGTH    , image_length);
-    TIFFSetField(new_tif, TIFFTAG_BITSPERSAMPLE  , 64);
-    TIFFSetField(new_tif, TIFFTAG_SAMPLEFORMAT   , 3);
-    TIFFSetField(new_tif, TIFFTAG_COMPRESSION    , 1);
-    TIFFSetField(new_tif, TIFFTAG_PHOTOMETRIC    , 1);
-    TIFFSetField(new_tif, TIFFTAG_SAMPLESPERPIXEL, 1);
-    TIFFSetField(new_tif, TIFFTAG_ROWSPERSTRIP   , 1);
-    TIFFSetField(new_tif, TIFFTAG_RESOLUTIONUNIT , 1);
-    TIFFSetField(new_tif, TIFFTAG_XRESOLUTION    , 1);
-    TIFFSetField(new_tif, TIFFTAG_YRESOLUTION    , 1);
-    TIFFSetField(new_tif, TIFFTAG_PLANARCONFIG   , PLANARCONFIG_CONTIG);
-}
-
 int main(int argc, char *argv[]){
+    string output_path = argv[11];
+
     string metadata_path = argv[9];
     MTL mtl = MTL(metadata_path);
     
     Sensor sensor = Sensor(mtl.number_sensor, mtl.year);
 
-    TIFF *read_bands[9], *write_bands[9];
+    TIFF *read_bands[9], *no_shadow_bands[9];
     for(int i = 1; i < 9; i++){
         string path_tiff_base = argv[i];
         read_bands[i] = TIFFOpen(path_tiff_base.c_str(), "rm");
 
-        string path_tiff_write = path_tiff_base.substr(0, path_tiff_base.size() - 4) + "_write.tif";
-        write_bands[i] = TIFFOpen(path_tiff_write.c_str(), "w8m");
+        string path_tiff_write = path_tiff_base.substr(0, path_tiff_base.size() - 4) + "_no_shadow.tif";
+        no_shadow_bands[i] = TIFFOpen(path_tiff_write.c_str(), "w8m");
 
         if(!read_bands[i]){
             cerr << "Open problem" << endl;
@@ -46,25 +27,44 @@ int main(int argc, char *argv[]){
 
         //Check write bands (ERROR)
 
-        setup(write_bands[i], read_bands[i]);
+        setup(no_shadow_bands[i], read_bands[i]);
     }
 
-    if(!analisy_shadow(read_bands, write_bands, mtl.number_sensor)){
-        for(int i = 1; i < 9; i++){
-            TIFFClose(read_bands[i]);
-            TIFFClose(write_bands[i]);
-        }
+    string raster_elevation_path = argv[10];
+    TIFF* raster_elevation = TIFFOpen(raster_elevation_path.c_str(), "rm");
+    if(!raster_elevation){
+        cerr << "Open raster elevation problem" << endl;
+        return 1;
+    }
+    string tal_path = tal_function(raster_elevation, output_path);
+    TIFFClose(raster_elevation);
+
+    if(!analisy_shadow(read_bands, no_shadow_bands, mtl.number_sensor)){
+        close_tifs(read_bands, 9);
+        close_tifs(no_shadow_bands, 9);
         cerr << "Shadow problem" << endl;
         exit(5);
     }
 
-    //calculate products (NDVI, EVI, ...)
-    //calculate ET, ET24h
+    close_tifs(read_bands, 9);
+    close_tifs(no_shadow_bands, 9);
 
-    for(int i = 1; i < 9; i++){
-        TIFFClose(read_bands[i]);
-        TIFFClose(write_bands[i]);
+    for(int i = 1; i < 8; i++){
+        string path_tiff_base = argv[i];
+        path_tiff_base = path_tiff_base.substr(0, path_tiff_base.size() - 4) + "_no_shadow.tif";
+
+        read_bands[i] = TIFFOpen(path_tiff_base.c_str(), "rm");
+        if(!read_bands[i]){
+            cerr << "Open problem" << endl;
+            return 1;
+        }
     }
 
+    Landsat landsat = Landsat(tal_path, output_path);
+    landsat.process(read_bands, mtl, sensor);
+
+    //calculate ET, ET24h
+
+    close_tifs(read_bands, 8);
     return 0;
 }

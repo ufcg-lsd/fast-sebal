@@ -69,6 +69,8 @@ MTL::MTL(){
     this->julian_day = 0;
     this->year = 0;
     this->sun_elevation = 0;
+    this->rad_add_10 = 0;
+    this->rad_mult_10 = 0;
 };
 
 MTL::MTL(string metadata_path){
@@ -106,6 +108,11 @@ MTL::MTL(string metadata_path){
     this->year = atoi(year);
     this->sun_elevation = atof(mtl["SUN_ELEVATION"].c_str());
     this->distance_earth_sun = atof(mtl["EARTH_SUN_DISTANCE"].c_str());
+
+    if(this->number_sensor == 8){
+        rad_mult_10 = atof(mtl["RADIANCE_MULT_BAND_10"].c_str());
+        rad_add_10 = atof(mtl["RADIANCE_ADD_BAND_10"].c_str());
+    }
 };
 
 Sensor::Sensor(int number_sensor, int year){
@@ -177,8 +184,8 @@ bool analisy_shadow(TIFF* read_bands[], TIFF* write_bands[], int number_sensor){
         pixel_read_bands[i] = PixelReader(sample_band, byte_size_band, line_bands[i]);
     }
 
-    TIFFGetField(read_bands[8], TIFFTAG_IMAGEWIDTH, &width_band);
-    TIFFGetField(read_bands[8], TIFFTAG_IMAGELENGTH, &heigth_band);
+    TIFFGetField(read_bands[1], TIFFTAG_IMAGEWIDTH, &width_band);
+    TIFFGetField(read_bands[1], TIFFTAG_IMAGELENGTH, &heigth_band);
 
     for(int line = 0; line < heigth_band; line ++){
         for(int i = 1; i < 9; i++)
@@ -221,3 +228,28 @@ int set_mask(int number_sensor){
     else
         return 2720;
 };
+
+void setup(TIFF* new_tif, TIFF* base_tif){
+    uint32 image_width, image_length;
+
+    TIFFGetField(base_tif, TIFFTAG_IMAGEWIDTH,      &image_width);
+    TIFFGetField(base_tif, TIFFTAG_IMAGELENGTH,     &image_length);
+    
+    TIFFSetField(new_tif, TIFFTAG_IMAGEWIDTH     , image_width); 
+    TIFFSetField(new_tif, TIFFTAG_IMAGELENGTH    , image_length);
+    TIFFSetField(new_tif, TIFFTAG_BITSPERSAMPLE  , 64);
+    TIFFSetField(new_tif, TIFFTAG_SAMPLEFORMAT   , 3);
+    TIFFSetField(new_tif, TIFFTAG_COMPRESSION    , 1);
+    TIFFSetField(new_tif, TIFFTAG_PHOTOMETRIC    , 1);
+    TIFFSetField(new_tif, TIFFTAG_SAMPLESPERPIXEL, 1);
+    TIFFSetField(new_tif, TIFFTAG_ROWSPERSTRIP   , 1);
+    TIFFSetField(new_tif, TIFFTAG_RESOLUTIONUNIT , 1);
+    TIFFSetField(new_tif, TIFFTAG_XRESOLUTION    , 1);
+    TIFFSetField(new_tif, TIFFTAG_YRESOLUTION    , 1);
+    TIFFSetField(new_tif, TIFFTAG_PLANARCONFIG   , PLANARCONFIG_CONTIG);
+}
+
+void close_tifs(TIFF* tifs[], int quant_tifs){
+    for(int i = 1; i < quant_tifs; i++)
+        TIFFClose(tifs[i]);
+}
