@@ -5,10 +5,13 @@
 using namespace std;
 
 int main(int argc, char *argv[]){
-    string output_path = argv[11];
+    string output_path = argv[12];
 
     string metadata_path = argv[9];
     MTL mtl = MTL(metadata_path);
+
+    string dados_estacao_path = argv[11];
+    Estacao estacao = Estacao(dados_estacao_path);
     
     Sensor sensor = Sensor(mtl.number_sensor, mtl.year);
 

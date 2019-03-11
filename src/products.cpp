@@ -162,19 +162,133 @@ void evi_function(double reflectance_line[][8], int width_band, int line, TIFF *
     }
 };//
 
-void enb_emissivity_function(){
+void enb_emissivity_function(TIFF* lai, TIFF* ndvi, TIFF* enb){
 
+    uint32 width_band;
+    uint16 sample_band;
+
+    PixelReader pixel_read_lai;
+    tdata_t line_read_lai, line_read_ndvi;
+    TIFFGetField(lai, TIFFTAG_SAMPLEFORMAT, &sample_band);
+    TIFFGetField(lai, TIFFTAG_IMAGEWIDTH, &width_band);
+    unsigned short byte_size_band = TIFFScanlineSize(lai) / width_band;
+    line_read_lai = _TIFFmalloc(TIFFScanlineSize(lai));
+    pixel_read_lai = PixelReader(sample_band, byte_size_band, line_read_lai);
+
+    PixelReader pixel_read_ndvi;
+    tdata_t line_read_ndvi;
+    TIFFGetField(ndvi, TIFFTAG_SAMPLEFORMAT, &sample_band);
+    TIFFGetField(ndvi, TIFFTAG_IMAGEWIDTH, &width_band);
+    unsigned short byte_size_band = TIFFScanlineSize(ndvi) / width_band;
+    line_read_ndvi = _TIFFmalloc(TIFFScanlineSize(ndvi));
+    pixel_read_ndvi = PixelReader(sample_band, byte_size_band, line_read_ndvi);
+    
+
+    /*
+    TODO
+    Nao sei se o que eu fiz acima funciona, como o Pixel Reader sabe de qual linha ele deve ler?
+    Temos que ver o que fazer, se vamos ficar passando os TIFs do LAI e do NVDI, ou só o array double da linha deles, e se for o caso onde iremos ler?
+    E se vamos escrever um TIF enb ou a função recebe como parametro o array do enb, isso se ela for ser chamada de dentro do TS.
+    */
+
+    double enb_line[width_band];
+
+    for(int col = 0; col < width_band; col++){
+        if(pixel_read_ndvi.read_pixel(col) < 0 || pixel_read_lai.read_pixel(col) > 2.99) evi_line[col] = 0.98;
+        else evi_line[col] = 0.97 + 0.0033 * pixel_read_lai.read_pixel(col);
+    }
+
+    
 }; //usa LAI //so eh usada no TS
 
-void eo_emissivity_function(){
+void eo_emissivity_function(TIFF* lai, TIFF* ndvi, TIFF* eo){
+
+    uint32 width_band;
+    uint16 sample_band;
+
+    PixelReader pixel_read_lai;
+    tdata_t line_read_lai, line_read_ndvi;
+    TIFFGetField(lai, TIFFTAG_SAMPLEFORMAT, &sample_band);
+    TIFFGetField(lai, TIFFTAG_IMAGEWIDTH, &width_band);
+    unsigned short byte_size_band = TIFFScanlineSize(lai) / width_band;
+    line_read_lai = _TIFFmalloc(TIFFScanlineSize(lai));
+    pixel_read_lai = PixelReader(sample_band, byte_size_band, line_read_lai);
+
+    PixelReader pixel_read_ndvi;
+    tdata_t line_read_ndvi;
+    TIFFGetField(ndvi, TIFFTAG_SAMPLEFORMAT, &sample_band);
+    TIFFGetField(ndvi, TIFFTAG_IMAGEWIDTH, &width_band);
+    unsigned short byte_size_band = TIFFScanlineSize(ndvi) / width_band;
+    line_read_ndvi = _TIFFmalloc(TIFFScanlineSize(ndvi));
+    pixel_read_ndvi = PixelReader(sample_band, byte_size_band, line_read_ndvi);
+    
+
+    /*
+    TODO
+    Mesma situacao do enb.
+    */
+
+    double eo_line[width_band];
+
+    for(int col = 0; col < width_band; col++){
+        if(pixel_read_ndvi.read_pixel(col) < 0 || pixel_read_lai.read_pixel(col) > 2.99) evi_line[col] = 0.98;
+        else evi_line[col] = 0.95 + 0.01 * pixel_read_lai.read_pixel(col);
+    }
+
 
 }; //usa LAI
 
-void ea_emissivity_function(){
+void ea_emissivity_function(double tal_line[], double ea_emissivity_line[], int width_band){
+
+    for (int col = 0; col < width_band; col++){
+        ea_emissivity_line[col] = 0.85 * pow((-1 * log(tal_line[col])), 0.09);
+    }
 
 }; //usa tal //so eh usada no RLat
 
-void kelvin_surface_temperature_function(){
+void kelvin_surface_temperature_function(int number_sensor, int width_band, int line, double radiance_line[][8], double enb_line[], TIFF* ts){
+    double ts_line[width_band];
+    double k1, k2;
+
+    switch(number_sensor){
+        case 5:
+            {
+                k1 = 607.76;
+                k2 = 1282.71;
+
+                for(int col = 0 < col < width_band; col++){
+                    ts_line[col] = k2 / (log( (enb_line[col] * k1 / radiance_line[col][6]) + 1));
+                }
+            }
+            break;
+        case 7:
+            {
+                k1 = 666.09;
+                k2 = 1260.56;
+
+                for(int col = 0 < col < width_band; col++){
+                    ts_line[col] = k2 / (log( (enb_line[col] * k1 / radiance_line[col][7]) + 1));
+                }
+            }
+            break;
+        case 8:
+            {
+                k1 = 774.8853;
+                k2 = 1321.0789;
+
+                for(int col = 0 < col < width_band; col++){
+                    ts_line[col] = k2 / (log( (enb_line[col] * k1 / radiance_line[col][7]) + 1));
+                }
+            }
+            break;
+        default:
+            break;
+    }
+
+    if (TIFFWriteScanline(ts, ts_line, line) < 0){
+        cerr << "Write problem in ts tif" << endl;
+        exit(4);
+    }
 
 }; //usa enb e radiance
 
@@ -187,25 +301,49 @@ void short_wave_radiation_function(double tal_line[], MTL mtl, int width_band, d
     }
 }; //Rs //usa costheta, tal e d_sun_eart
 
-void large_wave_radiation_surface_function(){
+void large_wave_radiation_surface_function(double eo_line[], double ts_line[], double large_wave_radiation_surface_line[], int width_band){
+
+    //TODO decidir por usar array ts_line ou passar o tiff e ler
+
+    double ts_value = ts_line[col] * ts_line[col] * ts_line[col] * ts_line[col];
+    for(int col = 0; col < width_band; col++){
+        //TODO O que tu acha melhor? usar pow ou deixar as quatro multiplicacoes?
+        large_wave_radiation_surface_line[col] = eo_line * 5.67 * 1e-8 * ts_value;
+    }
 
 }; //RLsup //usa eo e TS
 
-void large_wave_radiation_atmosphere_function(){
+void large_wave_radiation_atmosphere_function(int width_band, int ts_line[], double temperatura_estacao){
+    double ea_emissivity_line[width_band];
+    double large_wave_radiation_atmosphere_line[width_band];
+
+    ea_emissivity_function(tal_line, ea_emissivity_line, width_band);
+
+    int table_value = (temperatura_estacao + 273.15) * (temperatura_estacao + 273.15) * (temperatura_estacao+ 273.15) * (temperatura_estacao + 273.15);
+
+    for(int col = 0; col < width_band; col++){
+        large_wave_radiation_atmosphere_line[col] = ea_emissivity_line[col] * 5.67 * 1e-8 * table_value;
+    }
 
 }; //RLat //usa ea e .station
 
-void net_radiation_function(double tal_line[], double albedo_line[], MTL mtl, int width_band, int line, TIFF *net_radiation){
+void net_radiation_function(double tal_line[], double albedo_line[], MTL mtl, int width_band, int line, TIFF *net_radiation, double temperatura_estacao){
     double net_radiation_line[width_band];
     double short_wave_radiation_line[width_band];
     double large_wave_radiation_surface_line[width_band];
     double large_wave_radiation_atmosphere_line[width_band];
     double eo_emissivity_line[width_band];
 
-    short_wave_radiation_function(tal_line, mtl, width_band, short_wave_radiation_line);
-    large_wave_radiation_atmosphere_function();
-    large_wave_radiation_surface_function();
+    /*
+        TODO
+        Decidir o que fazer com o TS, se vai ler ele aqui e passa o array ts_line pros outros.
+        Decidir como vai ser com o eo.
+    */
+
     eo_emissivity_function();
+    short_wave_radiation_function(tal_line, mtl, width_band, short_wave_radiation_line);
+    large_wave_radiation_atmosphere_function(width_band, ts_line, temperatura_estacao);
+    large_wave_radiation_surface_function(eo_line[], ts_line[], large_wave_radiation_surface_line[], width_band);
 
     for (int col = 0; col < width_band; col++){
         net_radiation_line[col] = short_wave_radiation_line[col] - (short_wave_radiation_line[col] * albedo_line[col]) +

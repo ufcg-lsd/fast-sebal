@@ -35,6 +35,17 @@ struct Sensor{
 	void load_parameter_values(string sensor_path);
 };
 
+struct Estacao {
+	double latitude; //v4
+	double longitude; //v5
+	vector<double> hora; //n sei o que eh, mas parece ser hora v3
+	vector<double> temperatura; //v7
+	vector<double> v6; //n sei o que eh
+
+	Estacao();
+	Estacao(string dados_estacao_path);
+}
+
 bool analisy_shadow(TIFF* read_bands[], TIFF* write_bands[], int number_sensor);
 
 int set_mask(int number_sensor);

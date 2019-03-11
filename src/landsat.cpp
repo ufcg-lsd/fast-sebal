@@ -75,7 +75,8 @@ void Landsat::process(TIFF* read_bands[], MTL mtl, Sensor sensor){
         albedo_function(reflectance_line, sensor, tal_line, width_band, mtl.number_sensor, line, albedo_line);
         lai_function(reflectance_line, width_band, line, lai);
 
-
+        //Fechar os TIFS lai e ndvi e reabrir como leitura
+        
 
         net_radiation_function(tal_line, albedo_line, mtl, width_band, line, net_radiation);
 

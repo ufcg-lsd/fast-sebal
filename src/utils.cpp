@@ -253,3 +253,43 @@ void close_tifs(TIFF* tifs[], int quant_tifs){
     for(int i = 1; i < quant_tifs; i++)
         TIFFClose(tifs[i]);
 }
+
+Estacao::Estacao(){
+    this->latitude = 0;
+    this->longitude = 0;
+    this->hora = 0;
+    this->temperatura = 0;
+    this->v6 = 0;
+}
+
+Estacao::Estacao(string dados_estacao_path){
+    ifstream in(metadata_path);
+    if(!in.is_open() || !in) exit(1);
+
+    string line;
+    for(int i = 0; i < 14; i++){
+        getline(in, line, ';');
+        stringstream lineReader(line);
+        
+        switch(i){
+            case 3:
+                this->hora.push_back(atoi(token.c_str());
+                break;
+            case 4:
+                this->latitude = atof(token.c_str());
+                break;
+            case 5:
+                this->longitude = atof(token.c_str());
+                break;
+            case 6:
+                this->v6.push_back(atof(token.c_str());
+                break;
+            case 7:
+                this->temperatura.push_back(atof(.c_str()));
+                break;
+            default:
+                break;
+        }
+    }
+    
+}
