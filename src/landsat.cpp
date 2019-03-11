@@ -38,7 +38,7 @@ void Landsat::process(TIFF* read_bands[], MTL mtl, Sensor sensor){
     TIFFGetField(read_bands[1], TIFFTAG_IMAGELENGTH, &heigth_band);
 
     TIFF* tal = TIFFOpen(this->tal_path.c_str(), "rm");
-    double tal_line[width_band];
+    double tal_line[width_band], albedo_line[width_band];
     double radiance_line[width_band][8];
     double reflectance_line[width_band][8];
 
@@ -72,8 +72,17 @@ void Landsat::process(TIFF* read_bands[], MTL mtl, Sensor sensor){
             exit(3);
         }
 
-        albedo_function(reflectance_line, sensor, tal_line, width_band, mtl.number_sensor, line, albedo);
-        
+        albedo_function(reflectance_line, sensor, tal_line, width_band, mtl.number_sensor, line, albedo_line);
+        lai_function(reflectance_line, width_band, line, lai);
+
+
+
+        net_radiation_function(tal_line, albedo_line, mtl, width_band, line, net_radiation);
+
+        if (TIFFWriteScanline(albedo, albedo_line, line) < 0){
+            cerr << "Write problem in albedo tif" << endl;
+            exit(4);
+        }
     }
 
     TIFFClose(albedo);
