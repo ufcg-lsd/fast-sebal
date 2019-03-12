@@ -2,6 +2,8 @@
 
 #include "types.h"
 #include "utils.h"
+#include <algorithm>
+#include <math.h>
 
 string tal_function(TIFF* raster_elevation, string output_path);
 void radiance_function(PixelReader pixel_read_bands[], MTL mtl, Sensor sensor, int width_band, double radiance_line[][8]);
@@ -21,3 +23,5 @@ void net_radiation_function(double short_wave_radiation_line[], double large_wav
                             double large_wave_radiation_atmosphere_line[], double albedo_line[],
                             double eo_emissivity_line[], int width_band, double net_radiation_line[]);
 void soil_heat_flux_function(double ndvi_line[], double surface_temperature_line[], double albedo_line[], double net_radiation_line[], int width_band, double soil_heat_flux[]);
+void ho_function(double net_radiation_line[], double soil_heat_flux[], double ho_line[], int width_band);
+void select_hot_pixel(double surface_temperature_line[], double ndvi_line[], double ho_line[], int width_band, int line, vector<Candidate> hot_pixel_candidates);

@@ -94,10 +94,55 @@ void Landsat::process_parcial_products(TIFF* read_bands[], MTL mtl, Station stat
     TIFFClose(tal);
 };
 
-void Landsat::process_final_products(){
+void Landsat::process_final_products(vector<TIFF*> parcial_products){
     TIFF *albedo, *ndvi, *evi, *lai, *soil_heat, *surface_temperature, *net_radiation;
     open_tiffs(albedo, ndvi, evi, lai, soil_heat, surface_temperature, net_radiation);
 
+    uint32 heigth_band, width_band;
+    TIFFGetField(albedo, TIFFTAG_IMAGELENGTH, &heigth_band);
+    TIFFGetField(albedo, TIFFTAG_IMAGEWIDTH, &width_band);
+
+    //Declare array with parcial products information
+    
+    /*
+    TODO acho que vai ter que ser um pixel reader pra cada um, mas eu não
+    tenho ctz pq n sei como funciona o pixelreader.
+
+    Ou pra deixar mais facil, dentro da charge tiffs, percorrer e salvar
+    o valor do read_pixel no vetor.
+    */
+    double albedo_line[width_band], ndvi_line[width_band];
+    double evi_line[width_band], lai_line[width_band];
+    double soil_heat_line[width_band], surface_temperature_line[width_band];
+    double net_radiation_line[width_band];
+
+    //Declare auxiliar products information
+    double ho_line[width_band];
+    vector<Candidate> hot_pixel_candidates;
+    vector<Canditate> cold_pixel_candidates;
+
+    for(int line = 0; line < heigth_band; line++){
+        charge_tiffs(vector<double*> {albedo_line, ndvi_line, evi_line, lai_line, soil_heat_line, surface_temperature_line, net_radiation_line}, 
+                     parcial_products);
+
+        ho_function(net_radiation_line, soil_heat_line, ho_line);
+
+        select_hot_pixel(surface_temperature_line, ndvi_line, ho_line, width_band, line, hot_pixel_candidates);
+        //Usa TS, NDVI, HO, 
+    }
+
+    /*  TODO
+        Como a gente itera linha por linha, vamos ter q iterar em todas
+        executando a seleção de quente e frio. E depois aplicar a seleção dnv
+        se ainda tiver mais de um. Então o Canditate vai guardar mais coisas do que
+        eu fiz inicialmente. Vai precisar da temperatura, ndvi, e ho
+    */
+
+    /*  TODO
+        Acho que vamos ter q modificar as funções
+        Pq acho q pra C++ ter efeito colateral num array dentro de uma função
+        tem que passar ele como ponteiro.
+    */
 
 };
 
