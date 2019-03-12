@@ -15,7 +15,7 @@ Landsat::Landsat(string tal_path, string output_path){
     this->net_radiation_path = output_path + "/Rn.tif";
 };
 
-void Landsat::process(TIFF* read_bands[], MTL mtl, Sensor sensor){
+void Landsat::process_parcial_products(TIFF* read_bands[], MTL mtl, Station station, Sensor sensor){
     uint32 heigth_band, width_band;
 
     PixelReader pixel_read_bands[8];
@@ -37,53 +37,51 @@ void Landsat::process(TIFF* read_bands[], MTL mtl, Sensor sensor){
     TIFFGetField(read_bands[1], TIFFTAG_IMAGEWIDTH, &width_band);
     TIFFGetField(read_bands[1], TIFFTAG_IMAGELENGTH, &heigth_band);
 
-    TIFF* tal = TIFFOpen(this->tal_path.c_str(), "rm");
-    double tal_line[width_band], albedo_line[width_band];
+    TIFF *tal = TIFFOpen(this->tal_path.c_str(), "rm");
+    check_open_tiff(tal);
+
+    double tal_line[width_band];
+
+    TIFF *albedo, *ndvi, *evi, *lai, *soil_heat, *surface_temperature, *net_radiation;
+    create_tiffs(tal, albedo, ndvi, evi, lai, soil_heat, surface_temperature, net_radiation);
+
+    //Declare array with product information
+    double albedo_line[width_band], ndvi_line[width_band];
+    double evi_line[width_band], lai_line[width_band];
+    double soil_heat_line[width_band], surface_temperature_line[width_band];
+    double net_radiation_line[width_band];
+
+    //Declare auxiliars arrays
     double radiance_line[width_band][8];
     double reflectance_line[width_band][8];
 
-    TIFF* albedo = TIFFOpen(albedo_path.c_str(), "w8m");
-    setup(albedo, tal);
-
-    TIFF* ndvi = TIFFOpen(ndvi_path.c_str(), "w8m");
-    setup(ndvi, tal);
-
-    TIFF* evi = TIFFOpen(evi_path.c_str(), "w8m");
-    setup(evi, tal);
-
-    TIFF* lai = TIFFOpen(lai_path.c_str(), "w8m");
-    setup(lai, tal);
-
-    TIFF* soil_heat = TIFFOpen(soil_heat_path.c_str(), "w8m");
-    setup(soil_heat, tal);
-
-    TIFF* surface_temperature = TIFFOpen(surface_temperature_path.c_str(), "w8m");
-    setup(surface_temperature, tal);
-
-    TIFF* net_radiation = TIFFOpen(net_radiation_path.c_str(), "w8m");
-    setup(net_radiation, tal);
+    //Declare arrays of auxiliars products
+    double eo_emissivity_line[width_band], ea_emissivity_line[width_band], enb_emissivity_line[width_band];
+    double large_wave_radiation_atmosphere_line[width_band], large_wave_radiation_surface_line[width_band];
+    double short_wave_radiation_line[width_band];
 
     for(int line = 0; line < heigth_band; line ++){
         radiance_function(pixel_read_bands, mtl, sensor, width_band, radiance_line);
         reflectance_function(pixel_read_bands, mtl, sensor, radiance_line, width_band, reflectance_line);
 
-        if(TIFFReadScanline(tal, tal_line, line) < 0){
-            cerr << "Read problem" << endl;
-            exit(3);
-        }
+        read_line_tiff(tal, tal_line, line);
 
-        albedo_function(reflectance_line, sensor, tal_line, width_band, mtl.number_sensor, line, albedo_line);
-        lai_function(reflectance_line, width_band, line, lai);
+        albedo_function(reflectance_line, sensor, tal_line, width_band, mtl.number_sensor, albedo_line);
+        short_wave_radiation_function(tal_line, mtl, width_band, short_wave_radiation_line);
+        ndvi_function(reflectance_line, width_band, ndvi_line);
+        lai_function(reflectance_line, width_band, lai_line);
+        evi_function(reflectance_line, width_band, evi_line);
+        enb_emissivity_function(lai_line, ndvi_line, width_band, enb_emissivity_line);
+        eo_emissivity_function(lai_line, ndvi_line, width_band, eo_emissivity_line);
+        surface_temperature_function(radiance_line, enb_emissivity_line, mtl.number_sensor, width_band, surface_temperature_line);
+        large_wave_radiation_surface_function(eo_emissivity_line, surface_temperature_line, width_band, large_wave_radiation_surface_line);
+        ea_emissivity_function(tal_line, width_band, ea_emissivity_line);
+        large_wave_radiation_atmosphere_function(tal_line, width_band, station.temperature_image, large_wave_radiation_atmosphere_line);
+        net_radiation_function(short_wave_radiation_line, large_wave_radiation_surface_line, large_wave_radiation_atmosphere_line, albedo_line, eo_emissivity_line, width_band, net_radiation_line);
+        soil_heat_flux_function(ndvi_line, surface_temperature_line, albedo_line, net_radiation_line, width_band, soil_heat_line);
 
-        //Fechar os TIFS lai e ndvi e reabrir como leitura
-        
-
-        net_radiation_function(tal_line, albedo_line, mtl, width_band, line, net_radiation);
-
-        if (TIFFWriteScanline(albedo, albedo_line, line) < 0){
-            cerr << "Write problem in albedo tif" << endl;
-            exit(4);
-        }
+        save_tiffs(vector<double*> {albedo_line, ndvi_line, evi_line, lai_line, soil_heat_line, surface_temperature_line, net_radiation_line},
+                    vector<TIFF*> {albedo, ndvi, evi, lai, soil_heat, surface_temperature, net_radiation}, line);
     }
 
     TIFFClose(albedo);
@@ -94,4 +92,53 @@ void Landsat::process(TIFF* read_bands[], MTL mtl, Sensor sensor){
     TIFFClose(surface_temperature);
     TIFFClose(net_radiation);
     TIFFClose(tal);
+};
+
+void Landsat::process_final_products(){
+    TIFF *albedo, *ndvi, *evi, *lai, *soil_heat, *surface_temperature, *net_radiation;
+    open_tiffs(albedo, ndvi, evi, lai, soil_heat, surface_temperature, net_radiation);
+
+
+};
+
+void Landsat::create_tiffs(TIFF *tal, TIFF *albedo, TIFF *ndvi, TIFF *evi, TIFF *lai, TIFF *soil_heat, TIFF *surface_temperature, TIFF *net_radiation){
+    albedo = TIFFOpen(albedo_path.c_str(), "w8m");
+    setup(albedo, tal);
+
+    ndvi = TIFFOpen(ndvi_path.c_str(), "w8m");
+    setup(ndvi, tal);
+
+    evi = TIFFOpen(evi_path.c_str(), "w8m");
+    setup(evi, tal);
+
+    lai = TIFFOpen(lai_path.c_str(), "w8m");
+    setup(lai, tal);
+
+    soil_heat = TIFFOpen(soil_heat_path.c_str(), "w8m");
+    setup(soil_heat, tal);
+
+    surface_temperature = TIFFOpen(surface_temperature_path.c_str(), "w8m");
+    setup(surface_temperature, tal);
+
+    net_radiation = TIFFOpen(net_radiation_path.c_str(), "w8m");
+    setup(net_radiation, tal);
+};
+
+void Landsat::open_tiffs(TIFF *albedo, TIFF *ndvi, TIFF *evi, TIFF *lai, TIFF *soil_heat, TIFF *surface_temperature, TIFF *net_radiation){
+
+    albedo = TIFFOpen(albedo_path.c_str(), "rm");
+    ndvi = TIFFOpen(ndvi_path.c_str(), "rm");
+    evi = TIFFOpen(evi_path.c_str(), "rm");
+    lai = TIFFOpen(lai_path.c_str(), "rm");
+    soil_heat = TIFFOpen(soil_heat_path.c_str(), "rm");
+    surface_temperature = TIFFOpen(surface_temperature_path.c_str(), "rm");
+    net_radiation = TIFFOpen(net_radiation_path.c_str(), "rm");
+
+}
+
+void Landsat::save_tiffs(vector<double*> products_line, vector<TIFF*> products, int line){
+
+    for (int i = 0; i < 7; i++){
+        write_line_tiff(products[i], products_line[i], line);
+    }
 };

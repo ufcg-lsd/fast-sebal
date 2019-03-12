@@ -17,6 +17,7 @@ struct MTL{
     int number_sensor, julian_day, year;
     double sun_elevation, distance_earth_sun;
 	double rad_mult_10, rad_add_10;
+	double image_hour;
 
     MTL();
     MTL(string metadata_path);
@@ -35,21 +36,31 @@ struct Sensor{
 	void load_parameter_values(string sensor_path);
 };
 
-struct Estacao {
-	double latitude; //v4
-	double longitude; //v5
-	vector<double> hora; //n sei o que eh, mas parece ser hora v3
-	vector<double> temperatura; //v7
-	vector<double> v6; //n sei o que eh
+struct Station {
+	vector< vector<string> > info;
+	double temperature_image;
 
-	Estacao();
-	Estacao(string dados_estacao_path);
-}
+	Station();
+	Station(string estation_data_path, double image_hour);
+};
+
+struct Candidate{
+
+	Candidate();
+};
 
 bool analisy_shadow(TIFF* read_bands[], TIFF* write_bands[], int number_sensor);
 
 int set_mask(int number_sensor);
 
 void setup(TIFF* new_tif, TIFF* base_tif);
+
+void check_open_tiff(TIFF* tif);
+
+void read_line_tiff(TIFF* tif, double tif_line[], int line);
+
+void read_line_tiff(TIFF* tif, tdata_t tif_line, int line);
+
+void write_line_tiff(TIFF* tif, double tif_line[], int line);
 
 void close_tifs(TIFF* tifs[], int quant_tifs);

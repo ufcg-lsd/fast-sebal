@@ -54,12 +54,12 @@ double PixelReader::read_pixel(uint32 colunm){
 					break;
 				default:
 					cerr << "Unsupported operation!" << endl;
-					exit(1);
+					exit(7);
 			}
 			break;
 		default:
 			cerr << "Unsupported operation!" << endl;
-			exit(1);
+			exit(7);
 	}
 	return ret;
 };
@@ -77,7 +77,10 @@ MTL::MTL(string metadata_path){
     map<string, string> mtl;
 
     ifstream in(metadata_path);
-    if(!in.is_open() || !in) exit(1);
+    if(!in.is_open() || !in){
+        cerr << "Open metadata problem!" << endl;
+        exit(2);
+    }
 
     string line;
     while(getline(in, line)){
@@ -103,11 +106,15 @@ MTL::MTL(string metadata_path){
     year[2] = mtl["LANDSAT_SCENE_ID"][12];
     year[3] = mtl["LANDSAT_SCENE_ID"][13];
 
+    int hours = atoi(mtl["SCENE_CENTER_TIME"].substr(1, 2).c_str());
+    int minutes = atoi(mtl["SCENE_CENTER_TIME"].substr(4, 2).c_str());
+
     this->number_sensor = atoi(new char(mtl["LANDSAT_SCENE_ID"][3]));
     this->julian_day = atoi(julian_day);
     this->year = atoi(year);
     this->sun_elevation = atof(mtl["SUN_ELEVATION"].c_str());
     this->distance_earth_sun = atof(mtl["EARTH_SUN_DISTANCE"].c_str());
+    this->image_hour = (hours + minutes / 60.0) * 100;
 
     if(this->number_sensor == 8){
         rad_mult_10 = atof(mtl["RADIANCE_MULT_BAND_10"].c_str());
@@ -142,7 +149,10 @@ string Sensor::capture_parameter_path(int number_sensor, int year){
 
 void Sensor::load_parameter_values(string sensor_path){
     ifstream in(sensor_path);
-    if(!in.is_open() || !in) exit(1);
+    if(!in.is_open() || !in) {
+        cerr << "Open sensor parameters problem" << endl;
+        exit(1);
+    }
 
     string line, token;
     for(int i = 1; i < 8; i++){
@@ -159,7 +169,48 @@ void Sensor::load_parameter_values(string sensor_path){
     }
 
     in.close();
-}
+};
+
+Station::Station(){
+    this->temperature_image = 0;
+};
+
+Station::Station(string station_data_path, double image_hour){
+    ifstream in(station_data_path);
+    if(!in.is_open() || !in){
+        cerr << "Open station data problem!" << endl;
+        exit(2);
+    }
+
+    string line;
+    while(getline(in, line)){
+        istringstream lineReader(line);
+        vector<string> nline;
+        string token;
+        while(getline(lineReader, token, ';'))
+            nline.push_back(token);
+
+        if(nline.size())
+            this->info.push_back(nline);
+    }
+
+    in.close();
+
+    if(this->info.size() < 1){
+        cerr << "Station data empty!" << endl;
+        exit(12);
+    }
+
+    double diff = fabs(atof(this->info[0][2].c_str()) - image_hour);
+    this->temperature_image = atof(this->info[0][6].c_str());
+
+    for(int i = 1; i < this->info.size(); i++){
+        if(fabs(atof(this->info[i][2].c_str()) - image_hour) < diff){
+            diff = fabs(atof(this->info[i][2].c_str()) - image_hour);
+            this->temperature_image = atof(this->info[i][6].c_str());
+        }
+    }
+};
 
 bool analisy_shadow(TIFF* read_bands[], TIFF* write_bands[], int number_sensor){
     int mask = set_mask(number_sensor);
@@ -189,10 +240,7 @@ bool analisy_shadow(TIFF* read_bands[], TIFF* write_bands[], int number_sensor){
 
     for(int line = 0; line < heigth_band; line ++){
         for(int i = 1; i < 9; i++)
-            if(TIFFReadScanline(read_bands[i], line_bands[i], line) < 0){
-                cerr << "Read problem" << endl;
-                exit(3);
-            }
+            read_line_tiff(read_bands[i], line_bands[i], line);
 
         for(int col = 0; col < width_band; col ++){
             for(int i = 1; i < 9; i++)
@@ -212,10 +260,7 @@ bool analisy_shadow(TIFF* read_bands[], TIFF* write_bands[], int number_sensor){
         }
 
         for(int i = 1; i < 9; i++)
-            if(TIFFWriteScanline(write_bands[i], line_write_bands[i], line) < 0){
-                cerr << "Write problem" << endl;
-                exit(4);
-            }
+            write_line_tiff(write_bands[i], line_write_bands[i], line);
         
     }
 
@@ -247,49 +292,37 @@ void setup(TIFF* new_tif, TIFF* base_tif){
     TIFFSetField(new_tif, TIFFTAG_XRESOLUTION    , 1);
     TIFFSetField(new_tif, TIFFTAG_YRESOLUTION    , 1);
     TIFFSetField(new_tif, TIFFTAG_PLANARCONFIG   , PLANARCONFIG_CONTIG);
-}
+};
+
+void check_open_tiff(TIFF* tif){
+    if(!tif){
+        cerr << "Open tiff problem" << endl;
+        exit(1);
+    }
+};
+
+void read_line_tiff(TIFF* tif, double tif_line[], int line){
+    if(TIFFReadScanline(tif, tif_line, line) < 0){
+        cerr << "Read problem" << endl;
+        exit(3);
+    }
+};
+
+void read_line_tiff(TIFF* tif, tdata_t tif_line, int line){
+    if(TIFFReadScanline(tif, tif_line, line) < 0){
+        cerr << "Read problem" << endl;
+        exit(3);
+    }
+};
+
+void write_line_tiff(TIFF* tif, double tif_line[], int line){
+    if (TIFFWriteScanline(tif, tif_line, line) < 0){
+        cerr << "Write problem!" << endl;
+        exit(4);
+    }
+};
 
 void close_tifs(TIFF* tifs[], int quant_tifs){
     for(int i = 1; i < quant_tifs; i++)
         TIFFClose(tifs[i]);
-}
-
-Estacao::Estacao(){
-    this->latitude = 0;
-    this->longitude = 0;
-    this->hora = 0;
-    this->temperatura = 0;
-    this->v6 = 0;
-}
-
-Estacao::Estacao(string dados_estacao_path){
-    ifstream in(metadata_path);
-    if(!in.is_open() || !in) exit(1);
-
-    string line;
-    for(int i = 0; i < 14; i++){
-        getline(in, line, ';');
-        stringstream lineReader(line);
-        
-        switch(i){
-            case 3:
-                this->hora.push_back(atoi(token.c_str());
-                break;
-            case 4:
-                this->latitude = atof(token.c_str());
-                break;
-            case 5:
-                this->longitude = atof(token.c_str());
-                break;
-            case 6:
-                this->v6.push_back(atof(token.c_str());
-                break;
-            case 7:
-                this->temperatura.push_back(atof(.c_str()));
-                break;
-            default:
-                break;
-        }
-    }
-    
-}
+};
