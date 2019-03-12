@@ -45,8 +45,11 @@ struct Station {
 };
 
 struct Candidate{
+	double ndvi, temperature;
+	double net_radiation, soil_heat_flux;
 
 	Candidate();
+	Candidate(double ndvi, double temperature, double net_radiation, double soil_heat_flux);
 };
 
 bool analisy_shadow(TIFF* read_bands[], TIFF* write_bands[], int number_sensor);

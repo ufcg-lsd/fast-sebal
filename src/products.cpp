@@ -207,17 +207,13 @@ void large_wave_radiation_surface_function(double eo_emissivity_line[], double s
 
 }; //RLsup
 
-void large_wave_radiation_atmosphere_function(double tal_line[], int width_band, double temperature, double large_wave_radiation_atmosphere_line[]){
-    double ea_emissivity_line[width_band];
-
-    ea_emissivity_function(tal_line, width_band, ea_emissivity_line);
+void large_wave_radiation_atmosphere_function(double ea_emissivity_line[], int width_band, double temperature, double large_wave_radiation_atmosphere_line[]){
 
     double temperature_kelvin = temperature + 273.15;
     double temperature_kelvin_pow_4 = temperature_kelvin * temperature_kelvin * temperature_kelvin * temperature_kelvin;
 
-    for(int col = 0; col < width_band; col++){
+    for(int col = 0; col < width_band; col++)
         large_wave_radiation_atmosphere_line[col] = ea_emissivity_line[col] * 5.67 * 1e-8 * temperature_kelvin_pow_4;
-    }
 
 }; //RLatm
 
@@ -253,79 +249,53 @@ void soil_heat_flux_function(double ndvi_line[], double surface_temperature_line
 
 }; //G
 
-void ho_fuction(double net_radiation_line[], double soil_heat_flux[], double ho_line[], int width_band){
+void ho_fuction(double net_radiation_line[], double soil_heat_flux[], int width_band, double ho_line[]){
 
-    for(int col = 0; col < width_band; col++){
+    for(int col = 0; col < width_band; col++)
         ho_line[col] = net_radiation_line[col] - soil_heat_flux[col];
-    }
 
-} //HO
+}; //HO
 
-void select_hot_pixel(double surface_temperature_line[], double ndvi_line[], double ho_line[], int width_band, int line, vector<Candidate> hot_pixel_candidates){
+Candidate select_hot_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_radiation, TIFF* soil_heat, int heigth_band, int width_band){
 
-    vector<double> aux; //x no codigo R
-    for(int col = 0; col < width_band; col++){
-        if(!isnan(ndvi_line[col]) && ndvi_line[col] > 0.15 && ndvi_line[col] < 0.20 && surface_temperature_line[col] > 273.16){
-            aux.push_back(surface_temperature_line[col]);
-        }
-    }
+    double ndvi_line[width_band], surface_temperature_line[width_band];
+    double net_radiation_line[width_band], soil_heat_line[width_band];
+    double ho_line[width_band];
 
-    if(aux.size() == 0) return;
-    
-    sort(aux.begin(), aux.end());
-    int pos = round(0.95 * aux.size());
-    double surface_temperature_hot_pixel = aux[pos];
+    vector<Candidate> pre_candidates;
 
-    vector<double> ho_c_hot;
-    for(int col = 0; col < width_band; col++){
-        if(!isnan(ndvi_line[col]) && ndvi_line[col] > 0.15 && ndvi_line[col] < 0.20 && surface_temperature_line[col] == surface_temperature_hot_pixel){
-            ho_c_hot.push_back(surface_temperature_line[col]);
-        }
-    }
+    for(int line = 0; line < heigth_band; line ++){
 
-    if(ho_c_hot.size() == 0) return;
+        read_line_tiff(net_radiation, net_radiation_line, line);
+        read_line_tiff(soil_heat, soil_heat_line, line);
 
-    if(ho_c_hot.size() == 1){
+        ho_fuction(net_radiation_line, soil_heat_line, width_band, ho_line);
 
-        /* TODO
-            CÓDIGO R
+        read_line_tiff(ndvi, ndvi_line, line);
+        read_line_tiff(surface_temperature, surface_temperature_line, line);
 
-            ll.cold<-which(TS[]==TS.c.cold & HO==HO.c.cold)
-            xy.cold <- xyFromCell(TS, ll.cold)
-            ll.cold.f<-cbind(as.vector(xy.cold[1,1]), as.vector(xy.cold[1,2]))
-
-            Tipo isso ai vai dar as coordenadas do pixel, lat e long, tem como a gente
-            pegar elas estando em C++?
-
-            Mas acho que pro proposito que vai ser usado dps, linha e coluna servem.
-            Vou codar usando eles e tu da uma olhada.
-            
-        */
-
-        for(int col = 0; col < width_band; col++){
-            if(surface_temperature_line[col] == surface_temperature_hot_pixel && ho_line[col] == ho_c_hot){
-                hot_pixel_candidates.push_back(Candidate(line, col));
+        for(int col = 0; col < width_band; col ++){
+            if(!isnan(ndvi_line[col]) && ndvi_line[col] > 0.15 && ndvi_line[col] < 0.20 && surface_temperature_line[col] > 273.16){
+                pre_candidates.push_back(Candidate(ndvi_line[col],
+                                    surface_temperature_line[col],
+                                    net_radiation_line[col],
+                                    soil_heat_line[col]));
             }
         }
+    }
+    
+    sort(pre_candidates.begin(), pre_candidates.end()); // ARRUMAR //ORDENAR POR TEMPERATURA
+    int pos = round(0.95 * pre_candidates.size());
+    double surface_temperature_hot_pixel = pre_candidates[pos].temperature;
 
-    } else {
+    vector<Candidate> candidates;
+    for(Candidate c : pre_candidates){
+        if(c.temperature == surface_temperature_hot_pixel)
+            candidates.push_back(c);
+    }
 
-        /*  TODO
-            Da forma que eu fiz, adicionei no vector direto os valores do NDVI.
-            Pq fiz considerando linha e coluna, em R
-            eles usam a função extract(RASTER, (LAT, LON), BUFFER)
-            esse BUFFER é um raio a partir do LAT e LON
-            em que se tipo tiver outras celulas dentro dele, ele vai pegar os valores
-            também.
-
-            Ai depois disso tem uma divisão de sapplys, desvio padrão / média
-            Acho que isso é feito pq o extract pode retornar mais de um valor por
-            causa do buffer.
-
-            Aparentemente ele só pega o que tem o menor ndvi, então, vou retirar o
-            vector e guardar só lat e lon do ndvi, e ir trocando se for menor.
-        */
-
+    if(candidates.size() > 1){
+        
         vector< pair<double, int> > ndvi_hot;
 
         sort(ho_c_hot.begin(), ho_c_hot.end());
@@ -349,4 +319,8 @@ void select_hot_pixel(double surface_temperature_line[], double ndvi_line[], dou
         desnecessária. Mas vou almoçar agr.
     */
 
-}
+};
+
+Candidate select_cold_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_radiation, TIFF* soil_heat, int heigth_band, int width_band){
+
+};

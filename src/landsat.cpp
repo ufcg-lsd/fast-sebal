@@ -76,7 +76,7 @@ void Landsat::process_parcial_products(TIFF* read_bands[], MTL mtl, Station stat
         surface_temperature_function(radiance_line, enb_emissivity_line, mtl.number_sensor, width_band, surface_temperature_line);
         large_wave_radiation_surface_function(eo_emissivity_line, surface_temperature_line, width_band, large_wave_radiation_surface_line);
         ea_emissivity_function(tal_line, width_band, ea_emissivity_line);
-        large_wave_radiation_atmosphere_function(tal_line, width_band, station.temperature_image, large_wave_radiation_atmosphere_line);
+        large_wave_radiation_atmosphere_function(ea_emissivity_line, width_band, station.temperature_image, large_wave_radiation_atmosphere_line);
         net_radiation_function(short_wave_radiation_line, large_wave_radiation_surface_line, large_wave_radiation_atmosphere_line, albedo_line, eo_emissivity_line, width_band, net_radiation_line);
         soil_heat_flux_function(ndvi_line, surface_temperature_line, albedo_line, net_radiation_line, width_band, soil_heat_line);
 
@@ -102,34 +102,9 @@ void Landsat::process_final_products(vector<TIFF*> parcial_products){
     TIFFGetField(albedo, TIFFTAG_IMAGELENGTH, &heigth_band);
     TIFFGetField(albedo, TIFFTAG_IMAGEWIDTH, &width_band);
 
-    //Declare array with parcial products information
-    
-    /*
-    TODO acho que vai ter que ser um pixel reader pra cada um, mas eu não
-    tenho ctz pq n sei como funciona o pixelreader.
+    Candidate hot_pixel = select_hot_pixel(ndvi, surface_temperature, net_radiation, soil_heat, heigth_band, width_band);
+    Candidate cold_pixel = select_cold_pixel(ndvi, surface_temperature, net_radiation, soil_heat, heigth_band, width_band);
 
-    Ou pra deixar mais facil, dentro da charge tiffs, percorrer e salvar
-    o valor do read_pixel no vetor.
-    */
-    double albedo_line[width_band], ndvi_line[width_band];
-    double evi_line[width_band], lai_line[width_band];
-    double soil_heat_line[width_band], surface_temperature_line[width_band];
-    double net_radiation_line[width_band];
-
-    //Declare auxiliar products information
-    double ho_line[width_band];
-    vector<Candidate> hot_pixel_candidates;
-    vector<Canditate> cold_pixel_candidates;
-
-    for(int line = 0; line < heigth_band; line++){
-        charge_tiffs(vector<double*> {albedo_line, ndvi_line, evi_line, lai_line, soil_heat_line, surface_temperature_line, net_radiation_line}, 
-                     parcial_products);
-
-        ho_function(net_radiation_line, soil_heat_line, ho_line);
-
-        select_hot_pixel(surface_temperature_line, ndvi_line, ho_line, width_band, line, hot_pixel_candidates);
-        //Usa TS, NDVI, HO, 
-    }
 
     /*  TODO
         Como a gente itera linha por linha, vamos ter q iterar em todas

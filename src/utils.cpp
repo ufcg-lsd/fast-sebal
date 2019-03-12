@@ -212,6 +212,20 @@ Station::Station(string station_data_path, double image_hour){
     }
 };
 
+Candidate::Candidate(){
+    this->ndvi = 0;
+    this->temperature = 0;
+    this->net_radiation = 0;
+    this->soil_heat_flux = 0;
+}
+
+Candidate::Candidate(double ndvi, double temperature, double net_radiation, double soil_heat_flux){
+    this->ndvi = ndvi;
+    this->temperature = temperature;
+    this->net_radiation = net_radiation;
+    this->soil_heat_flux = soil_heat_flux;
+}
+
 bool analisy_shadow(TIFF* read_bands[], TIFF* write_bands[], int number_sensor){
     int mask = set_mask(number_sensor);
     uint32 heigth_band, width_band;

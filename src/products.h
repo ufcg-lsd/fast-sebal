@@ -18,10 +18,11 @@ void ea_emissivity_function(double tal_line[], int width_band, double ea_emissiv
 void surface_temperature_function(double radiance_line[][8], double enb_emissivity_line[], int number_sensor, int width_band, double surface_temperature_line[]);
 void short_wave_radiation_function(double tal_line[], MTL mtl, int width_band, double short_wave_radiation_line[]);
 void large_wave_radiation_surface_function(double eo_emissivity_line[], double surface_temperature_line[], int width_band, double large_wave_radiation_surface_line[]);
-void large_wave_radiation_atmosphere_function(double tal_line[], int width_band, double temperature, double large_wave_radiation_atmosphere_line[]);
+void large_wave_radiation_atmosphere_function(double ea_emissivity_line[], int width_band, double temperature, double large_wave_radiation_atmosphere_line[]);
 void net_radiation_function(double short_wave_radiation_line[], double large_wave_radiation_surface_line[],
                             double large_wave_radiation_atmosphere_line[], double albedo_line[],
                             double eo_emissivity_line[], int width_band, double net_radiation_line[]);
 void soil_heat_flux_function(double ndvi_line[], double surface_temperature_line[], double albedo_line[], double net_radiation_line[], int width_band, double soil_heat_flux[]);
-void ho_function(double net_radiation_line[], double soil_heat_flux[], double ho_line[], int width_band);
-void select_hot_pixel(double surface_temperature_line[], double ndvi_line[], double ho_line[], int width_band, int line, vector<Candidate> hot_pixel_candidates);
+void ho_function(double net_radiation_line[], double soil_heat_flux[], int width_band, double ho_line[]);
+Candidate select_hot_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_radiation, TIFF* soil_heat, int heigth_band, int width_band);
+Candidate select_cold_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_radiation, TIFF* soil_heat, int heigth_band, int width_band);
