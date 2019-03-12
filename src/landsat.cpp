@@ -94,7 +94,7 @@ void Landsat::process_parcial_products(TIFF* read_bands[], MTL mtl, Station stat
     TIFFClose(tal);
 };
 
-void Landsat::process_final_products(vector<TIFF*> parcial_products){
+void Landsat::process_final_products(Station station){
     TIFF *albedo, *ndvi, *evi, *lai, *soil_heat, *surface_temperature, *net_radiation;
     open_tiffs(albedo, ndvi, evi, lai, soil_heat, surface_temperature, net_radiation);
 
@@ -105,20 +105,26 @@ void Landsat::process_final_products(vector<TIFF*> parcial_products){
     Candidate hot_pixel = select_hot_pixel(ndvi, surface_temperature, net_radiation, soil_heat, heigth_band, width_band);
     Candidate cold_pixel = select_cold_pixel(ndvi, surface_temperature, net_radiation, soil_heat, heigth_band, width_band);
 
+    double sensible_heat_flux_line[band_width];
 
-    /*  TODO
-        Como a gente itera linha por linha, vamos ter q iterar em todas
-        executando a seleção de quente e frio. E depois aplicar a seleção dnv
-        se ainda tiver mais de um. Então o Canditate vai guardar mais coisas do que
-        eu fiz inicialmente. Vai precisar da temperatura, ndvi, e ho
-    */
+    for(int line = 0; line < heigth_band; line++){
 
-    /*  TODO
-        Acho que vamos ter q modificar as funções
-        Pq acho q pra C++ ter efeito colateral num array dentro de uma função
-        tem que passar ele como ponteiro.
-    */
+        /*  TODO
+            station.v6, n sei como acessar, n sei como ta funcionado o station
+        */
+        double ustar_station = (VON_KARMAN * station.v6)/(log(station.WIND_SPEED/station.SURFACE_ROUGHNESS));
+        double u200 = ustar_station/(VON_KARMAN * log(200 / station.SURFACE_ROUGHNESS));
 
+        hot_pixel.setAerodynamicResistence(u200, station.A_ZOM, station.B_ZOM, VON_KARMAN);
+        cold_pixel.setAerodynamicResistence(u200, station.A_ZOM, station.B_ZOM, VON_KARMAN);
+
+        ustar_fuction(); //TODO
+        aerodynamic_resistence_fuction(); //TODO
+        sensible_heat_flux_function(hot_pixel, cold_pixel, width_band);
+
+    }
+
+    
 };
 
 void Landsat::create_tiffs(TIFF *tal, TIFF *albedo, TIFF *ndvi, TIFF *evi, TIFF *lai, TIFF *soil_heat, TIFF *surface_temperature, TIFF *net_radiation){

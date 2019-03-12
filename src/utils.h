@@ -2,6 +2,12 @@
 
 #include "types.h"
 
+const double VON_KARMAN = 0.41;
+const double GRAVITY = 9.81;
+const double RHO = 1.15; //Air density
+const double SPECIFIC_HEAT_AIR = 1004;
+const double GSC = 0.082; //Solar constant
+
 struct PixelReader{
 	uint16 sampleFormat;
 	uint8 byteSize;
@@ -39,17 +45,23 @@ struct Sensor{
 struct Station {
 	vector< vector<string> > info;
 	double temperature_image;
+	const int WIND_SPEED = 3;
+	const double SURFACE_ROUGNESS = 0.024;
+	const double A_ZOM = -3;
+	const double B_ZOM = 6.47;
+	const double INTERNALIZATION_FACTOR = 0.16;
 
 	Station();
 	Station(string estation_data_path, double image_hour);
 };
 
 struct Candidate{
-	double ndvi, temperature;
-	double net_radiation, soil_heat_flux;
+	double ndvi, temperature, aerodynamic_resistance, ustar;
+	double net_radiation, soil_heat_flux, ho, zom;
 
 	Candidate();
-	Candidate(double ndvi, double temperature, double net_radiation, double soil_heat_flux);
+	Candidate(double ndvi, double temperature, double net_radiation, double soil_heat_flux, double ho);
+	void setAerodynamicResistance(double u200, double A_ZOM, double B_ZOM, double VON_KARMAN);
 };
 
 bool analisy_shadow(TIFF* read_bands[], TIFF* write_bands[], int number_sensor);

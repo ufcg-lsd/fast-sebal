@@ -279,7 +279,8 @@ Candidate select_hot_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_radi
                 pre_candidates.push_back(Candidate(ndvi_line[col],
                                     surface_temperature_line[col],
                                     net_radiation_line[col],
-                                    soil_heat_line[col]));
+                                    soil_heat_line[col],
+                                    ho_line[col]));
             }
         }
     }
@@ -294,33 +295,122 @@ Candidate select_hot_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_radi
             candidates.push_back(c);
     }
 
-    if(candidates.size() > 1){
-        
+    Candidate choosen;
+    if(candidates.size() == 1){
+        choosen = candidates[0];
+    } else {
         vector< pair<double, int> > ndvi_hot;
-
-        sort(ho_c_hot.begin(), ho_c_hot.end());
-        int posmin = round(0.25 * ho_c_hot.size()), posmax = round(0.75 * ho_c_hot.size());
-        double ho_c_hot_min = ho_c_hot[posmin], ho_c_hot_max = ho_c_hot[posmax];
-
-        for(int col = 0; col < width_band; col++){
-            if(surface_temperature_line[col] == surface_temperature_hot_pixel && ho_line[col] > ho_c_hot_min && ho_line[col] < ho_c_hot_max){
-                ndvi_hot.push_back(make_pair(ndvi_line[col], col));
-            }
-        }
-
-        if(ndvi_hot.size() == 0) return;
-
-        sort(ndvi_hot.begin(), ndvi_hot.end());
-        hot_pixel_candidates.push_back(Candidate(line, ndvi_hot[0].second));
+        //TODO Verificar uso de floor ou round
+        sort(candidates.begin(), candidates.end()); //ORDENAR PELO HO
+        int posmin = floor(0.25 * ho_c_hot.size()), posmax = floor(0.75 * ho_c_hot.size());
+       
+        choosen = candidates[posmin+1];
+        for(int i = posmin+2; i < posmax; i++)
+            if(candidates[i].ndvi < choosen.ndvi) choosen = candidates[i];
     }
 
-    /*  TODO
-        Provalmente tem como otimizar isso aqui, tlvz algumas das iterações seja
-        desnecessária. Mas vou almoçar agr.
-    */
-
+    return choosen;
 };
 
 Candidate select_cold_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_radiation, TIFF* soil_heat, int heigth_band, int width_band){
+    double ndvi_line[width_band], surface_temperature_line[width_band];
+    double net_radiation_line[width_band], soil_heat_line[width_band];
+    double ho_line[width_band];
 
+    vector<Candidate> pre_candidates;
+
+    for(int line = 0; line < heigth_band; line ++){
+
+        read_line_tiff(net_radiation, net_radiation_line, line);
+        read_line_tiff(soil_heat, soil_heat_line, line);
+
+        ho_fuction(net_radiation_line, soil_heat_line, width_band, ho_line);
+
+        read_line_tiff(ndvi, ndvi_line, line);
+        read_line_tiff(surface_temperature, surface_temperature_line, line);
+
+        for(int col = 0; col < width_band; col ++){
+            if(!isnan(ndvi_line[col]) && !isnan(ho_line[col]) && ndvi_line[col] < 0 && surface_temperature_line[col] > 273.16){
+                pre_candidates.push_back(Candidate(ndvi_line[col],
+                                    surface_temperature_line[col],
+                                    net_radiation_line[col],
+                                    soil_heat_line[col],
+                                    ho_line[col]));
+            }
+        }
+    }
+    
+    sort(pre_candidates.begin(), pre_candidates.end()); // ARRUMAR //ORDENAR POR TEMPERATURA
+    int pos = round(0.5 * pre_candidates.size());
+    double surface_temperature_hot_pixel = pre_candidates[pos].temperature;
+
+    vector<Candidate> candidates;
+    for(Candidate c : pre_candidates){
+        if(c.temperature == surface_temperature_hot_pixel)
+            candidates.push_back(c);
+    }
+
+    Candidate choosen;
+    if(candidates.size() == 1){
+        choosen = candidates[0];
+    } else {
+        vector< pair<double, int> > ndvi_hot;
+        //TODO Verificar uso de floor ou round
+        sort(candidates.begin(), candidates.end()); //ORDENAR PELO HO
+        int posmin = floor(0.25 * ho_c_hot.size()), posmax = floor(0.75 * ho_c_hot.size());
+       
+        choosen = candidates[posmin+1];
+        for(int i = posmin+2; i < posmax; i++)
+            if(candidates[i].ndvi > choosen.ndvi) choosen = candidates[i];
+    }
+
+    return choosen;
 };
+
+void sensible_heat_flux_function(Candidate hot_pixel, Candidate cold_pixel, double ustar_line[], double aerodynamic_resistence_line[], double surface_temperature_line[], double sensible_heat_flux_line[], int width_band){
+    double H_hot = hot_pixel.temperature - hot_pixel.soil_heat_flux;
+    double value_pixel_rah = hot_pixel.temperature;
+    double rah_hot0;
+
+    double L[width_band];
+    double y_01_line[width_band], y_2_line[width_band], x_200_line[width_band];
+    
+    do{
+        rah_hot0 = hot_pixel.aerodynamic_resistence;
+
+        double dt_hot = (H_hot * rah_hot0)/(RHO * SPECIFIC_HEAT_AIR);
+        double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
+        double a = -b * (cold_pixel.temperature - 273.15);
+
+        for(int col = 0; col < width_band; col++){
+            sensible_heat_flux_line[col] = (RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15)))/value_pixel_rah;
+            double ustar_pow3 = ustar_line[col] * ustar_line[col] * ustar_line[col];
+            L[col] = -1 * ((RHO * SPECIFIC_HEAT_AIR * ustar_pow3 * surface_temperature_line[col])/(VON_KARMAN * GRAVITY * sensible_heat_flux_line[col]));
+            y_01_line[col] = pow((1 - 16*0.1/L[col]), 0.25);
+            y_2_line[col] = pow((1 - 16*2/L[col]), 0.25);
+            x_200_line[col] = pow((1 - 16*200/L[col]), 0.25);
+        }
+
+        //TODO
+        double psi_01;
+        if(L > 0) psi_01 = -5 * log(0.1/L);
+        else psi_01 = 2 * log((1 + y_01*y_01)/2);
+
+        double psi_2;
+        if(L > 0) psi_2 = -5 * log(2/L);
+        else psi_01 = 2 * log((1 + y_2*y_2)/2);
+
+        double psi_200;
+        if(L > 0) psi_01 = -5 * log(2/L);
+        else psi_01 = 2 * log((1 + x_200)/2) + log((1 + x_200*x_200)/2) - 2 * atan(x_200) + 0.5 * acos(-1);
+
+        hot_pixel.ustar = (VON_KARMAN * u200) / (log(200/hot_pixel.zom) - psi_200);
+        hot_pixel.aerodynamic_resistence = (log(2/0.1) - psi_2 + psi_01)/(hot_pixel.ustar * VON_KARMAN);
+    } while(abs(1 - rah_hot0/hot_pixel.aerodynamic_resistence) >= 0.5);
+
+    double dt_hot = (H_hot * rah_hot0)/(RHO * SPECIFIC_HEAT_AIR);
+    double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
+    double a = -b * (cold_pixel.temperature - 273.15);
+
+    double H = (RHO * SPECIFIC_HEAT_AIR * (a + b * (hot_pixel.temperature - 273.15)))/value_pixel_rah;
+}

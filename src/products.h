@@ -26,3 +26,4 @@ void soil_heat_flux_function(double ndvi_line[], double surface_temperature_line
 void ho_function(double net_radiation_line[], double soil_heat_flux[], int width_band, double ho_line[]);
 Candidate select_hot_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_radiation, TIFF* soil_heat, int heigth_band, int width_band);
 Candidate select_cold_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_radiation, TIFF* soil_heat, int heigth_band, int width_band);
+void sensible_heat_flux_function(Candidate hot_pixel, Candidate cold_pixel);
