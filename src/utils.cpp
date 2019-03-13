@@ -203,11 +203,21 @@ Station::Station(string station_data_path, double image_hour){
 
     double diff = fabs(atof(this->info[0][2].c_str()) - image_hour);
     this->temperature_image = atof(this->info[0][6].c_str());
+    this->v6 = atof(this->info[0][5].c_str());
+    this->v7_max = atof(this->info[0][6].c_str());
+    this->v7_min = atof(this->info[0][6].c_str());
+    this->latitude = atof(this->info[0][3].c_str());
+    this->longitude = atof(this->info[0][4].c_str());
 
     for(int i = 1; i < this->info.size(); i++){
+
+        v7_max = max(v7_max, atof(this->info[i][6].c_str()));
+        v7_min = min(v7_min, atof(this->info[i][6].c_str()));
+
         if(fabs(atof(this->info[i][2].c_str()) - image_hour) < diff){
             diff = fabs(atof(this->info[i][2].c_str()) - image_hour);
             this->temperature_image = atof(this->info[i][6].c_str());
+            this->v6 = atof(this->info[i][5].c_str());
         }
     }
 };
@@ -232,6 +242,14 @@ void Candidate::setAerodynamicResistance(double u200, double A_ZOM, double B_ZOM
     this->zom = exp(A_ZOM + B_ZOM * this->ndvi);
     this->ustar = (VON_KARMAN * u200)/log(200/this->zom);
     this->aerodynamic_resistance.push_back(log(2/0.1)/(this->ustar * VON_KARMAN));
+}
+
+bool compare_candidate_temperature(Candidate a, Candidate b){
+    return a.temperature < b.temperature;
+}
+
+bool compare_candidate_ho(Candidate a, Candidate b){
+    return a.ho < b.ho;
 }
 
 bool analisy_shadow(TIFF* read_bands[], TIFF* write_bands[], int number_sensor){
