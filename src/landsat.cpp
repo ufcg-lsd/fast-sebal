@@ -13,6 +13,8 @@ Landsat::Landsat(string tal_path, string output_path){
     this->soil_heat_path = output_path + "/G.tif";
     this->surface_temperature_path = output_path + "/TS.tif";
     this->net_radiation_path = output_path + "/Rn.tif";
+    this->evapotranspiration_fraction_path = output_path + "/EF.tif"
+    this->evapotranspiration_24h_path = output_path + "/ET24h.tif";
 };
 
 void Landsat::process_parcial_products(TIFF* read_bands[], MTL mtl, Station station, Sensor sensor){
@@ -96,7 +98,8 @@ void Landsat::process_parcial_products(TIFF* read_bands[], MTL mtl, Station stat
 
 void Landsat::process_final_products(Station station){
     TIFF *albedo, *ndvi, *evi, *lai, *soil_heat, *surface_temperature, *net_radiation;
-    open_tiffs(albedo, ndvi, evi, lai, soil_heat, surface_temperature, net_radiation);
+    TIFF* evapotranspiration_fraction, evapotranspiration_24h;
+    open_tiffs(albedo, ndvi, evi, lai, soil_heat, surface_temperature, net_radiation, evapotranspiration_fraction, evapotranspiration_24h);
 
     uint32 heigth_band, width_band;
     TIFFGetField(albedo, TIFFTAG_IMAGELENGTH, &heigth_band);
@@ -106,25 +109,101 @@ void Landsat::process_final_products(Station station){
     Candidate cold_pixel = select_cold_pixel(ndvi, surface_temperature, net_radiation, soil_heat, heigth_band, width_band);
 
     double sensible_heat_flux_line[band_width];
+    double zom_line[width_band];
+    double ustar_line[band_width];
+    double aerodynamic_resistence_line[width_band];
+    double latent_heat_flux[width_band];
+
+    /*  TODO
+        station.v6, n sei como acessar, n sei como ta funcionado o station
+    */
+    double ustar_station = (VON_KARMAN * station.v6)/(log(station.WIND_SPEED/station.SURFACE_ROUGHNESS));
+    double u200 = ustar_station/(VON_KARMAN * log(200 / station.SURFACE_ROUGHNESS));
+
+    hot_pixel.setAerodynamicResistence(u200, station.A_ZOM, station.B_ZOM, VON_KARMAN);
+    cold_pixel.setAerodynamicResistence(u200, station.A_ZOM, station.B_ZOM, VON_KARMAN);
+
+    double H_hot = hot_pixel.temperature - hot_pixel.soil_heat_flux;
+    double value_pixel_rah = hot_pixel.temperature;
+    double rah_hot0;
+
+    /*  TODO
+        Ver qual a melhor maneira de fzr o ciclo de correção do Rah
+    */
+
+    //HOT PIXEL AERODYNAMIC CALCULATION
+    int i = 0;
+    do{
+        rah_hot0 = hot_pixel.aerodynamic_resistence[i];
+
+        double dt_hot = (H_hot * rah_hot0)/(RHO * SPECIFIC_HEAT_AIR);
+        double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
+        double a = -b * (cold_pixel.temperature - 273.15);
+
+        double sensible_heat_flux = (RHO * SPECIFIC_HEAT_AIR * (a + b * (hot_pixel.temperature - 273.15)))/value_pixel_rah;
+        double ustar_pow3 = ustar_line[col] * ustar_line[col] * ustar_line[col];
+        double L = -1 * ((RHO * SPECIFIC_HEAT_AIR * ustar_pow3 * hot_pixel.temperature)/(VON_KARMAN * GRAVITY * sensible_heat_flux]));
+        double y_01_line = pow((1 - 16*0.1/L), 0.25);
+        double y_2_line = pow((1 - 16*2/L), 0.25);
+        double x_200_line = pow((1 - 16*200/L), 0.25);
+
+        double psi_01;
+        if(L > 0) psi_01 = -5 * log(0.1/L);
+        else psi_01 = 2 * log((1 + y_01*y_01)/2);
+
+        double psi_2;
+        if(L > 0) psi_2 = -5 * log(2/L);
+        else psi_2 = 2 * log((1 + y_2*y_2)/2);
+
+        double psi_200;
+        if(L > 0) psi_200 = -5 * log(2/L);
+        else psi_200 = 2 * log((1 + x_200)/2) + log((1 + x_200*x_200)/2) - 2 * atan(x_200) + 0.5 * acos(-1);
+
+        hot_pixel.ustar = (VON_KARMAN * u200) / (log(200/hot_pixel.zom) - psi_200);
+        hot_pixel.aerodynamic_resistence.push_back((log(2/0.1) - psi_2 + psi_01)/(hot_pixel.ustar * VON_KARMAN));
+        i++;
+    } while(abs(1 - rah_hot0/hot_pixel.aerodynamic_resistence[i]) >= 0.5);
+
 
     for(int line = 0; line < heigth_band; line++){
+        zom_fuction(station.A_ZOM, station.B_ZOM, ndvi, zom_line, width_band, line); //TODO
+        ustar_fuction(u200, zom_line, ustar_line, width_band);
+        aerodynamic_resistence_fuction(ustar_line, aerodynamic_resistence_line, width_band); //TODO
+        sensible_heat_flux_function(hot_pixel, cold_pixel, u200, zom_line, ustar_line, aerodynamic_resistence_line, sensible_heat_flux_line, width_band);
+        latent_heat_flux_function(net_radiation, soil_heat_flux, sensible_heat_flux_line, latent_heat_flux, line, width_band);
 
+        //Upscalling temporal
+        double dr = (1 / mtl.distance_earth_sun) * (1 / mtl.distance_earth_sun);
+        double sigma = 0.409*sin(((2*acos(-1)/365)*mtl.julian_day)-1.39);
+        double phi = (acos(-1)/180); // * latitude; TODO
+        double omegas = acos(-tan(phi)*tan(sigma));
+        double Ra24h = (((24*60/acos(-1))*GSC*dr)*(omegas*sin(phi)*
+                                 sin(sigma)+cos(phi)*cos(sigma)*sin(omegas)))*(1000000/86400);
+
+        //Short wave radiation incident in 24 hours (Rs24h)
         /*  TODO
-            station.v6, n sei como acessar, n sei como ta funcionado o station
+            Table v7
         */
-        double ustar_station = (VON_KARMAN * station.v6)/(log(station.WIND_SPEED/station.SURFACE_ROUGHNESS));
-        double u200 = ustar_station/(VON_KARMAN * log(200 / station.SURFACE_ROUGHNESS));
+        double Rs24h = station.INTERNALIZATION_FACTOR * sqrt(max(table_v7) - min(table_v7)) * Ra24h;
 
-        hot_pixel.setAerodynamicResistence(u200, station.A_ZOM, station.B_ZOM, VON_KARMAN);
-        cold_pixel.setAerodynamicResistence(u200, station.A_ZOM, station.B_ZOM, VON_KARMAN);
+        double net_radiation_24h_line[band_width];
+        net_radiation_24h_function(albedo, net_radiation_24h_line, Ra24h, Rs24h, line, width_band);
 
-        ustar_fuction(); //TODO
-        aerodynamic_resistence_fuction(); //TODO
-        sensible_heat_flux_function(hot_pixel, cold_pixel, width_band);
+        double evapotranspiration_fraction_line[width_band];
+        evapotranspiration_fraction_fuction(latent_heat_flux, net_radiation, soil_heat, evapotranspiration_fraction_line, line, width_band);
 
+        double sensible_heat_flux_24h_line[width_band];
+        sensible_heat_flux_24h_fuction(evapotranspiration_fraction_line, net_radiation_24h_line, sensible_heat_flux_24h_line, width_band);
+
+        double latent_heat_flux_24h_line[width_band];
+        latent_heat_flux_24h_function(evapotranspiration_fraction_line, net_radiation_24h_line, sensible_heat_flux_24h_line, width_band);
+    
+        double evapotranspiration_24h_line[width_band];
+        evapotranspiration_24h_function(latent_heat_flux_24h_line, evapotranspiration_24h_line, station, width_band);
     }
 
-    
+    save_tiffs(vector<double*> {evapotranspiration_fraction_line, evapotranspiration_24h_line}, 
+               vector<TIFF*> {evapotranspiration_fraction, evapotranspiration_24h}, line);
 };
 
 void Landsat::create_tiffs(TIFF *tal, TIFF *albedo, TIFF *ndvi, TIFF *evi, TIFF *lai, TIFF *soil_heat, TIFF *surface_temperature, TIFF *net_radiation){
@@ -159,6 +238,12 @@ void Landsat::open_tiffs(TIFF *albedo, TIFF *ndvi, TIFF *evi, TIFF *lai, TIFF *s
     soil_heat = TIFFOpen(soil_heat_path.c_str(), "rm");
     surface_temperature = TIFFOpen(surface_temperature_path.c_str(), "rm");
     net_radiation = TIFFOpen(net_radiation_path.c_str(), "rm");
+    
+    evapotranspiration_fraction = TIFFOpen(evapotranspiration_fraction_path.c_str(), "w8m");
+    setup(evapotranspiration_fraction, albedo);
+
+    evapotranspiration_24h = TIFFOpen(evapotranspiration_24h_path.c_str(), "w8m");
+    setup(evapotranspiration_24h, albedo);
 
 }
 

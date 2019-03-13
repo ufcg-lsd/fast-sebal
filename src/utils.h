@@ -56,8 +56,10 @@ struct Station {
 };
 
 struct Candidate{
-	double ndvi, temperature, aerodynamic_resistance, ustar;
+	double ndvi, temperature, ustar;
 	double net_radiation, soil_heat_flux, ho, zom;
+
+	vector< double > aerodynamic_resistance;
 
 	Candidate();
 	Candidate(double ndvi, double temperature, double net_radiation, double soil_heat_flux, double ho);

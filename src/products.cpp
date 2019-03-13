@@ -367,16 +367,43 @@ Candidate select_cold_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_rad
     return choosen;
 };
 
-void sensible_heat_flux_function(Candidate hot_pixel, Candidate cold_pixel, double ustar_line[], double aerodynamic_resistence_line[], double surface_temperature_line[], double sensible_heat_flux_line[], int width_band){
+void zom_fuction(double A_ZOM, double B_ZOM, TIFF* ndvi, double zom_line[], int width_band){
+
+    double ndvi_line[width_band];
+    read_line_tiff(ndvi, ndvi_line, line);
+
+    for(int col = 0; col < width_band; col++){
+        zom_line[col] = A_ZOM + B_ZOM * ndvi_line[col];
+    }
+
+}
+
+void ustar_fuction(double u200, double zom_line[], double ustar_line[], int width_band){
+
+    for(int col = 0; col < width_band; col++)
+        ustar_line[col] = (VON_KARMAN * u200)/log(200/zom_line[col]);
+
+}
+
+void aerodynamic_resistence_fuction(double ustar_line[], double aerodynamic_resistence_line[], int width_band){
+
+    for(int col = 0; col < width_band; col++)
+        aerodynamic_resistence_line[col] = log(2/0.1)/(ustar_line[col] * VON_KARMAN);
+
+}
+
+void sensible_heat_flux_function(Candidate hot_pixel, Candidate cold_pixel, double u200, double zom_line[], double ustar_line[], double aerodynamic_resistence_line[], double surface_temperature_line[], double sensible_heat_flux_line[], int width_band, int line){
     double H_hot = hot_pixel.temperature - hot_pixel.soil_heat_flux;
     double value_pixel_rah = hot_pixel.temperature;
     double rah_hot0;
 
+    //LINE PIXEL CALCULATION
     double L[width_band];
     double y_01_line[width_band], y_2_line[width_band], x_200_line[width_band];
+    double psi_01_line[width_band], psi_2_line[width_band], psi_200_line[width_band];
     
-    do{
-        rah_hot0 = hot_pixel.aerodynamic_resistence;
+    for(unsigned i = 0; i < hot_pixel.aerodynamic_resistence.size(); i++){
+        rah_hot0 = hot_pixel.aerodynamic_resistence[i];
 
         double dt_hot = (H_hot * rah_hot0)/(RHO * SPECIFIC_HEAT_AIR);
         double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
@@ -386,31 +413,87 @@ void sensible_heat_flux_function(Candidate hot_pixel, Candidate cold_pixel, doub
             sensible_heat_flux_line[col] = (RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15)))/value_pixel_rah;
             double ustar_pow3 = ustar_line[col] * ustar_line[col] * ustar_line[col];
             L[col] = -1 * ((RHO * SPECIFIC_HEAT_AIR * ustar_pow3 * surface_temperature_line[col])/(VON_KARMAN * GRAVITY * sensible_heat_flux_line[col]));
+            
             y_01_line[col] = pow((1 - 16*0.1/L[col]), 0.25);
             y_2_line[col] = pow((1 - 16*2/L[col]), 0.25);
             x_200_line[col] = pow((1 - 16*200/L[col]), 0.25);
+
+            if(L[col] > 0) psi_01_line[col] = -5 * log(0.1/L[col]);
+            else psi_01[col] = 2 * log((1 + y_01_line[col]*y_01_line[col])/2);
+
+            if(L[col] > 0) psi_2_line[col] = -5 * log(2/L[col]);
+            else psi_2_line[col] = 2 * log((1 + y_2_line[col]*y_2_line[col])/2);
+
+            if(L > 0) psi_200_line[col] = -5 * log(2/L[col]);
+            else psi_200_line[col] = 2 * log((1 + x_200_line[col])/2) + log((1 + x_200_line[col]*x_200_line[col])/2) - 2 * atan(x_200_line[col]) + 0.5 * acos(-1);
+
+            ustar_line[col] = (VON_KARMAN * u200) / (log(200/zom_line[col]) - psi_200);
+            aerodynamic_resistence_line[col] = (log(2/0.1) - psi_2_line[col] + psi_01_line[col])/(ustar_line[col] * VON_KARMAN);
         }
-
-        //TODO
-        double psi_01;
-        if(L > 0) psi_01 = -5 * log(0.1/L);
-        else psi_01 = 2 * log((1 + y_01*y_01)/2);
-
-        double psi_2;
-        if(L > 0) psi_2 = -5 * log(2/L);
-        else psi_01 = 2 * log((1 + y_2*y_2)/2);
-
-        double psi_200;
-        if(L > 0) psi_01 = -5 * log(2/L);
-        else psi_01 = 2 * log((1 + x_200)/2) + log((1 + x_200*x_200)/2) - 2 * atan(x_200) + 0.5 * acos(-1);
-
-        hot_pixel.ustar = (VON_KARMAN * u200) / (log(200/hot_pixel.zom) - psi_200);
-        hot_pixel.aerodynamic_resistence = (log(2/0.1) - psi_2 + psi_01)/(hot_pixel.ustar * VON_KARMAN);
-    } while(abs(1 - rah_hot0/hot_pixel.aerodynamic_resistence) >= 0.5);
+        
+    }
 
     double dt_hot = (H_hot * rah_hot0)/(RHO * SPECIFIC_HEAT_AIR);
     double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
     double a = -b * (cold_pixel.temperature - 273.15);
 
-    double H = (RHO * SPECIFIC_HEAT_AIR * (a + b * (hot_pixel.temperature - 273.15)))/value_pixel_rah;
+    double sensible_heat_flux_line[col] = (RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15)))/aerodynamic_resistence_line[col];
+
+    /*  TODO
+        Isso H[(H>(Rn[]-G[]) &!is.na(H))]<-(Rn[]-G[])[(H>(Rn[]-G[]) &!is.na(H))]
+        implica que  LE<-Rn[]-G[]-H, LE vai ser 0 se seu valor for negativo?
+    */
+}
+
+void latent_heat_flux_function(TIFF* net_radiation, TIFF* soil_heat_flux, double sensible_heat_flux_line[], double latent_heat_flux[], int line, int width_band){
+    double net_radiation_line[width_band], soil_heat_line[width_band];
+
+    read_line_tiff(net_radiation, net_radiation_line, line);
+    read_line_tiff(soil_heat, soil_heat_line, line);
+
+    for(int col = 0; col < width_band; col++)
+        latent_heat_flux[col] = max(net_radiation_line[col] - soil_heat_line[col] - sensible_heat_flux_line[], 0);
+
+}
+
+void net_radiation_24h_function(TIFF* albedo, double net_radiation_24h_line[], double Ra24h, double Rs24h, int line, int width_band){
+    int FL = 110;
+    double albedo_line[band_width];
+    read_line_tiff(albedo, albedo_line, line);
+
+    for(int col = 0; col < width_band; col++)
+        net_radiation_24h_line[col] = (1 - albedo_line[col])*Rs24h - FL * Rs24h/Ra24h;
+
+}
+
+void evapotranspiration_fraction_fuction(double latent_heat_flux[], TIFF* net_radiation, TIFF* soil_heat, double evapotranspiration_fraction_line[], int line, int width_band){
+    double net_radiation_line[width_band], soil_heat_line[width_band];
+
+    read_line_tiff(net_radiation, net_radiation_line, line);
+    read_line_tiff(soil_heat, soil_heat_line, line);
+
+    for(int col = 0; col < width_band; col++)
+        evapotranspiration_fraction_line[col] = latent_heat_flux/(net_radiation_line[col] - soil_heat_line[col]);
+
+}
+
+void sensible_heat_flux_24h_fuction(double evapotranspiration_fraction_line[], double net_radiation_24h_line[], double sensible_heat_flux_24h_line[], int width_band){
+
+    for(int col = 0; col < width_band; col++)
+        sensible_heat_flux_24h_line[col] = (1 - evapotranspiration_fraction_line[col]) * net_radiation_24h_line[col];
+        
+}
+
+void latent_heat_flux_24h_function(double evapotranspiration_fraction_line[], double net_radiation_24h_line[], double sensible_heat_flux_24h_line[], int width_band){
+
+    for(int col = 0; col < width_band; col++)
+        sensible_heat_flux_24h_line[col] = evapotranspiration_fraction_line[col] * net_radiation_24h_line[col];
+        
+}
+
+void evapotranspiration_24h_function(double latent_heat_flux_24h_line[], double evapotranspiration_24h_line[], Station station, int width_band){
+
+    for(int col = 0; col < width_band; col++)
+        evapotranspiration_24h_line[col] = (latent_heat_flux_24h_line[col] * 86400)/((2.501 - 0.00236 * (max(tablev7)+min(tablev7))/2)*1e+6);
+
 }

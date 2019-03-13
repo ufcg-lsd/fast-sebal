@@ -26,4 +26,13 @@ void soil_heat_flux_function(double ndvi_line[], double surface_temperature_line
 void ho_function(double net_radiation_line[], double soil_heat_flux[], int width_band, double ho_line[]);
 Candidate select_hot_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_radiation, TIFF* soil_heat, int heigth_band, int width_band);
 Candidate select_cold_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_radiation, TIFF* soil_heat, int heigth_band, int width_band);
-void sensible_heat_flux_function(Candidate hot_pixel, Candidate cold_pixel);
+void zom_fuction(double A_ZOM, double B_ZOM, TIFF* ndvi, double zom_line[], int width_band, int line);
+void ustar_fuction(double u200, double zom_line[], double ustar_line[], int width_band);
+void aerodynamic_resistence_fuction(double ustar_line[], double aerodynamic_resistence_line[], int width_band);
+void sensible_heat_flux_function(Candidate hot_pixel, Candidate cold_pixel, double u200, double zom_line[], double ustar_line[], double aerodynamic_resistence_line[], double sensible_heat_flux_line[], int width_band);
+void latent_heat_flux_function(TIFF* net_radiation, TIFF* soil_heat_flux, double sensible_heat_flux_line[], double latent_heat_flux[], int line, int width_band);
+void net_radiation_24h_function(TIFF* albedo, double net_radiation_24h_line[], double Ra24h, double Rs24h, int line, int width_band);
+void evapotranspiration_fraction_fuction(double latent_heat_flux[], TIFF* net_radiation, TIFF* soil_heat, double evapotranspiration_fraction_line[], int line, int width_band);
+void sensible_heat_flux_24h_fuction(double evapotranspiration_fraction_line[], double net_radiation_24h_line[], double sensible_heat_flux_24h_line[], int width_band);
+void latent_heat_flux_24h_function(double evapotranspiration_fraction_line[], double net_radiation_24h_line[], double sensible_heat_flux_24h_line[], int width_band);
+void evapotranspiration_24h_function(double latent_heat_flux_24h_line[], double evapotranspiration_24h_line[], Station station, int width_band);

@@ -231,7 +231,7 @@ Candidate::Candidate(double ndvi, double temperature, double net_radiation, doub
 void Candidate::setAerodynamicResistance(double u200, double A_ZOM, double B_ZOM, double VON_KARMAN){
     this->zom = exp(A_ZOM + B_ZOM * this->ndvi);
     this->ustar = (VON_KARMAN * u200)/log(200/this->zom);
-    this->aerodynamic_resistance = log(2/0.1)/(this->ustar * VON_KARMAN);
+    this->aerodynamic_resistance.push_back(log(2/0.1)/(this->ustar * VON_KARMAN));
 }
 
 bool analisy_shadow(TIFF* read_bands[], TIFF* write_bands[], int number_sensor){
