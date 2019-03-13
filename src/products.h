@@ -2,8 +2,9 @@
 
 #include "types.h"
 #include "utils.h"
-#include <algorithm>
-#include <math.h>
+#include "parameters.h"
+#include "pixel_reader.h"
+#include "candidate.h"
 
 string tal_function(TIFF* raster_elevation, string output_path);
 void radiance_function(PixelReader pixel_read_bands[], MTL mtl, Sensor sensor, int width_band, double radiance_line[][8]);

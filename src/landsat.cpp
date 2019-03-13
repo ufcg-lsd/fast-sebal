@@ -118,8 +118,8 @@ void Landsat::process_final_products(Station station, MTL mtl){
     double ustar_station = (VON_KARMAN * station.v6)/(log(station.WIND_SPEED/station.SURFACE_ROUGHNESS));
     double u200 = ustar_station/(VON_KARMAN * log(200 / station.SURFACE_ROUGHNESS));
 
-    hot_pixel.setAerodynamicResistence(u200, station.A_ZOM, station.B_ZOM, VON_KARMAN);
-    cold_pixel.setAerodynamicResistence(u200, station.A_ZOM, station.B_ZOM, VON_KARMAN);
+    hot_pixel.setAerodynamicResistance(u200, station.A_ZOM, station.B_ZOM, VON_KARMAN);
+    cold_pixel.setAerodynamicResistance(u200, station.A_ZOM, station.B_ZOM, VON_KARMAN);
 
     double H_hot = hot_pixel.net_radiation - hot_pixel.soil_heat_flux;
     double value_pixel_rah = hot_pixel.aerodynamic_resistance[0];
@@ -239,7 +239,7 @@ void Landsat::open_tiffs(TIFF *albedo, TIFF *ndvi, TIFF *soil_heat, TIFF *surfac
 
 void Landsat::save_tiffs(vector<double*> products_line, vector<TIFF*> products, int line){
 
-    for (int i = 0; i < 7; i++){
+    for (unsigned i = 0; i < products.size(); i++){
         write_line_tiff(products[i], products_line[i], line);
     }
 };

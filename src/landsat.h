@@ -3,8 +3,7 @@
 #include "types.h"
 #include "utils.h"
 #include "products.h"
-#include <vector>
-
+#include "parameters.h"
 
 struct Landsat{
     string tal_path, output_path;
