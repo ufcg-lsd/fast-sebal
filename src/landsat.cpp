@@ -84,7 +84,7 @@ void Landsat::process_final_products(Station station, MTL mtl){
     TIFF *albedo, *ndvi, *soil_heat, *surface_temperature, *net_radiation;
     TIFF *evapotranspiration_fraction, *evapotranspiration_24h;
 
-    open_tiffs(albedo, ndvi, soil_heat, surface_temperature, net_radiation, evapotranspiration_fraction, evapotranspiration_24h);
+    open_tiffs(&albedo, &ndvi, &soil_heat, &surface_temperature, &net_radiation, &evapotranspiration_fraction, &evapotranspiration_24h);
 
     uint32 heigth_band, width_band;
     TIFFGetField(albedo, TIFFTAG_IMAGELENGTH, &heigth_band);
@@ -188,6 +188,14 @@ void Landsat::process_final_products(Station station, MTL mtl){
         save_tiffs(vector<double*> {evapotranspiration_fraction_line, evapotranspiration_24h_line}, 
                vector<TIFF*> {evapotranspiration_fraction, evapotranspiration_24h}, line);
     }
+    
+    TIFFClose(albedo);
+    TIFFClose(ndvi);
+    TIFFClose(soil_heat);
+    TIFFClose(surface_temperature);
+    TIFFClose(net_radiation);
+    TIFFClose(evapotranspiration_fraction);
+    TIFFClose(evapotranspiration_24h);
 
 };
 
@@ -214,19 +222,19 @@ void Landsat::create_tiffs(TIFF **tal, TIFF **albedo, TIFF **ndvi, TIFF **evi, T
     setup(*net_radiation, *tal);
 };
 
-void Landsat::open_tiffs(TIFF *albedo, TIFF *ndvi, TIFF *soil_heat, TIFF *surface_temperature, TIFF *net_radiation, TIFF *evapotranspiration_fraction, TIFF *evapotranspiration_24h){
+void Landsat::open_tiffs(TIFF **albedo, TIFF **ndvi, TIFF **soil_heat, TIFF **surface_temperature, TIFF **net_radiation, TIFF **evapotranspiration_fraction, TIFF **evapotranspiration_24h){
 
-    albedo = TIFFOpen(albedo_path.c_str(), "rm");
-    ndvi = TIFFOpen(ndvi_path.c_str(), "rm");
-    soil_heat = TIFFOpen(soil_heat_path.c_str(), "rm");
-    surface_temperature = TIFFOpen(surface_temperature_path.c_str(), "rm");
-    net_radiation = TIFFOpen(net_radiation_path.c_str(), "rm");
+    *albedo = TIFFOpen(albedo_path.c_str(), "rm");
+    *ndvi = TIFFOpen(ndvi_path.c_str(), "rm");
+    *soil_heat = TIFFOpen(soil_heat_path.c_str(), "rm");
+    *surface_temperature = TIFFOpen(surface_temperature_path.c_str(), "rm");
+    *net_radiation = TIFFOpen(net_radiation_path.c_str(), "rm");
     
-    evapotranspiration_fraction = TIFFOpen(evapotranspiration_fraction_path.c_str(), "w8m");
-    setup(evapotranspiration_fraction, albedo);
+    *evapotranspiration_fraction = TIFFOpen(evapotranspiration_fraction_path.c_str(), "w8m");
+    setup(*evapotranspiration_fraction, *albedo);
 
-    evapotranspiration_24h = TIFFOpen(evapotranspiration_24h_path.c_str(), "w8m");
-    setup(evapotranspiration_24h, albedo);
+    *evapotranspiration_24h = TIFFOpen(evapotranspiration_24h_path.c_str(), "w8m");
+    setup(*evapotranspiration_24h, *albedo);
 
 }
 

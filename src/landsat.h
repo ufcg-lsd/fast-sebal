@@ -19,6 +19,6 @@ struct Landsat{
 	void process_parcial_products(TIFF* read_bands[], MTL mtl, Station station, Sensor sensor);
     void process_final_products(Station station, MTL mtl);
     void create_tiffs(TIFF **tal, TIFF **albedo, TIFF **ndvi, TIFF **evi, TIFF **lai, TIFF **soil_heat, TIFF **surface_temperature, TIFF **net_radiation);
-    void open_tiffs(TIFF *albedo, TIFF *ndvi, TIFF *soil_heat, TIFF *surface_temperature, TIFF *net_radiation, TIFF* evapotranspiration_fraction, TIFF* evapotranspiration_24h);
+    void open_tiffs(TIFF **albedo, TIFF **ndvi, TIFF **soil_heat, TIFF **surface_temperature, TIFF **net_radiation, TIFF **evapotranspiration_fraction, TIFF **evapotranspiration_24h);
     void save_tiffs(vector<double*> products_line, vector<TIFF*> products, int line);
 };
