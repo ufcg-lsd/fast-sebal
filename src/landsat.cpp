@@ -20,22 +20,6 @@ Landsat::Landsat(string tal_path, string output_path){
 void Landsat::process_parcial_products(TIFF* read_bands[], MTL mtl, Station station, Sensor sensor){
     uint32 heigth_band, width_band;
 
-    PixelReader pixel_read_bands[8];
-    tdata_t line_bands[8];
-
-    for(int i = 1; i < 8; i++){
-        uint16 sample_band;
-        
-        TIFFGetField(read_bands[i], TIFFTAG_SAMPLEFORMAT, &sample_band);
-        TIFFGetField(read_bands[i], TIFFTAG_IMAGEWIDTH, &width_band);
-
-        unsigned short byte_size_band = TIFFScanlineSize(read_bands[i]) / width_band;
-
-        line_bands[i] = _TIFFmalloc(TIFFScanlineSize(read_bands[i]));
-
-        pixel_read_bands[i] = PixelReader(sample_band, byte_size_band, line_bands[i]);
-    }
-
     TIFFGetField(read_bands[1], TIFFTAG_IMAGEWIDTH, &width_band);
     TIFFGetField(read_bands[1], TIFFTAG_IMAGELENGTH, &heigth_band);
 
@@ -45,7 +29,7 @@ void Landsat::process_parcial_products(TIFF* read_bands[], MTL mtl, Station stat
     double tal_line[width_band];
 
     TIFF *albedo, *ndvi, *evi, *lai, *soil_heat, *surface_temperature, *net_radiation;
-    create_tiffs(tal, albedo, ndvi, evi, lai, soil_heat, surface_temperature, net_radiation);
+    create_tiffs(&tal, &albedo, &ndvi, &evi, &lai, &soil_heat, &surface_temperature, &net_radiation);
 
     //Declare array with product information
     double albedo_line[width_band], ndvi_line[width_band];
@@ -63,8 +47,8 @@ void Landsat::process_parcial_products(TIFF* read_bands[], MTL mtl, Station stat
     double short_wave_radiation_line[width_band];
 
     for(int line = 0; line < heigth_band; line ++){
-        radiance_function(pixel_read_bands, mtl, sensor, width_band, radiance_line);
-        reflectance_function(pixel_read_bands, mtl, sensor, radiance_line, width_band, reflectance_line);
+        radiance_function(read_bands, mtl, sensor, width_band, line, radiance_line);
+        reflectance_function(read_bands, mtl, sensor, radiance_line, width_band, line, reflectance_line);
 
         read_line_tiff(tal, tal_line, line);
 
@@ -113,7 +97,7 @@ void Landsat::process_final_products(Station station, MTL mtl){
     double zom_line[width_band];
     double ustar_line[width_band];
     double aerodynamic_resistence_line[width_band];
-    double latent_heat_flux[width_band];
+    double latent_heat_flux_line[width_band];
 
     double ustar_station = (VON_KARMAN * station.v6)/(log(station.WIND_SPEED/station.SURFACE_ROUGHNESS));
     double u200 = ustar_station/(VON_KARMAN * log(200 / station.SURFACE_ROUGHNESS));
@@ -158,13 +142,22 @@ void Landsat::process_final_products(Station station, MTL mtl){
         i++;
     } while(abs(1 - rah_hot0/hot_pixel.aerodynamic_resistance[i]) >= 0.5);
 
+    double ndvi_line[width_band], surface_temperature_line[width_band];
+    double soil_heat_line[width_band], net_radiation_line[width_band];
+    double albedo_line[width_band];
 
     for(int line = 0; line < heigth_band; line++){
-        zom_fuction(station.A_ZOM, station.B_ZOM, ndvi, zom_line, width_band, line); 
-        ustar_fuction(u200, zom_line, ustar_line, width_band);
-        aerodynamic_resistence_fuction(ustar_line, aerodynamic_resistence_line, width_band); 
-        sensible_heat_flux_function(hot_pixel, cold_pixel, u200, zom_line, ustar_line, aerodynamic_resistence_line, sensible_heat_flux_line, width_band);
-        latent_heat_flux_function(net_radiation, soil_heat, sensible_heat_flux_line, latent_heat_flux, line, width_band);
+        read_line_tiff(ndvi, ndvi_line, line);
+        read_line_tiff(surface_temperature, surface_temperature_line, line);
+        read_line_tiff(net_radiation, net_radiation_line, line);
+        read_line_tiff(soil_heat, soil_heat_line, line);
+        read_line_tiff(albedo, albedo_line, line);
+
+        zom_fuction(station.A_ZOM, station.B_ZOM, ndvi_line, width_band, zom_line); 
+        ustar_fuction(u200, zom_line, width_band, ustar_line);
+        aerodynamic_resistence_fuction(ustar_line, width_band, aerodynamic_resistence_line); 
+        sensible_heat_flux_function(hot_pixel, cold_pixel, u200, zom_line, ustar_line, aerodynamic_resistence_line, surface_temperature_line, width_band, sensible_heat_flux_line);
+        latent_heat_flux_function(net_radiation_line, soil_heat_line, sensible_heat_flux_line, width_band, latent_heat_flux_line);
 
         //Upscalling temporal
         double dr = (1 / mtl.distance_earth_sun) * (1 / mtl.distance_earth_sun);
@@ -178,19 +171,19 @@ void Landsat::process_final_products(Station station, MTL mtl){
         double Rs24h = station.INTERNALIZATION_FACTOR * sqrt(station.v7_max - station.v7_min) * Ra24h;
 
         double net_radiation_24h_line[width_band];
-        net_radiation_24h_function(albedo, net_radiation_24h_line, Ra24h, Rs24h, line, width_band);
+        net_radiation_24h_function(albedo_line, Ra24h, Rs24h, width_band, net_radiation_24h_line);
 
         double evapotranspiration_fraction_line[width_band];
-        evapotranspiration_fraction_fuction(latent_heat_flux, net_radiation, soil_heat, evapotranspiration_fraction_line, line, width_band);
+        evapotranspiration_fraction_fuction(latent_heat_flux_line, net_radiation_line, soil_heat_line, width_band, evapotranspiration_fraction_line);
 
         double sensible_heat_flux_24h_line[width_band];
-        sensible_heat_flux_24h_fuction(evapotranspiration_fraction_line, net_radiation_24h_line, sensible_heat_flux_24h_line, width_band);
+        sensible_heat_flux_24h_fuction(evapotranspiration_fraction_line, net_radiation_24h_line, width_band, sensible_heat_flux_24h_line);
 
         double latent_heat_flux_24h_line[width_band];
-        latent_heat_flux_24h_function(evapotranspiration_fraction_line, net_radiation_24h_line, sensible_heat_flux_24h_line, width_band);
+        latent_heat_flux_24h_function(evapotranspiration_fraction_line, net_radiation_24h_line, width_band, latent_heat_flux_24h_line);
     
         double evapotranspiration_24h_line[width_band];
-        evapotranspiration_24h_function(latent_heat_flux_24h_line, evapotranspiration_24h_line, station, width_band);
+        evapotranspiration_24h_function(latent_heat_flux_24h_line, station, width_band, evapotranspiration_24h_line);
 
         save_tiffs(vector<double*> {evapotranspiration_fraction_line, evapotranspiration_24h_line}, 
                vector<TIFF*> {evapotranspiration_fraction, evapotranspiration_24h}, line);
@@ -198,27 +191,27 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
 };
 
-void Landsat::create_tiffs(TIFF *tal, TIFF *albedo, TIFF *ndvi, TIFF *evi, TIFF *lai, TIFF *soil_heat, TIFF *surface_temperature, TIFF *net_radiation){
-    albedo = TIFFOpen(albedo_path.c_str(), "w8m");
-    setup(albedo, tal);
+void Landsat::create_tiffs(TIFF **tal, TIFF **albedo, TIFF **ndvi, TIFF **evi, TIFF **lai, TIFF **soil_heat, TIFF **surface_temperature, TIFF **net_radiation){
+    *albedo = TIFFOpen(albedo_path.c_str(), "w8m");
+    setup(*albedo, *tal);
 
-    ndvi = TIFFOpen(ndvi_path.c_str(), "w8m");
-    setup(ndvi, tal);
+    *ndvi = TIFFOpen(ndvi_path.c_str(), "w8m");
+    setup(*ndvi, *tal);
 
-    evi = TIFFOpen(evi_path.c_str(), "w8m");
-    setup(evi, tal);
+    *evi = TIFFOpen(evi_path.c_str(), "w8m");
+    setup(*evi, *tal);
 
-    lai = TIFFOpen(lai_path.c_str(), "w8m");
-    setup(lai, tal);
+    *lai = TIFFOpen(lai_path.c_str(), "w8m");
+    setup(*lai, *tal);
 
-    soil_heat = TIFFOpen(soil_heat_path.c_str(), "w8m");
-    setup(soil_heat, tal);
+    *soil_heat = TIFFOpen(soil_heat_path.c_str(), "w8m");
+    setup(*soil_heat, *tal);
 
-    surface_temperature = TIFFOpen(surface_temperature_path.c_str(), "w8m");
-    setup(surface_temperature, tal);
+    *surface_temperature = TIFFOpen(surface_temperature_path.c_str(), "w8m");
+    setup(*surface_temperature, *tal);
 
-    net_radiation = TIFFOpen(net_radiation_path.c_str(), "w8m");
-    setup(net_radiation, tal);
+    *net_radiation = TIFFOpen(net_radiation_path.c_str(), "w8m");
+    setup(*net_radiation, *tal);
 };
 
 void Landsat::open_tiffs(TIFF *albedo, TIFF *ndvi, TIFF *soil_heat, TIFF *surface_temperature, TIFF *net_radiation, TIFF *evapotranspiration_fraction, TIFF *evapotranspiration_24h){
@@ -239,7 +232,7 @@ void Landsat::open_tiffs(TIFF *albedo, TIFF *ndvi, TIFF *soil_heat, TIFF *surfac
 
 void Landsat::save_tiffs(vector<double*> products_line, vector<TIFF*> products, int line){
 
-    for (unsigned i = 0; i < products.size(); i++){
+    for (unsigned i = 0; i < products.size(); i++)
         write_line_tiff(products[i], products_line[i], line);
-    }
+
 };

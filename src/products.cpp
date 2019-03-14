@@ -40,35 +40,35 @@ string tal_function(TIFF *raster_elevation, string output_path){
     return tal_path;
 }; //tal
 
-void radiance_function(PixelReader pixel_read_bands[], MTL mtl, Sensor sensor, int width_band, double radiance_line[][8]){
+void radiance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, int width_band, int line, double radiance_line[][8]){
+    double line_band[width_band];
+
     if (mtl.number_sensor == 8){
-        for (int col = 0; col < width_band; col++){
-            double pixel_value = pixel_read_bands[7].read_pixel(col);
-            radiance_line[col][7] = pixel_value * mtl.rad_mult_10 + mtl.rad_add_10;
-        }
+        read_line_tiff(read_bands[7], line_band, line);
+        for (int col = 0; col < width_band; col++)
+            radiance_line[col][7] = line_band[col] * mtl.rad_mult_10 + mtl.rad_add_10;
     }
     else{
         for (int i = 1; i < 8; i++){
-            for (int col = 0; col < width_band; col++){
-                double pixel_value = pixel_read_bands[7].read_pixel(col);
-                radiance_line[col][i] = pixel_value * sensor.parameters[i][sensor.GRESCALE] + sensor.parameters[i][sensor.BRESCALE];
-            }
+            read_line_tiff(read_bands[i], line_band, line);
+            for (int col = 0; col < width_band; col++)
+                radiance_line[col][i] = line_band[col] * sensor.parameters[i][sensor.GRESCALE] + sensor.parameters[i][sensor.BRESCALE];
         }
     }
 }; //rad
 
-void reflectance_function(PixelReader pixel_read_bands[], MTL mtl, Sensor sensor, double radiance_line[][8], int width_band, double reflectance_line[][8]){
+void reflectance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, double radiance_line[][8], int width_band, int line, double reflectance_line[][8]){
     double costheta = sin(mtl.sun_elevation * PI / 180);
+    double line_band[width_band];
 
     for (int i = 1; i < 8; i++){
+        read_line_tiff(read_bands[i], line_band, line);
         for (int col = 0; col < width_band; col++){
-            if (mtl.number_sensor == 8){
-                double pixel_value = pixel_read_bands[i].read_pixel(col);
-                reflectance_line[col][i] = (pixel_value * sensor.parameters[i][sensor.GRESCALE] + sensor.parameters[i][sensor.BRESCALE]) / costheta;
-            }else{
+            if (mtl.number_sensor == 8)
+                reflectance_line[col][i] = (line_band[col] * sensor.parameters[i][sensor.GRESCALE] + sensor.parameters[i][sensor.BRESCALE]) / costheta;
+            else
                 reflectance_line[col][i] = (PI * radiance_line[col][i] * mtl.distance_earth_sun * mtl.distance_earth_sun) /
                                            (sensor.parameters[i][sensor.ESUN] * costheta);
-            }
         }
     }
 }; //ref
@@ -367,31 +367,28 @@ Candidate select_cold_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_rad
     return choosen;
 };
 
-void zom_fuction(double A_ZOM, double B_ZOM, TIFF* ndvi, double zom_line[], int width_band, int line){
-    double ndvi_line[width_band];
-
-    read_line_tiff(ndvi, ndvi_line, line);
+void zom_fuction(double A_ZOM, double B_ZOM, double ndvi_line[], int width_band, double zom_line[]){
 
     for(int col = 0; col < width_band; col++)
         zom_line[col] = A_ZOM + B_ZOM * ndvi_line[col];
 
 }; //zom
 
-void ustar_fuction(double u200, double zom_line[], double ustar_line[], int width_band){
+void ustar_fuction(double u200, double zom_line[], int width_band, double ustar_line[]){
 
     for(int col = 0; col < width_band; col++)
         ustar_line[col] = (VON_KARMAN * u200)/log(200/zom_line[col]);
 
 }; //ustar
 
-void aerodynamic_resistence_fuction(double ustar_line[], double aerodynamic_resistence_line[], int width_band){
+void aerodynamic_resistence_fuction(double ustar_line[], int width_band, double aerodynamic_resistence_line[]){
 
     for(int col = 0; col < width_band; col++)
         aerodynamic_resistence_line[col] = log(2/0.1)/(ustar_line[col] * VON_KARMAN);
 
 }; //rah
 
-void sensible_heat_flux_function(Candidate hot_pixel, Candidate cold_pixel, double u200, double zom_line[], double ustar_line[], double aerodynamic_resistence_line[], double surface_temperature_line[], double sensible_heat_flux_line[], int width_band, int line){
+void sensible_heat_flux_function(Candidate hot_pixel, Candidate cold_pixel, double u200, double zom_line[], double ustar_line[], double aerodynamic_resistence_line[], double surface_temperature_line[], int width_band, double sensible_heat_flux_line[]){
     double H_hot = hot_pixel.net_radiation - hot_pixel.soil_heat_flux;
     double rah_hot0;
 
@@ -440,53 +437,43 @@ void sensible_heat_flux_function(Candidate hot_pixel, Candidate cold_pixel, doub
 
 }; //H
 
-void latent_heat_flux_function(TIFF* net_radiation, TIFF* soil_heat_flux, double sensible_heat_flux_line[], double latent_heat_flux[], int line, int width_band){
-    double net_radiation_line[width_band], soil_heat_line[width_band];
-
-    read_line_tiff(net_radiation, net_radiation_line, line);
-    read_line_tiff(soil_heat_flux, soil_heat_line, line);
+void latent_heat_flux_function(double net_radiation_line[], double soil_heat_flux_line[], double sensible_heat_flux_line[], int width_band, double latent_heat_flux[]){
 
     for(int col = 0; col < width_band; col++)
-        latent_heat_flux[col] = max(net_radiation_line[col] - soil_heat_line[col] - sensible_heat_flux_line[col], 0.0);
+        latent_heat_flux[col] = max(net_radiation_line[col] - soil_heat_flux_line[col] - sensible_heat_flux_line[col], 0.0);
 
 }; //LE
 
-void net_radiation_24h_function(TIFF* albedo, double net_radiation_24h_line[], double Ra24h, double Rs24h, int line, int width_band){
+void net_radiation_24h_function(double albedo_line[], double Ra24h, double Rs24h, int width_band, double net_radiation_24h_line[]){
     int FL = 110;
-    double albedo_line[width_band];
-    read_line_tiff(albedo, albedo_line, line);
 
     for(int col = 0; col < width_band; col++)
         net_radiation_24h_line[col] = (1 - albedo_line[col])*Rs24h - FL * Rs24h/Ra24h;
 
 }; //Rn24h_dB
 
-void evapotranspiration_fraction_fuction(double latent_heat_flux[], TIFF* net_radiation, TIFF* soil_heat, double evapotranspiration_fraction_line[], int line, int width_band){
-    double net_radiation_line[width_band], soil_heat_line[width_band];
-
-    read_line_tiff(net_radiation, net_radiation_line, line);
-    read_line_tiff(soil_heat, soil_heat_line, line);
+void evapotranspiration_fraction_fuction(double latent_heat_flux_line[], double net_radiation_line[], double soil_heat_line[], int width_band, double evapotranspiration_fraction_line[]){
 
     for(int col = 0; col < width_band; col++)
-        evapotranspiration_fraction_line[col] = latent_heat_flux[col]/(net_radiation_line[col] - soil_heat_line[col]);
+        evapotranspiration_fraction_line[col] = latent_heat_flux_line[col]/(net_radiation_line[col] - soil_heat_line[col]);
 
 }; //EF
 
-void sensible_heat_flux_24h_fuction(double evapotranspiration_fraction_line[], double net_radiation_24h_line[], double sensible_heat_flux_24h_line[], int width_band){
+void sensible_heat_flux_24h_fuction(double evapotranspiration_fraction_line[], double net_radiation_24h_line[], int width_band, double sensible_heat_flux_24h_line[]){
 
     for(int col = 0; col < width_band; col++)
         sensible_heat_flux_24h_line[col] = (1 - evapotranspiration_fraction_line[col]) * net_radiation_24h_line[col];
         
 }; //H24h_dB
 
-void latent_heat_flux_24h_function(double evapotranspiration_fraction_line[], double net_radiation_24h_line[], double sensible_heat_flux_24h_line[], int width_band){
+void latent_heat_flux_24h_function(double evapotranspiration_fraction_line[], double net_radiation_24h_line[], int width_band, double latent_heat_flux_24h_line[]){
 
     for(int col = 0; col < width_band; col++)
-        sensible_heat_flux_24h_line[col] = evapotranspiration_fraction_line[col] * net_radiation_24h_line[col];
+        latent_heat_flux_24h_line[col] = evapotranspiration_fraction_line[col] * net_radiation_24h_line[col];
         
 }; //LE24h_db
 
-void evapotranspiration_24h_function(double latent_heat_flux_24h_line[], double evapotranspiration_24h_line[], Station station, int width_band){
+void evapotranspiration_24h_function(double latent_heat_flux_24h_line[], Station station, int width_band, double evapotranspiration_24h_line[]){
 
     for(int col = 0; col < width_band; col++)
         evapotranspiration_24h_line[col] = (latent_heat_flux_24h_line[col] * 86400)/((2.501 - 0.00236 * (station.v7_max + station.v7_min) / 2) * 1e+6);

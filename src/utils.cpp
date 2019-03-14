@@ -1,5 +1,4 @@
 #include "utils.h"
-#include "pixel_reader.h"
 
 bool analisy_shadow(TIFF* read_bands[], TIFF* write_bands[], int number_sensor){
     int mask = set_mask(number_sensor);
@@ -68,7 +67,7 @@ void setup(TIFF* new_tif, TIFF* base_tif){
 
     TIFFGetField(base_tif, TIFFTAG_IMAGEWIDTH,      &image_width);
     TIFFGetField(base_tif, TIFFTAG_IMAGELENGTH,     &image_length);
-    
+
     TIFFSetField(new_tif, TIFFTAG_IMAGEWIDTH     , image_width); 
     TIFFSetField(new_tif, TIFFTAG_IMAGELENGTH    , image_length);
     TIFFSetField(new_tif, TIFFTAG_BITSPERSAMPLE  , 64);
@@ -105,10 +104,12 @@ void read_line_tiff(TIFF* tif, tdata_t tif_line, int line){
 };
 
 void write_line_tiff(TIFF* tif, double tif_line[], int line){
+
     if (TIFFWriteScanline(tif, tif_line, line) < 0){
         cerr << "Write problem!" << endl;
         exit(4);
     }
+
 };
 
 void close_tifs(TIFF* tifs[], int quant_tifs){

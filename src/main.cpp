@@ -5,6 +5,7 @@
 using namespace std;
 
 /*
+    Complete execution
 
     arg 01 - band 01 path
     arg 02 - band 02 path
@@ -79,3 +80,47 @@ int main(int argc, char *argv[]){
     close_tifs(read_bands, 8);
     return 0;
 }
+
+/*
+    Execution test (after resample function)
+
+    arg 01 - band 01 remsampled path
+    arg 02 - band 02 remsampledpath
+    arg 03 - band 03 remsampled path
+    arg 04 - band 04 remsampled path
+    arg 05 - band 05 remsampled path
+    arg 06 - band 06 remsampled path
+    arg 07 - band 07 remsampled path
+    arg 08 - metadata path
+    arg 09 - tal path
+    arg 10 - station data path
+    arg 11 - output path
+*/
+
+/*int main(int argc, char *argv[]){
+    string output_path = argv[11];
+
+    string metadata_path = argv[8];
+    MTL mtl = MTL(metadata_path);
+
+    string station_data_path = argv[10];
+    Station station = Station(station_data_path, mtl.image_hour);
+    
+    Sensor sensor = Sensor(mtl.number_sensor, mtl.year);
+
+    string tal_path = argv[9];
+
+    TIFF *bands_resampled[8];
+    for(int i = 1; i < 8; i++){
+        string path_tiff_base = argv[i];
+        bands_resampled[i] = TIFFOpen(path_tiff_base.c_str(), "rm");
+        check_open_tiff(bands_resampled[i]);
+    }
+
+    Landsat landsat = Landsat(tal_path, output_path);
+    landsat.process_parcial_products(bands_resampled, mtl, station, sensor);
+    landsat.process_final_products(station, mtl);
+
+    close_tifs(bands_resampled, 8);
+    return 0;
+}*/

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.h"
+#include "pixel_reader.h"
 
 bool analisy_shadow(TIFF* read_bands[], TIFF* write_bands[], int number_sensor);
 
