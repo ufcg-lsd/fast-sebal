@@ -264,6 +264,9 @@ Candidate select_hot_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_radi
 
     vector<Candidate> pre_candidates;
 
+    //DEBUG
+    printf("Pre-candidates hot pixel\n");
+
     for(int line = 0; line < heigth_band; line ++){
 
         read_line_tiff(net_radiation, net_radiation_line, line);
@@ -281,32 +284,50 @@ Candidate select_hot_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_radi
                                     net_radiation_line[col],
                                     soil_heat_line[col],
                                     ho_line[col]));
+                
+                //DEBUG
+                pre_candidates[pre_candidates.size() - 1].toString();
             }
+            
         }
     }
     
     sort(pre_candidates.begin(), pre_candidates.end(), compare_candidate_temperature);
-    int pos = round(0.95 * pre_candidates.size());
+    int pos = floor(0.95 * pre_candidates.size());
     double surface_temperature_hot_pixel = pre_candidates[pos].temperature;
+
+    //DEBUG
+    printf("%i %.2f\nCandidates hot pixel\n", pos, surface_temperature_hot_pixel);
 
     vector<Candidate> candidates;
     for(Candidate c : pre_candidates){
-        if(c.temperature == surface_temperature_hot_pixel)
+        if(c.temperature == surface_temperature_hot_pixel){
             candidates.push_back(c);
+            c.toString(); //DEBUG
+        }
     }
+
+    printf("Candidates selection\n"); //DEBUG
 
     Candidate choosen;
     if(candidates.size() == 1){
         choosen = candidates[0];
     } else {
-        vector< pair<double, int> > ndvi_hot;
-        //TODO Verificar uso de floor ou round
         sort(candidates.begin(), candidates.end(), compare_candidate_ho); 
         int posmin = floor(0.25 * candidates.size()), posmax = floor(0.75 * candidates.size());
-       
+        printf("%i %i\nMore of one candidates\n", posmin, posmax); //DEBUG
         choosen = candidates[posmin+1];
-        for(int i = posmin+2; i < posmax; i++)
-            if(candidates[i].ndvi < choosen.ndvi) choosen = candidates[i];
+        choosen.toString(); //DEBUG
+
+        /*  POSSIVEL BUG
+            Não uso do extract, e do DesvioPadrao/Media.
+        */
+        for(int i = posmin+2; i < posmax; i++){
+            if(candidates[i].ndvi < choosen.ndvi){
+                choosen = candidates[i];
+                choosen.toString(); //DEBUG
+            }
+        }
     }
 
     return choosen;
@@ -318,6 +339,9 @@ Candidate select_cold_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_rad
     double ho_line[width_band];
 
     vector<Candidate> pre_candidates;
+
+    //DEBUG
+    printf("Pre-candidates cold pixel\n");
 
     for(int line = 0; line < heigth_band; line ++){
 
@@ -336,32 +360,50 @@ Candidate select_cold_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_rad
                                     net_radiation_line[col],
                                     soil_heat_line[col],
                                     ho_line[col]));
+
+                //DEBUG
+                pre_candidates[pre_candidates.size() - 1].toString();
             }
         }
     }
     
     sort(pre_candidates.begin(), pre_candidates.end(), compare_candidate_temperature);
-    int pos = round(0.5 * pre_candidates.size());
-    double surface_temperature_hot_pixel = pre_candidates[pos].temperature;
+    int pos = floor(0.5 * pre_candidates.size());
+    double surface_temperature_cold_pixel = pre_candidates[pos].temperature;
+
+    //DEBUG
+    printf("%i %.2f\nCandidates hot pixel\n", pos, surface_temperature_cold_pixel);
 
     vector<Candidate> candidates;
     for(Candidate c : pre_candidates){
-        if(c.temperature == surface_temperature_hot_pixel)
+        if(c.temperature == surface_temperature_cold_pixel){
             candidates.push_back(c);
+            c.toString(); //DEBUG
+        }
     }
+
+    printf("Candidates selection\n"); //DEBUG
 
     Candidate choosen;
     if(candidates.size() == 1){
         choosen = candidates[0];
     } else {
-        vector< pair<double, int> > ndvi_hot;
-        //TODO Verificar uso de floor ou round
         sort(candidates.begin(), candidates.end(), compare_candidate_ho); 
         int posmin = floor(0.25 * candidates.size()), posmax = floor(0.75 * candidates.size());
-       
+        printf("%i %i\nMore of one candidates\n", posmin, posmax); //DEBUG
         choosen = candidates[posmin+1];
-        for(int i = posmin+2; i < posmax; i++)
-            if(candidates[i].ndvi > choosen.ndvi) choosen = candidates[i];
+        choosen.toString();
+
+        /*  POSSIVEL BUG
+            Ele não pega o que tem maior ndvi, ele pega o que tem
+            maior numero de vizinhos com NDVI < 0
+        */
+        for(int i = posmin+2; i < posmax; i++){
+            if(candidates[i].ndvi > choosen.ndvi){
+                choosen = candidates[i];
+                choosen.toString();
+            }
+        }
     }
 
     return choosen;
@@ -370,7 +412,7 @@ Candidate select_cold_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_rad
 void zom_fuction(double A_ZOM, double B_ZOM, double ndvi_line[], int width_band, double zom_line[]){
 
     for(int col = 0; col < width_band; col++)
-        zom_line[col] = A_ZOM + B_ZOM * ndvi_line[col];
+        zom_line[col] = exp(A_ZOM + B_ZOM * ndvi_line[col]);
 
 }; //zom
 
@@ -413,14 +455,14 @@ void sensible_heat_flux_function(Candidate hot_pixel, Candidate cold_pixel, doub
             y_2_line[col] = pow((1 - 16*2/L[col]), 0.25);
             x_200_line[col] = pow((1 - 16*200/L[col]), 0.25);
 
-            if(L[col] > 0) psi_01_line[col] = -5 * (0.1/L[col]);
+            if(!isnan(L[col]) && L[col] > 0) psi_01_line[col] = -5 * (0.1/L[col]);
             else psi_01_line[col] = 2 * log((1 + y_01_line[col]*y_01_line[col])/2);
 
-            if(L[col] > 0) psi_2_line[col] = -5 * (2/L[col]);
+            if(!isnan(L[col]) && L[col] > 0) psi_2_line[col] = -5 * (2/L[col]);
             else psi_2_line[col] = 2 * log((1 + y_2_line[col]*y_2_line[col])/2);
 
-            if(L > 0) psi_200_line[col] = -5 * (2/L[col]);
-            else psi_200_line[col] = 2 * log((1 + x_200_line[col])/2) + log((1 + x_200_line[col]*x_200_line[col])/2) - 2 * atan(x_200_line[col]) + 0.5 * acos(-1);
+            if(!isnan(L[col]) && L > 0) psi_200_line[col] = -5 * (2/L[col]);
+            else psi_200_line[col] = 2 * log((1 + x_200_line[col])/2) + log((1 + x_200_line[col]*x_200_line[col])/2) - 2 * atan(x_200_line[col]) + 0.5 * PI;
 
             ustar_line[col] = (VON_KARMAN * u200) / (log(200/zom_line[col]) - psi_200_line[col]);
             aerodynamic_resistence_line[col] = (log(2/0.1) - psi_2_line[col] + psi_01_line[col])/(ustar_line[col] * VON_KARMAN);

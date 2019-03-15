@@ -22,6 +22,34 @@ void Candidate::setAerodynamicResistance(double u200, double A_ZOM, double B_ZOM
     this->aerodynamic_resistance.push_back(log(2/0.1)/(this->ustar * VON_KARMAN));
 }
 
+/*
+    double ndvi, temperature, ustar;
+	double net_radiation, soil_heat_flux, ho, zom;
+
+	vector< double > aerodynamic_resistance;
+*/
+
+string Candidate::toString(){
+    string toString;
+    printf("Candidate\n");
+    printf("NDVI: %.2f\n", this->ndvi);
+    printf("TS: %.2f\n", this->temperature);
+    printf("RS: %.2f\n", this->net_radiation);
+    printf("Ustar: %.2f\n", this->soil_heat_flux);
+    printf("Z0m: %.2f\n", this->zom);
+    printf("G: %.2f\n", this->soil_heat_flux);
+    printf("HO: %.2f\n", this->ho);
+    
+    if(this->aerodynamic_resistance.size() > 0){
+        printf("Aerodynamic resistance:\n");
+        for(unsigned i = 0; i < this->aerodynamic_resistance.size(); i++){
+            printf("Aerodynamic resistance[%i]: %.2f\n", i, this->aerodynamic_resistance[i]);
+        }
+    }
+
+    printf("\n");
+}
+
 bool compare_candidate_temperature(Candidate a, Candidate b){
     return a.temperature < b.temperature;
 }
