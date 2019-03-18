@@ -25,8 +25,8 @@ void net_radiation_function(double short_wave_radiation_line[], double large_wav
                             double eo_emissivity_line[], int width_band, double net_radiation_line[]);
 void soil_heat_flux_function(double ndvi_line[], double surface_temperature_line[], double albedo_line[], double net_radiation_line[], int width_band, double soil_heat_flux[]);
 void ho_function(double net_radiation_line[], double soil_heat_flux[], int width_band, double ho_line[]);
-Candidate select_hot_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_radiation, TIFF* soil_heat, int heigth_band, int width_band);
-Candidate select_cold_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_radiation, TIFF* soil_heat, int heigth_band, int width_band);
+Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_radiation, TIFF** soil_heat, int heigth_band, int width_band);
+Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_radiation, TIFF** soil_heat, int heigth_band, int width_band);
 void zom_fuction(double A_ZOM, double B_ZOM, double ndvi_line[], int width_band, double zom_line[]);
 void ustar_fuction(double u200, double zom_line[], int width_band, double ustar_line[]);
 void aerodynamic_resistence_fuction(double ustar_line[], int width_band, double aerodynamic_resistence_line[]);

@@ -256,7 +256,7 @@ void ho_fuction(double net_radiation_line[], double soil_heat_flux[], int width_
 
 }; //HO
 
-Candidate select_hot_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_radiation, TIFF* soil_heat, int heigth_band, int width_band){
+Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_radiation, TIFF** soil_heat, int heigth_band, int width_band){
 
     double ndvi_line[width_band], surface_temperature_line[width_band];
     double net_radiation_line[width_band], soil_heat_line[width_band];
@@ -265,17 +265,17 @@ Candidate select_hot_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_radi
     vector<Candidate> pre_candidates;
 
     //DEBUG
-    printf("Pre-candidates hot pixel\n");
+    //printf("Pre-candidates hot pixel\n");
 
     for(int line = 0; line < heigth_band; line ++){
 
-        read_line_tiff(net_radiation, net_radiation_line, line);
-        read_line_tiff(soil_heat, soil_heat_line, line);
+        read_line_tiff(*net_radiation, net_radiation_line, line);
+        read_line_tiff(*soil_heat, soil_heat_line, line);
 
         ho_fuction(net_radiation_line, soil_heat_line, width_band, ho_line);
 
-        read_line_tiff(ndvi, ndvi_line, line);
-        read_line_tiff(surface_temperature, surface_temperature_line, line);
+        read_line_tiff(*ndvi, ndvi_line, line);
+        read_line_tiff(*surface_temperature, surface_temperature_line, line);
 
         for(int col = 0; col < width_band; col ++){
             if(!isnan(ndvi_line[col]) && ndvi_line[col] > 0.15 && ndvi_line[col] < 0.20 && surface_temperature_line[col] > 273.16){
@@ -286,28 +286,31 @@ Candidate select_hot_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_radi
                                     ho_line[col]));
                 
                 //DEBUG
-                pre_candidates[pre_candidates.size() - 1].toString();
+                //pre_candidates[pre_candidates.size() - 1].toString();
             }
-            
         }
     }
     
+    //cout << "Size: " << pre_candidates.size() << endl;
     sort(pre_candidates.begin(), pre_candidates.end(), compare_candidate_temperature);
+    //cout << "Pos sort: " << endl;
     int pos = floor(0.95 * pre_candidates.size());
+    //cout << "Define pos: " << endl;
     double surface_temperature_hot_pixel = pre_candidates[pos].temperature;
+    //cout << "Define surface temperature: " << endl;
 
     //DEBUG
-    printf("%i %.2f\nCandidates hot pixel\n", pos, surface_temperature_hot_pixel);
+    //printf("%i %.2f\nCandidates hot pixel\n", pos, surface_temperature_hot_pixel);
 
     vector<Candidate> candidates;
     for(Candidate c : pre_candidates){
         if(c.temperature == surface_temperature_hot_pixel){
             candidates.push_back(c);
-            c.toString(); //DEBUG
+            //c.toString(); //DEBUG
         }
     }
 
-    printf("Candidates selection\n"); //DEBUG
+    //printf("Candidates selection\n"); //DEBUG
 
     Candidate choosen;
     if(candidates.size() == 1){
@@ -315,9 +318,9 @@ Candidate select_hot_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_radi
     } else {
         sort(candidates.begin(), candidates.end(), compare_candidate_ho); 
         int posmin = floor(0.25 * candidates.size()), posmax = floor(0.75 * candidates.size());
-        printf("%i %i\nMore of one candidates\n", posmin, posmax); //DEBUG
+        //printf("%i %i\nMore of one candidates\n", posmin, posmax); //DEBUG
         choosen = candidates[posmin+1];
-        choosen.toString(); //DEBUG
+        //choosen.toString(); //DEBUG
 
         /*  POSSIVEL BUG
             Não uso do extract, e do DesvioPadrao/Media.
@@ -325,7 +328,7 @@ Candidate select_hot_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_radi
         for(int i = posmin+2; i < posmax; i++){
             if(candidates[i].ndvi < choosen.ndvi){
                 choosen = candidates[i];
-                choosen.toString(); //DEBUG
+                //choosen.toString(); //DEBUG
             }
         }
     }
@@ -333,7 +336,7 @@ Candidate select_hot_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_radi
     return choosen;
 };
 
-Candidate select_cold_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_radiation, TIFF* soil_heat, int heigth_band, int width_band){
+Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_radiation, TIFF** soil_heat, int heigth_band, int width_band){
     double ndvi_line[width_band], surface_temperature_line[width_band];
     double net_radiation_line[width_band], soil_heat_line[width_band];
     double ho_line[width_band];
@@ -341,17 +344,17 @@ Candidate select_cold_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_rad
     vector<Candidate> pre_candidates;
 
     //DEBUG
-    printf("Pre-candidates cold pixel\n");
+    //printf("Pre-candidates cold pixel\n");
 
     for(int line = 0; line < heigth_band; line ++){
 
-        read_line_tiff(net_radiation, net_radiation_line, line);
-        read_line_tiff(soil_heat, soil_heat_line, line);
+        read_line_tiff(*net_radiation, net_radiation_line, line);
+        read_line_tiff(*soil_heat, soil_heat_line, line);
 
         ho_fuction(net_radiation_line, soil_heat_line, width_band, ho_line);
 
-        read_line_tiff(ndvi, ndvi_line, line);
-        read_line_tiff(surface_temperature, surface_temperature_line, line);
+        read_line_tiff(*ndvi, ndvi_line, line);
+        read_line_tiff(*surface_temperature, surface_temperature_line, line);
 
         for(int col = 0; col < width_band; col ++){
             if(!isnan(ndvi_line[col]) && !isnan(ho_line[col]) && ndvi_line[col] < 0 && surface_temperature_line[col] > 273.16){
@@ -362,7 +365,7 @@ Candidate select_cold_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_rad
                                     ho_line[col]));
 
                 //DEBUG
-                pre_candidates[pre_candidates.size() - 1].toString();
+                //pre_candidates[pre_candidates.size() - 1].toString();
             }
         }
     }
@@ -372,17 +375,17 @@ Candidate select_cold_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_rad
     double surface_temperature_cold_pixel = pre_candidates[pos].temperature;
 
     //DEBUG
-    printf("%i %.2f\nCandidates hot pixel\n", pos, surface_temperature_cold_pixel);
+    //printf("%i %.2f\nCandidates hot pixel\n", pos, surface_temperature_cold_pixel);
 
     vector<Candidate> candidates;
     for(Candidate c : pre_candidates){
         if(c.temperature == surface_temperature_cold_pixel){
             candidates.push_back(c);
-            c.toString(); //DEBUG
+            //c.toString(); //DEBUG
         }
     }
 
-    printf("Candidates selection\n"); //DEBUG
+    //printf("Candidates selection\n"); //DEBUG
 
     Candidate choosen;
     if(candidates.size() == 1){
@@ -390,9 +393,9 @@ Candidate select_cold_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_rad
     } else {
         sort(candidates.begin(), candidates.end(), compare_candidate_ho); 
         int posmin = floor(0.25 * candidates.size()), posmax = floor(0.75 * candidates.size());
-        printf("%i %i\nMore of one candidates\n", posmin, posmax); //DEBUG
+        //printf("%i %i\nMore of one candidates\n", posmin, posmax); //DEBUG
         choosen = candidates[posmin+1];
-        choosen.toString();
+        //choosen.toString();
 
         /*  POSSIVEL BUG
             Ele não pega o que tem maior ndvi, ele pega o que tem
@@ -401,7 +404,7 @@ Candidate select_cold_pixel(TIFF* ndvi, TIFF* surface_temperature, TIFF* net_rad
         for(int i = posmin+2; i < posmax; i++){
             if(candidates[i].ndvi > choosen.ndvi){
                 choosen = candidates[i];
-                choosen.toString();
+                //choosen.toString();
             }
         }
     }

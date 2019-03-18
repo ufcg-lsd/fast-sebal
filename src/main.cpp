@@ -22,6 +22,7 @@ using namespace std;
 
 */
 
+/*
 int main(int argc, char *argv[]){
     string output_path = argv[12];
 
@@ -80,12 +81,13 @@ int main(int argc, char *argv[]){
     close_tifs(read_bands, 8);
     return 0;
 }
+*/
 
 /*
     Execution test (after resample function)
 
     arg 01 - band 01 remsampled path
-    arg 02 - band 02 remsampledpath
+    arg 02 - band 02 remsampled path
     arg 03 - band 03 remsampled path
     arg 04 - band 04 remsampled path
     arg 05 - band 05 remsampled path
@@ -97,7 +99,6 @@ int main(int argc, char *argv[]){
     arg 11 - output path
 */
 
-/*
 int main(int argc, char *argv[]){
     string output_path = argv[11];
 
@@ -125,4 +126,3 @@ int main(int argc, char *argv[]){
     close_tifs(bands_resampled, 8);
     return 0;
 }
-*/

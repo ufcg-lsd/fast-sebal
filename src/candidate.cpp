@@ -29,7 +29,7 @@ void Candidate::setAerodynamicResistance(double u200, double A_ZOM, double B_ZOM
 	vector< double > aerodynamic_resistance;
 */
 
-string Candidate::toString(){
+void Candidate::toString(){
     string toString;
     printf("Candidate\n");
     printf("NDVI: %.2f\n", this->ndvi);
@@ -45,9 +45,11 @@ string Candidate::toString(){
         for(unsigned i = 0; i < this->aerodynamic_resistance.size(); i++){
             printf("Aerodynamic resistance[%i]: %.2f\n", i, this->aerodynamic_resistance[i]);
         }
+    }else{
+        cout << "Else do toString" << endl;
     }
 
-    printf("\n");
+    printf("\n");   
 }
 
 bool compare_candidate_temperature(Candidate a, Candidate b){
