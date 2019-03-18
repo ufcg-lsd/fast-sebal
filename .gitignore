@@ -1,6 +1,8 @@
 input*
 wrs2_asc_desc
 run
+diff
+conv
 Elevation
 results
 .vscode
@@ -8,3 +10,6 @@ out
 out2
 out3
 tal_converted.tif
+correct_tifs
+correct_tifs_converted
+diff_tifs

@@ -4,7 +4,7 @@ CLTIFF = -ltiff
 
 DEPS = src/*.h
 
-SRCS = $(shell find -name *.cpp)
+SRCS = $(shell find src -name *.cpp)
 OBJS := $(addsuffix .o,$(basename $(SRCS)))
 
 all: run

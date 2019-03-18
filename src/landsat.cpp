@@ -6,10 +6,10 @@ Landsat::Landsat(){
 Landsat::Landsat(string tal_path, string output_path){
     this->tal_path = tal_path;
     this->output_path = output_path;
-    this->albedo_path = output_path + "/albedo.tif";
-    this->ndvi_path = output_path + "/ndvi.tif";
-    this->evi_path = output_path + "/evi.tif";
-    this->lai_path = output_path + "/lai.tif";
+    this->albedo_path = output_path + "/alb.tif";
+    this->ndvi_path = output_path + "/NDVI.tif";
+    this->evi_path = output_path + "/EVI.tif";
+    this->lai_path = output_path + "/LAI.tif";
     this->soil_heat_path = output_path + "/G.tif";
     this->surface_temperature_path = output_path + "/TS.tif";
     this->net_radiation_path = output_path + "/Rn.tif";
