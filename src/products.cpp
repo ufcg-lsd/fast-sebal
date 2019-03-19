@@ -264,9 +264,6 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
 
     vector<Candidate> pre_candidates;
 
-    //DEBUG
-    //printf("Pre-candidates hot pixel\n");
-
     for(int line = 0; line < heigth_band; line ++){
 
         read_line_tiff(*net_radiation, net_radiation_line, line);
@@ -284,33 +281,19 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
                                     net_radiation_line[col],
                                     soil_heat_line[col],
                                     ho_line[col]));
-                
-                //DEBUG
-                //pre_candidates[pre_candidates.size() - 1].toString();
             }
         }
     }
     
-    //cout << "Size: " << pre_candidates.size() << endl;
     sort(pre_candidates.begin(), pre_candidates.end(), compare_candidate_temperature);
-    //cout << "Pos sort: " << endl;
     int pos = floor(0.95 * pre_candidates.size());
-    //cout << "Define pos: " << endl;
     double surface_temperature_hot_pixel = pre_candidates[pos].temperature;
-    //cout << "Define surface temperature: " << endl;
-
-    //DEBUG
-    //printf("%i %.2f\nCandidates hot pixel\n", pos, surface_temperature_hot_pixel);
 
     vector<Candidate> candidates;
     for(Candidate c : pre_candidates){
-        if(c.temperature == surface_temperature_hot_pixel){
+        if(c.temperature == surface_temperature_hot_pixel)
             candidates.push_back(c);
-            //c.toString(); //DEBUG
-        }
     }
-
-    //printf("Candidates selection\n"); //DEBUG
 
     Candidate choosen;
     if(candidates.size() == 1){
@@ -318,18 +301,11 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     } else {
         sort(candidates.begin(), candidates.end(), compare_candidate_ho); 
         int posmin = floor(0.25 * candidates.size()), posmax = floor(0.75 * candidates.size());
-        //printf("%i %i\nMore of one candidates\n", posmin, posmax); //DEBUG
         choosen = candidates[posmin+1];
-        //choosen.toString(); //DEBUG
 
-        /*  POSSIVEL BUG
-            Não uso do extract, e do DesvioPadrao/Media.
-        */
         for(int i = posmin+2; i < posmax; i++){
-            if(candidates[i].ndvi < choosen.ndvi){
+            if(candidates[i].ndvi < choosen.ndvi)
                 choosen = candidates[i];
-                //choosen.toString(); //DEBUG
-            }
         }
     }
 
@@ -342,9 +318,6 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     double ho_line[width_band];
 
     vector<Candidate> pre_candidates;
-
-    //DEBUG
-    //printf("Pre-candidates cold pixel\n");
 
     for(int line = 0; line < heigth_band; line ++){
 
@@ -363,9 +336,6 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
                                     net_radiation_line[col],
                                     soil_heat_line[col],
                                     ho_line[col]));
-
-                //DEBUG
-                //pre_candidates[pre_candidates.size() - 1].toString();
             }
         }
     }
@@ -374,18 +344,11 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     int pos = floor(0.5 * pre_candidates.size());
     double surface_temperature_cold_pixel = pre_candidates[pos].temperature;
 
-    //DEBUG
-    //printf("%i %.2f\nCandidates hot pixel\n", pos, surface_temperature_cold_pixel);
-
     vector<Candidate> candidates;
     for(Candidate c : pre_candidates){
-        if(c.temperature == surface_temperature_cold_pixel){
+        if(c.temperature == surface_temperature_cold_pixel)
             candidates.push_back(c);
-            //c.toString(); //DEBUG
-        }
     }
-
-    //printf("Candidates selection\n"); //DEBUG
 
     Candidate choosen;
     if(candidates.size() == 1){
@@ -393,19 +356,11 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     } else {
         sort(candidates.begin(), candidates.end(), compare_candidate_ho); 
         int posmin = floor(0.25 * candidates.size()), posmax = floor(0.75 * candidates.size());
-        //printf("%i %i\nMore of one candidates\n", posmin, posmax); //DEBUG
         choosen = candidates[posmin+1];
-        //choosen.toString();
 
-        /*  POSSIVEL BUG
-            Ele não pega o que tem maior ndvi, ele pega o que tem
-            maior numero de vizinhos com NDVI < 0
-        */
         for(int i = posmin+2; i < posmax; i++){
-            if(candidates[i].ndvi > choosen.ndvi){
+            if(candidates[i].ndvi > choosen.ndvi)
                 choosen = candidates[i];
-                //choosen.toString();
-            }
         }
     }
 

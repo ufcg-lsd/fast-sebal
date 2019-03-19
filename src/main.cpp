@@ -97,6 +97,9 @@ int main(int argc, char *argv[]){
     arg 09 - tal path
     arg 10 - station data path
     arg 11 - output path
+
+    Flag
+    -dist=xxxx - value distance between sun and earth
 */
 
 int main(int argc, char *argv[]){
@@ -110,6 +113,12 @@ int main(int argc, char *argv[]){
     
     Sensor sensor = Sensor(mtl.number_sensor, mtl.year);
 
+    if(argc == 13){
+        string dist_flag = argv[12];
+        if(dist_flag.substr(0, 6) == "-dist=")
+            mtl.distance_earth_sun = atof(dist_flag.substr(6, dist_flag.size()).c_str());
+    }
+    
     string tal_path = argv[9];
 
     TIFF *bands_resampled[8];
