@@ -103,6 +103,17 @@ void read_line_tiff(TIFF* tif, tdata_t tif_line, int line){
     }
 };
 
+double read_position_tiff(TIFF* tif, int col, int line){
+    uint32 width_band;
+    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width_band);
+
+    double tif_line[width_band];
+
+    read_line_tiff(tif, tif_line, line);
+
+    return tif_line[col];
+};
+
 void write_line_tiff(TIFF* tif, double tif_line[], int line){
 
     if (TIFFWriteScanline(tif, tif_line, line) < 0){
@@ -116,3 +127,23 @@ void close_tifs(TIFF* tifs[], int quant_tifs){
     for(int i = 1; i < quant_tifs; i++)
         TIFFClose(tifs[i]);
 };
+
+/*
+The following definitions are from The art of computer programming by Knuth
+*/
+
+bool approximatelyEqual(double a, double b){
+    return fabs(a - b) <= ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * EPS);
+}
+
+bool essentiallyEqual(double a, double b){
+    return fabs(a - b) <= ( (fabs(a) > fabs(b) ? fabs(b) : fabs(a)) * EPS);
+}
+
+bool definitelyGreaterThan(double a, double b){
+    return (a - b) > ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * EPS);
+}
+
+bool definitelyLessThan(double a, double b){
+    return (b - a) > ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * EPS);
+}

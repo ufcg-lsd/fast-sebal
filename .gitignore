@@ -13,3 +13,10 @@ tal_converted.tif
 correct_tifs
 correct_tifs_converted
 diff_tifs
+analise_cold_pixel
+analise_hot_pixel
+new_execution
+testandoComEPS
+testeCold
+defined_pixels_select
+diff_file.txt

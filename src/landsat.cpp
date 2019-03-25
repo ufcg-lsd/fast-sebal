@@ -90,8 +90,20 @@ void Landsat::process_final_products(Station station, MTL mtl){
     TIFFGetField(albedo, TIFFTAG_IMAGELENGTH, &heigth_band);
     TIFFGetField(albedo, TIFFTAG_IMAGEWIDTH, &width_band);
 
+
     Candidate hot_pixel = select_hot_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, heigth_band, width_band);
     Candidate cold_pixel = select_cold_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, heigth_band, width_band);
+
+/*
+              NDVI       TS       Rn        G     ustar      rah   
+    hot   0.2276800 308.3877 476.3515 101.9008 0.4605190 15.86615         
+    cold -0.1008399 297.3030 766.7802 383.3901 0.3511601 20.80721         
+
+    Candidate(double ndvi, double temperature, double net_radiation, double soil_heat_flux, double ho, int line, int col);
+
+    Candidate hot_pixel = Candidate(0.2276800, 308.3877, 476.3515, 101.9008, 476.3515 - 101.9008, 0, 0);
+    Candidate cold_pixel = Candidate(-0.1008399, 297.3030, 766.7802, 383.3901, 766.7802 - 383.3901, 0, 0);
+*/
 
     double sensible_heat_flux_line[width_band];
     double zom_line[width_band];
@@ -104,6 +116,16 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
     hot_pixel.setAerodynamicResistance(u200, station.A_ZOM, station.B_ZOM, VON_KARMAN);
     cold_pixel.setAerodynamicResistance(u200, station.A_ZOM, station.B_ZOM, VON_KARMAN);
+
+    /*
+    TIFFClose(albedo);
+    TIFFClose(ndvi);
+    TIFFClose(soil_heat);
+    TIFFClose(surface_temperature);
+    TIFFClose(net_radiation);
+    TIFFClose(evapotranspiration_fraction);
+    TIFFClose(evapotranspiration_24h);
+    */
 
     double H_hot = hot_pixel.net_radiation - hot_pixel.soil_heat_flux;
     double value_pixel_rah = hot_pixel.aerodynamic_resistance[0];
@@ -138,9 +160,15 @@ void Landsat::process_final_products(Station station, MTL mtl){
         else psi_200 = 2 * log((1 + x_200)/2) + log((1 + x_200*x_200)/2) - 2 * atan(x_200) + 0.5 * PI;
 
         hot_pixel.ustar = (VON_KARMAN * u200) / (log(200/hot_pixel.zom) - psi_200);
-        hot_pixel.aerodynamic_resistance.push_back((log(2/0.1) - psi_2 + psi_01)/(hot_pixel.ustar * VON_KARMAN));
+        hot_pixel.aerodynamic_resistance.push_back((log(20) - psi_2 + psi_01)/(hot_pixel.ustar * VON_KARMAN));
         i++;
     } while(fabs(1 - rah_hot0/hot_pixel.aerodynamic_resistance[i]) >= 0.05);
+
+    printf("HOT PIXEL\n");
+    hot_pixel.toString();
+
+    printf("COLD PIXEL\n");
+    cold_pixel.toString();
 
     //Parcial products
     double ndvi_line[width_band], surface_temperature_line[width_band];
@@ -160,7 +188,7 @@ void Landsat::process_final_products(Station station, MTL mtl){
     double phi = (PI/180) * station.latitude;
     double omegas = acos(-tan(phi)*tan(sigma));
     double Ra24h = (((24*60/PI)*GSC*dr)*(omegas*sin(phi)*
-                                sin(sigma)+cos(phi)*cos(sigma)*sin(omegas)))*(1000000/86400);
+                                sin(sigma)+cos(phi)*cos(sigma)*sin(omegas)))*(1000000/86400.0);
 
     //Short wave radiation incident in 24 hours (Rs24h)
     double Rs24h = station.INTERNALIZATION_FACTOR * sqrt(station.v7_max - station.v7_min) * Ra24h;

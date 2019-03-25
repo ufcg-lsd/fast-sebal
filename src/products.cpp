@@ -52,7 +52,7 @@ void radiance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, int width_ban
         for (int i = 1; i < 8; i++){
             read_line_tiff(read_bands[i], line_band, line);
             for (int col = 0; col < width_band; col++)
-                radiance_line[col][i] = line_band[col] * sensor.parameters[i][sensor.GRESCALE] + sensor.parameters[i][sensor.BRESCALE];
+                radiance_line[col][i] = min(line_band[col] * sensor.parameters[i][sensor.GRESCALE] + sensor.parameters[i][sensor.BRESCALE], 0.0);
         }
     }
 }; //rad
@@ -106,9 +106,9 @@ void lai_function(double reflectance_line[][8], int width_band, double lai_line[
         savi_line[col] = ((1 + L) * (reflectance_line[col][4] - reflectance_line[col][3])) /
                          (L + (reflectance_line[col][4] + reflectance_line[col][3]));
         
-        if (!isnan(savi_line[col]) && savi_line[col] > 0.687)
+        if (!isnan(savi_line[col]) && definitelyGreaterThan(savi_line[col], 0.687))
             lai_line[col] = 6;
-        else if (!isnan(savi_line[col]) && savi_line[col] < 0.1)
+        else if (!isnan(savi_line[col]) && definitelyLessThan(savi_line[col], 0.1))
             lai_line[col] = 0;
         else
             lai_line[col] = -log((0.69 - savi_line[col]) / 0.59) / 0.91;
@@ -129,7 +129,7 @@ void evi_function(double reflectance_line[][8], int width_band, double evi_line[
 void enb_emissivity_function(double lai_line[], double ndvi_line[], int width_band, double enb_emissivity_line[]){
 
     for(int col = 0; col < width_band; col++){
-        if(ndvi_line[col] < 0 || lai_line[col] > 2.99)
+        if(definitelyLessThan(ndvi_line[col], 0) || definitelyGreaterThan(lai_line[col], 2.99))
             enb_emissivity_line[col] = 0.98;
         else
             enb_emissivity_line[col] = 0.97 + 0.0033 * lai_line[col];
@@ -141,7 +141,7 @@ void enb_emissivity_function(double lai_line[], double ndvi_line[], int width_ba
 void eo_emissivity_function(double lai_line[], double ndvi_line[], int width_band, double eo_emissivity_line[]){
 
     for(int col = 0; col < width_band; col++){
-        if(ndvi_line[col] < 0 || lai_line[col] > 2.99)
+        if(definitelyLessThan(ndvi_line[col], 0) || definitelyGreaterThan(lai_line[col], 2.99))
             eo_emissivity_line[col] = 0.98;
         else
             eo_emissivity_line[col] = 0.95 + 0.01 * lai_line[col];
@@ -226,7 +226,7 @@ void net_radiation_function(double short_wave_radiation_line[], double large_wav
                                 large_wave_radiation_atmosphere_line[col] - large_wave_radiation_surface_line[col] -
                                 (1 - eo_emissivity_line[col]) * large_wave_radiation_atmosphere_line[col];
 
-        if(net_radiation_line[col] < 0)
+        if(definitelyLessThan(net_radiation_line[col], 0))
             net_radiation_line[col] = 0;
     }
 
@@ -235,21 +235,21 @@ void net_radiation_function(double short_wave_radiation_line[], double large_wav
 void soil_heat_flux_function(double ndvi_line[], double surface_temperature_line[], double albedo_line[], double net_radiation_line[], int width_band, double soil_heat_line[]){
 
     for(int col = 0; col < width_band; col ++){
-        if(ndvi_line[col] >= 0){
+        if(essentiallyEqual(ndvi_line[col], 0) || definitelyGreaterThan(ndvi_line[col], 0)){
             double ndvi_pixel_pow_4 = ndvi_line[col] * ndvi_line[col] * ndvi_line[col] * ndvi_line[col];
             soil_heat_line[col] = (surface_temperature_line[col] - 273.15) * (0.0038 + 0.0074 * albedo_line[col]) *
                                 (1 - 0.98 * ndvi_pixel_pow_4) * net_radiation_line[col];
         }else
             soil_heat_line[col] = 0.5 * net_radiation_line[col];
         
-        if(soil_heat_line[col] < 0)
+        if(definitelyLessThan(soil_heat_line[col], 0))
             soil_heat_line[col] = 0;
 
     }
 
 }; //G
 
-void ho_fuction(double net_radiation_line[], double soil_heat_flux[], int width_band, double ho_line[]){
+void ho_function(double net_radiation_line[], double soil_heat_flux[], int width_band, double ho_line[]){
 
     for(int col = 0; col < width_band; col++)
         ho_line[col] = net_radiation_line[col] - soil_heat_flux[col];
@@ -269,18 +269,19 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
         read_line_tiff(*net_radiation, net_radiation_line, line);
         read_line_tiff(*soil_heat, soil_heat_line, line);
 
-        ho_fuction(net_radiation_line, soil_heat_line, width_band, ho_line);
+        ho_function(net_radiation_line, soil_heat_line, width_band, ho_line);
 
         read_line_tiff(*ndvi, ndvi_line, line);
         read_line_tiff(*surface_temperature, surface_temperature_line, line);
 
         for(int col = 0; col < width_band; col ++){
-            if(!isnan(ndvi_line[col]) && ndvi_line[col] > 0.15 && ndvi_line[col] < 0.20 && surface_temperature_line[col] > 273.16){
+            if(!isnan(ndvi_line[col]) && definitelyGreaterThan(ndvi_line[col], 0.15) && definitelyLessThan(ndvi_line[col], 0.20) && definitelyGreaterThan(surface_temperature_line[col], 273.16)){
                 pre_candidates.push_back(Candidate(ndvi_line[col],
                                     surface_temperature_line[col],
                                     net_radiation_line[col],
                                     soil_heat_line[col],
-                                    ho_line[col]));
+                                    ho_line[col],
+                                    line, col));
             }
         }
     }
@@ -289,11 +290,15 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     int pos = floor(0.95 * pre_candidates.size());
     double surface_temperature_hot_pixel = pre_candidates[pos].temperature;
 
+    printf("Size pre candidates: %d\n", (int)pre_candidates.size());
+
     vector<Candidate> candidates;
     for(Candidate c : pre_candidates){
-        if(c.temperature == surface_temperature_hot_pixel)
+        if(essentiallyEqual(c.temperature, surface_temperature_hot_pixel))
             candidates.push_back(c);
     }
+
+    printf("Size candidates: %d\n", (int)candidates.size());
 
     Candidate choosen;
     if(candidates.size() == 1){
@@ -301,10 +306,15 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     } else {
         sort(candidates.begin(), candidates.end(), compare_candidate_ho); 
         int posmin = floor(0.25 * candidates.size()), posmax = floor(0.75 * candidates.size());
+
+        for(int i = posmin+1; i < posmax; i++)
+            candidates[i].extract_coefficient_variation(*ndvi);
+
         choosen = candidates[posmin+1];
 
         for(int i = posmin+2; i < posmax; i++){
-            if(candidates[i].ndvi < choosen.ndvi)
+            printf("Coefficient variation: %.10lf\n", candidates[i].coefficient_variation);
+            if(definitelyLessThan(candidates[i].coefficient_variation, choosen.coefficient_variation))
                 choosen = candidates[i];
         }
     }
@@ -324,18 +334,19 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
         read_line_tiff(*net_radiation, net_radiation_line, line);
         read_line_tiff(*soil_heat, soil_heat_line, line);
 
-        ho_fuction(net_radiation_line, soil_heat_line, width_band, ho_line);
+        ho_function(net_radiation_line, soil_heat_line, width_band, ho_line);
 
         read_line_tiff(*ndvi, ndvi_line, line);
         read_line_tiff(*surface_temperature, surface_temperature_line, line);
 
         for(int col = 0; col < width_band; col ++){
-            if(!isnan(ndvi_line[col]) && !isnan(ho_line[col]) && ndvi_line[col] < 0 && surface_temperature_line[col] > 273.16){
+            if(!isnan(ndvi_line[col]) && !isnan(ho_line[col]) && definitelyLessThan(ndvi_line[col], 0.0) && definitelyGreaterThan(surface_temperature_line[col], 273.16)){
                 pre_candidates.push_back(Candidate(ndvi_line[col],
                                     surface_temperature_line[col],
                                     net_radiation_line[col],
                                     soil_heat_line[col],
-                                    ho_line[col]));
+                                    ho_line[col],
+                                    line, col));
             }
         }
     }
@@ -344,11 +355,15 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     int pos = floor(0.5 * pre_candidates.size());
     double surface_temperature_cold_pixel = pre_candidates[pos].temperature;
 
+    printf("Size pre candidates: %d\n", (int)pre_candidates.size());
+
     vector<Candidate> candidates;
     for(Candidate c : pre_candidates){
-        if(c.temperature == surface_temperature_cold_pixel)
+        if(essentiallyEqual(c.temperature, surface_temperature_cold_pixel))
             candidates.push_back(c);
     }
+
+    printf("Size candidates: %d\n", (int)candidates.size());
 
     Candidate choosen;
     if(candidates.size() == 1){
@@ -356,10 +371,15 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     } else {
         sort(candidates.begin(), candidates.end(), compare_candidate_ho); 
         int posmin = floor(0.25 * candidates.size()), posmax = floor(0.75 * candidates.size());
+
+        for(int i = posmin+1; i < posmax; i++)
+            candidates[i].extract_negative_neighbour(*ndvi);
+
         choosen = candidates[posmin+1];
 
         for(int i = posmin+2; i < posmax; i++){
-            if(candidates[i].ndvi > choosen.ndvi)
+            printf("Negative neighbour: %d", candidates[i].negative_neighbour);
+            if(candidates[i].negative_neighbour > choosen.negative_neighbour)
                 choosen = candidates[i];
         }
     }
@@ -384,7 +404,7 @@ void ustar_fuction(double u200, double zom_line[], int width_band, double ustar_
 void aerodynamic_resistence_fuction(double ustar_line[], int width_band, double aerodynamic_resistence_line[]){
 
     for(int col = 0; col < width_band; col++)
-        aerodynamic_resistence_line[col] = log(2/0.1)/(ustar_line[col] * VON_KARMAN);
+        aerodynamic_resistence_line[col] = log(20)/(ustar_line[col] * VON_KARMAN);
 
 }; //rah
 
@@ -423,7 +443,7 @@ void sensible_heat_flux_function(Candidate hot_pixel, Candidate cold_pixel, doub
             else psi_200_line[col] = 2 * log((1 + x_200_line[col])/2) + log((1 + x_200_line[col]*x_200_line[col])/2) - 2 * atan(x_200_line[col]) + 0.5 * PI;
 
             ustar_line[col] = (VON_KARMAN * u200) / (log(200/zom_line[col]) - psi_200_line[col]);
-            aerodynamic_resistence_line[col] = (log(2/0.1) - psi_2_line[col] + psi_01_line[col])/(ustar_line[col] * VON_KARMAN);
+            aerodynamic_resistence_line[col] = (log(20) - psi_2_line[col] + psi_01_line[col])/(ustar_line[col] * VON_KARMAN);
         }
         
     }

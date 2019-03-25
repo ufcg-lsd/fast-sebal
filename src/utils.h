@@ -15,6 +15,20 @@ void read_line_tiff(TIFF* tif, double tif_line[], int line);
 
 void read_line_tiff(TIFF* tif, tdata_t tif_line, int line);
 
+double read_position_tiff(TIFF* tif, int col, int line);
+
 void write_line_tiff(TIFF* tif, double tif_line[], int line);
 
 void close_tifs(TIFF* tifs[], int quant_tifs);
+
+/*
+The following definitions are from The art of computer programming by Knuth
+*/
+
+bool approximatelyEqual(double a, double b);
+
+bool essentiallyEqual(double a, double b);
+
+bool definitelyGreaterThan(double a, double b);
+
+bool definitelyLessThan(double a, double b);
