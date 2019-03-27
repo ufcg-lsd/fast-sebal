@@ -36,28 +36,32 @@ void Candidate::setAerodynamicResistance(double u200, double A_ZOM, double B_ZOM
 
 void Candidate::extract_negative_neighbour(TIFF *ndvi){
     double pixel_value;
-
+    int cont = 0;
     for(int i = -3; i <= 3; i++){
         for(int j = -3; j <= 3; j++){
             pixel_value = read_position_tiff(ndvi, this->col + i, this->line + j);
-            printf("Pixel value: %lf\n", pixel_value);
+            printf("Pixel value %d: %.8lf\n", cont, pixel_value);
+            cont++;
             if(!isnan(pixel_value) && pixel_value < 0)
                 this->negative_neighbour++;
         }
     }
-    printf("Negative neighbour: %d\n", this->negative_neighbour);
+    //printf("Negative neighbour: %d\n", this->negative_neighbour);
 }
 
 void Candidate::extract_coefficient_variation(TIFF *ndvi){
     vector<double> values_pixels_neighbours;
     double pixel_value;
-
-    for(int i = -3; i <= 3; i++)
+    int cont = 0;
+    for(int i = -3; i <= 3; i++){
         for(int j = -3; j <= 3; j++){
             pixel_value = read_position_tiff(ndvi, this->col + i, this->line + j);
+            printf("Pixel value %d: %.8lf\n", cont, pixel_value); //DEBUG
+            cont++;
             if(!isnan(pixel_value))
                 values_pixels_neighbours.push_back(pixel_value);
         }
+    }
 
     double mean, sd;
     double sum = 0;

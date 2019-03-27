@@ -103,7 +103,7 @@ int main(int argc, char *argv[]){
 
     ./run input/B2_converted.tif input/B3_converted.tif input/B4_converted.tif input/B5_converted.tif input/B6_converted.tif input/B7_converted.tif input/B10_converted.tif input/MTL.txt tal_converted.tif input/station.csv results -dist=0.98330
 */
-/*
+
 int main(int argc, char *argv[]){
     string output_path = argv[11];
 
@@ -119,8 +119,8 @@ int main(int argc, char *argv[]){
     printf("Sun elevation: %.10lf\n", mtl.sun_elevation);
     printf("Costheta: %.10f\n", sin(mtl.sun_elevation * PI / 180));
     printf("Year: %d\n", mtl.year);
+    */
     
-
     string station_data_path = argv[10];
     Station station = Station(station_data_path, mtl.image_hour);
 
@@ -131,6 +131,7 @@ int main(int argc, char *argv[]){
     printf("Temperature image: %.10lf\n", station.temperature_image);
     printf("Latitude: %.10lf\n", station.latitude);
     printf("Longitude: %.10lf\n", station.longitude);
+   
 
     double ustar_station = (VON_KARMAN * station.v6)/(log(station.WIND_SPEED/station.SURFACE_ROUGHNESS));
     double u200 = (ustar_station/VON_KARMAN) * log(200 / station.SURFACE_ROUGHNESS);
@@ -153,8 +154,8 @@ int main(int argc, char *argv[]){
     printf("Ustar cold pixel: %.10lf\n", ustar_cold_pixel);
 
     return 0;
+     */
     
-
     Sensor sensor = Sensor(mtl.number_sensor, mtl.year);
 
     if(argc == 13){
@@ -178,9 +179,9 @@ int main(int argc, char *argv[]){
 
     close_tifs(bands_resampled, 8);
     return 0;
-}*/
+}
 
-
+/*
 double getRandomDouble(double min, double max){
 
     double f = (double) rand() / RAND_MAX;
@@ -287,4 +288,4 @@ int main(){
     cold.toString();
 
     return 0;
-}
+}*/
