@@ -439,7 +439,7 @@ Candidate new_select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** 
     double net_radiation_line[width_band], soil_heat_line[width_band];
     double ho_line[width_band];
 
-    //Contains the candidates with NDVI between 0.15 and 0.20, which surface temperatura is greater than 273.16
+    //Contains the candidates with NDVI less than 0, which surface temperatura is greater than 273.16
     vector<Candidate> pre_candidates;
 
     for(int line = 0; line < heigth_band; line ++){
