@@ -521,10 +521,9 @@ Candidate new_select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** 
     
     //Calculate the coefficient of variation, after the extract
     int cont = 0; //DEBUG
-    for(Candidate c : final_candidates){
-        cout << cont << endl; //DEBUG
-        c.extract_negative_neighbour(*ndvi);
-        cont++;
+    for(int i = 0; i < final_candidates.size(); i++){
+        cout << i << endl; //DEBUG
+        final_candidates[i].extract_negative_neighbour(*ndvi);
     }
 
     //Choose as candidate the pixel with the minor CV
