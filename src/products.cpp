@@ -255,7 +255,7 @@ void ho_function(double net_radiation_line[], double soil_heat_flux[], int width
         ho_line[col] = net_radiation_line[col] - soil_heat_flux[col];
 
 }; //HO
-
+/*
 Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_radiation, TIFF** soil_heat, int heigth_band, int width_band){
 
     double ndvi_line[width_band], surface_temperature_line[width_band];
@@ -321,7 +321,227 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
 
     return choosen;
 };
+*/
 
+Candidate new_select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_radiation, TIFF** soil_heat, int heigth_band, int width_band){
+    
+    //Auxiliar arrays
+    double ndvi_line[width_band], surface_temperature_line[width_band];
+    double net_radiation_line[width_band], soil_heat_line[width_band];
+    double ho_line[width_band];
+
+    //Contains the candidates with NDVI between 0.15 and 0.20, which surface temperatura is greater than 273.16
+    vector<Candidate> pre_candidates;
+
+    for(int line = 0; line < heigth_band; line ++){
+
+        read_line_tiff(*net_radiation, net_radiation_line, line);
+        read_line_tiff(*soil_heat, soil_heat_line, line);
+
+        ho_function(net_radiation_line, soil_heat_line, width_band, ho_line);
+
+        read_line_tiff(*ndvi, ndvi_line, line);
+        read_line_tiff(*surface_temperature, surface_temperature_line, line);
+
+        for(int col = 0; col < width_band; col ++){
+            if(!isnan(ndvi_line[col]) && definitelyGreaterThan(ndvi_line[col], 0.15) && definitelyLessThan(ndvi_line[col], 0.20) && definitelyGreaterThan(surface_temperature_line[col], 273.16)){
+                pre_candidates.push_back(Candidate(ndvi_line[col],
+                                    surface_temperature_line[col],
+                                    net_radiation_line[col],
+                                    soil_heat_line[col],
+                                    ho_line[col],
+                                    line, col));
+            }
+        }
+
+    }
+
+    cout << pre_candidates.size() << endl; //DEBUG
+
+    //Sort the candidates by their temperatures and choose the surface temperature of the hot pixel
+    sort(pre_candidates.begin(), pre_candidates.end(), compare_candidate_temperature);
+    int pos = floor(0.95 * pre_candidates.size());
+    double surfaceTempHot = pre_candidates[pos].temperature;
+    cout << surfaceTempHot << endl; //DEBUG
+
+    //Select only the ones with temperature equals the surface temperatura of the hot pixel
+    vector<double> ho_candidates;
+    Candidate lastHOCandidate;
+    for(Candidate c : pre_candidates){
+        if(essentiallyEqual(c.temperature, surfaceTempHot)){
+            ho_candidates.push_back(c.ho);
+            lastHOCandidate = c;
+            cout << c.ho << endl; //DEBUG
+        }
+    }
+
+    if(ho_candidates.size() == 1){
+        return lastHOCandidate;
+    }
+
+    //Select the limits of HOs
+    sort(ho_candidates.begin(), ho_candidates.end());
+    double HO_min = ho_candidates[floor(0.25 * ho_candidates.size())];
+    double HO_max = ho_candidates[floor(0.75 * ho_candidates.size())];
+
+    //Contains the final candidates which HO is in (HO_min, HO_max) and surface temperatura is greater than 273.16
+    vector<Candidate> final_candidates;
+
+    for(int line = 0; line < heigth_band; line ++){
+
+        read_line_tiff(*net_radiation, net_radiation_line, line);
+        read_line_tiff(*soil_heat, soil_heat_line, line);
+
+        ho_function(net_radiation_line, soil_heat_line, width_band, ho_line);
+
+        read_line_tiff(*ndvi, ndvi_line, line);
+        read_line_tiff(*surface_temperature, surface_temperature_line, line);
+
+        for(int col = 0; col < width_band; col ++){
+            if(definitelyGreaterThan(ho_line[col], HO_min) && definitelyLessThan(ho_line[col], HO_max) && essentiallyEqual(surface_temperature_line[col], surfaceTempHot)){
+                final_candidates.push_back(Candidate(ndvi_line[col],
+                                    surface_temperature_line[col],
+                                    net_radiation_line[col],
+                                    soil_heat_line[col],
+                                    ho_line[col],
+                                    line, col));
+            }
+        }
+
+    }
+
+    cout << final_candidates.size() << endl;
+    
+    //Calculate the coefficient of variation, after the extract
+    int cont = 0; //DEBUG
+    for(Candidate c : final_candidates){
+        cout << cont << endl; //DEBUG
+        c.extract_coefficient_variation(*ndvi);
+        cont++;
+    }
+
+    //Choose as candidate the pixel with the minor CV
+    Candidate choosen = final_candidates[0];
+    printf("Coefficient variation: %.10lf\n", choosen.coefficient_variation);
+    for(int i = 1; i < final_candidates.size(); i++){
+        printf("Coefficient variation: %.10lf\n", final_candidates[i].coefficient_variation);
+        if(definitelyLessThan(final_candidates[i].coefficient_variation, choosen.coefficient_variation))
+            choosen = final_candidates[i];
+    }
+
+    return choosen;
+}
+
+Candidate new_select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_radiation, TIFF** soil_heat, int heigth_band, int width_band){
+    
+    //Auxiliar arrays
+    double ndvi_line[width_band], surface_temperature_line[width_band];
+    double net_radiation_line[width_band], soil_heat_line[width_band];
+    double ho_line[width_band];
+
+    //Contains the candidates with NDVI between 0.15 and 0.20, which surface temperatura is greater than 273.16
+    vector<Candidate> pre_candidates;
+
+    for(int line = 0; line < heigth_band; line ++){
+
+        read_line_tiff(*net_radiation, net_radiation_line, line);
+        read_line_tiff(*soil_heat, soil_heat_line, line);
+
+        ho_function(net_radiation_line, soil_heat_line, width_band, ho_line);
+
+        read_line_tiff(*ndvi, ndvi_line, line);
+        read_line_tiff(*surface_temperature, surface_temperature_line, line);
+
+        for(int col = 0; col < width_band; col ++){
+            if(!isnan(ndvi_line[col]) && !isnan(ho_line[col]) && definitelyLessThan(ndvi_line[col], 0) && definitelyGreaterThan(surface_temperature_line[col], 273.16)){
+                pre_candidates.push_back(Candidate(ndvi_line[col],
+                                    surface_temperature_line[col],
+                                    net_radiation_line[col],
+                                    soil_heat_line[col],
+                                    ho_line[col],
+                                    line, col));
+            }
+        }
+
+    }
+
+    cout << pre_candidates.size() << endl; //DEBUG
+
+    //Sort the candidates by their temperatures and choose the surface temperature of the hot pixel
+    sort(pre_candidates.begin(), pre_candidates.end(), compare_candidate_temperature);
+    int pos = floor(0.5 * pre_candidates.size());
+    double surfaceTempCold = pre_candidates[pos].temperature;
+    cout << surfaceTempCold << endl; //DEBUG
+
+    //Select only the ones with temperature equals the surface temperatura of the Cold pixel
+    vector<double> ho_candidates;
+    Candidate lastHOCandidate;
+    for(Candidate c : pre_candidates){
+        if(essentiallyEqual(c.temperature, surfaceTempCold)){
+            ho_candidates.push_back(c.ho);
+            lastHOCandidate = c;
+            cout << c.ho << endl; //DEBUG
+        }
+    }
+
+    if(ho_candidates.size() == 1){
+        return lastHOCandidate;
+    }
+
+    //Select the limits of HOs
+    sort(ho_candidates.begin(), ho_candidates.end());
+    double HO_min = ho_candidates[floor(0.25 * ho_candidates.size())];
+    double HO_max = ho_candidates[floor(0.75 * ho_candidates.size())];
+
+    //Contains the final candidates which HO is in (HO_min, HO_max) and surface temperatura is greater than 273.16
+    vector<Candidate> final_candidates;
+
+    for(int line = 0; line < heigth_band; line ++){
+
+        read_line_tiff(*net_radiation, net_radiation_line, line);
+        read_line_tiff(*soil_heat, soil_heat_line, line);
+
+        ho_function(net_radiation_line, soil_heat_line, width_band, ho_line);
+
+        read_line_tiff(*ndvi, ndvi_line, line);
+        read_line_tiff(*surface_temperature, surface_temperature_line, line);
+
+        for(int col = 0; col < width_band; col ++){
+            if(definitelyGreaterThan(ho_line[col], HO_min) && definitelyLessThan(ho_line[col], HO_max) && essentiallyEqual(surface_temperature_line[col], surfaceTempCold)){
+                final_candidates.push_back(Candidate(ndvi_line[col],
+                                    surface_temperature_line[col],
+                                    net_radiation_line[col],
+                                    soil_heat_line[col],
+                                    ho_line[col],
+                                    line, col));
+            }
+        }
+
+    }
+
+    cout << final_candidates.size() << endl;
+    
+    //Calculate the coefficient of variation, after the extract
+    int cont = 0; //DEBUG
+    for(Candidate c : final_candidates){
+        cout << cont << endl; //DEBUG
+        c.extract_negative_neighbour(*ndvi);
+        cont++;
+    }
+
+    //Choose as candidate the pixel with the minor CV
+    Candidate choosen = final_candidates[0];
+    printf("Negative neighbours: %d\n", choosen.negative_neighbour);
+    for(int i = 1; i < final_candidates.size(); i++){
+        printf("Negative neighbours: %d\n", final_candidates[i].negative_neighbour);
+        if(final_candidates[i].negative_neighbour > choosen.negative_neighbour)
+            choosen = final_candidates[i];
+    }
+
+    return choosen;
+}
+
+/*
 Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_radiation, TIFF** soil_heat, int heigth_band, int width_band){
     double ndvi_line[width_band], surface_temperature_line[width_band];
     double net_radiation_line[width_band], soil_heat_line[width_band];
@@ -386,7 +606,7 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
 
     return choosen;
 };
-
+*/
 void zom_fuction(double A_ZOM, double B_ZOM, double ndvi_line[], int width_band, double zom_line[]){
 
     for(int col = 0; col < width_band; col++)
