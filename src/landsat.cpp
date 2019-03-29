@@ -22,6 +22,9 @@ void Landsat::process_parcial_products(TIFF* read_bands[], MTL mtl, Station stat
 
     TIFFGetField(read_bands[1], TIFFTAG_IMAGEWIDTH, &width_band);
     TIFFGetField(read_bands[1], TIFFTAG_IMAGELENGTH, &heigth_band);
+    
+    //cout << heigth_band << " " << width_band << endl;
+    //return; //DEBUG
 
     TIFF *tal = TIFFOpen(this->tal_path.c_str(), "rm");
     check_open_tiff(tal);
@@ -90,40 +93,40 @@ void Landsat::process_final_products(Station station, MTL mtl){
     TIFFGetField(albedo, TIFFTAG_IMAGELENGTH, &heigth_band);
     TIFFGetField(albedo, TIFFTAG_IMAGEWIDTH, &width_band);
 
-    Candidate pixel = Candidate();
-    pixel.col = 600;
-    pixel.line = 500;
-    printf("Ponto 1 - 3886100 - L: 5004 - C: 16\n");
-    printf("Extract pelo cv\n");
-    pixel.extract_coefficient_variation(ndvi);
-    printf("Extract pelo ng\n");
-    pixel.extract_negative_neighbour(ndvi);
-
-    pixel = Candidate();
-    pixel.col = 5706;
-    pixel.line = 514;
-    printf("Ponto 1 - 4000000 - L: 514 - C: 5706\n");
-    printf("Extract pelo cv\n");
-    pixel.extract_coefficient_variation(ndvi);
-    printf("Extract pelo ng\n");
-    pixel.extract_negative_neighbour(ndvi);
-
-    pixel = Candidate();
-    pixel.col = 4748;
-    pixel.line = 332;
-    printf("Ponto 1 - 2584720 - L: 332 - C: 4748\n");
-    printf("Extract pelo cv\n");
-    pixel.extract_coefficient_variation(ndvi);
-    printf("Extract pelo ng\n");
-    pixel.extract_negative_neighbour(ndvi);
-
+    //Candidate pixel = Candidate();
+    //pixel.col = 3564;
+    //pixel.line = 533;
+    //printf("Ponto 1 - 3886100 - L: 533 - C: 3564\n");
+    //printf("Extract pelo cv\n");
+    //pixel.extract_coefficient_variation(ndvi);
+    //printf("Extract pelo ng\n");
+    //pixel.extract_negative_neighbour(ndvi);
     /*
+    pixel = Candidate();
+    pixel.col = 696;
+    pixel.line = 549;
+    printf("Ponto 2 - 4000000 - L: 549 - C: 696\n");
+    printf("Extract pelo cv\n");
+    pixel.extract_coefficient_variation(ndvi);
+    //printf("Extract pelo ng\n");
+    //pixel.extract_negative_neighbour(ndvi);
+
+    pixel = Candidate();
+    pixel.col = 1228;
+    pixel.line = 355;
+    printf("Ponto 1 - 2584720 - L: 355 - C: 1228\n");
+    printf("Extract pelo cv\n");
+    pixel.extract_coefficient_variation(ndvi);
+    //printf("Extract pelo ng\n");
+    //pixel.extract_negative_neighbour(ndvi);
+
+    
         7631, 7771
         line * 7771 + col = 3886100
         3886100 / 7771 = 5004
     */
 
-    return;
+   // return;
 
     Candidate hot_pixel = select_hot_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, heigth_band, width_band);
     Candidate cold_pixel = select_cold_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, heigth_band, width_band);
