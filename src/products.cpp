@@ -356,13 +356,13 @@ Candidate new_select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** n
 
     }
 
-    cout << pre_candidates.size() << endl; //DEBUG
+    cout << "TAMANHO PRE CANDIDATOS " << pre_candidates.size() << endl; //DEBUG
 
     //Sort the candidates by their temperatures and choose the surface temperature of the hot pixel
     sort(pre_candidates.begin(), pre_candidates.end(), compare_candidate_temperature);
     int pos = floor(0.95 * pre_candidates.size());
     double surfaceTempHot = pre_candidates[pos].temperature;
-    cout << surfaceTempHot << endl; //DEBUG
+    cout << "HOT SURF TEMP " << surfaceTempHot << endl; //DEBUG
 
     //Select only the ones with temperature equals the surface temperatura of the hot pixel
     vector<double> ho_candidates;
@@ -410,7 +410,7 @@ Candidate new_select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** n
 
     }
 
-    cout << final_candidates.size() << endl;
+    cout << "FINAL CAND SIZE " << final_candidates.size() << endl;
     
     //Calculate the coefficient of variation, after the extract
     int cont = 0; //DEBUG
@@ -465,13 +465,13 @@ Candidate new_select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** 
 
     }
 
-    cout << pre_candidates.size() << endl; //DEBUG
+    cout << "TAMANHO COLD PRE " << pre_candidates.size() << endl; //DEBUG
 
     //Sort the candidates by their temperatures and choose the surface temperature of the hot pixel
     sort(pre_candidates.begin(), pre_candidates.end(), compare_candidate_temperature);
     int pos = floor(0.5 * pre_candidates.size());
     double surfaceTempCold = pre_candidates[pos].temperature;
-    cout << surfaceTempCold << endl; //DEBUG
+    cout << "SURFACE COLD TEMP " << surfaceTempCold << endl; //DEBUG
 
     //Select only the ones with temperature equals the surface temperatura of the Cold pixel
     vector<double> ho_candidates;
@@ -519,7 +519,7 @@ Candidate new_select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** 
 
     }
 
-    cout << final_candidates.size() << endl;
+    cout << "FINAL COLD SIZE " << final_candidates.size() << endl;
     
     //Calculate the coefficient of variation, after the extract
     int cont = 0; //DEBUG
