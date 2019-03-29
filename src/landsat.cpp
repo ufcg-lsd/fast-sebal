@@ -128,8 +128,8 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
    // return;
 
-    Candidate hot_pixel = new_select_hot_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, heigth_band, width_band);
-    Candidate cold_pixel = new_select_cold_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, heigth_band, width_band);
+    Candidate hot_pixel = select_hot_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, heigth_band, width_band);
+    Candidate cold_pixel = select_cold_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, heigth_band, width_band);
 
 /*
               NDVI       TS       Rn        G     ustar      rah   

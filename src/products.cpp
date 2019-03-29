@@ -323,7 +323,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
 };
 */
 
-Candidate new_select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_radiation, TIFF** soil_heat, int heigth_band, int width_band){
+Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_radiation, TIFF** soil_heat, int heigth_band, int width_band){
     
     //Auxiliar arrays
     double ndvi_line[width_band], surface_temperature_line[width_band];
@@ -356,13 +356,13 @@ Candidate new_select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** n
 
     }
 
-    cout << "TAMANHO PRE CANDIDATOS " << pre_candidates.size() << endl; //DEBUG
+    //cout << "TAMANHO PRE CANDIDATOS " << pre_candidates.size() << endl; //DEBUG
 
     //Sort the candidates by their temperatures and choose the surface temperature of the hot pixel
     sort(pre_candidates.begin(), pre_candidates.end(), compare_candidate_temperature);
     int pos = floor(0.95 * pre_candidates.size());
     double surfaceTempHot = pre_candidates[pos].temperature;
-    cout << "HOT SURF TEMP " << surfaceTempHot << endl; //DEBUG
+    //cout << "HOT SURF TEMP " << surfaceTempHot << endl; //DEBUG
 
     //Select only the ones with temperature equals the surface temperatura of the hot pixel
     vector<double> ho_candidates;
@@ -371,7 +371,7 @@ Candidate new_select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** n
         if(essentiallyEqual(c.temperature, surfaceTempHot)){
             ho_candidates.push_back(c.ho);
             lastHOCandidate = c;
-            cout << c.ho << endl; //DEBUG
+            //cout << c.ho << endl; //DEBUG
         }
     }
 
@@ -410,19 +410,19 @@ Candidate new_select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** n
 
     }
 
-    cout << "FINAL CAND SIZE " << final_candidates.size() << endl;
+    //cout << "FINAL CAND SIZE " << final_candidates.size() << endl;
     
     //Calculate the coefficient of variation, after the extract
     for(int i = 0; i < final_candidates.size(); i++){
-        cout << i << endl; //DEBUG
+        //cout << i << endl; //DEBUG
         final_candidates[i].extract_coefficient_variation(*ndvi);
     }
 
     //Choose as candidate the pixel with the minor CV
     Candidate choosen = final_candidates[0];
-    printf("Coefficient variation: %.10lf\n", choosen.coefficient_variation);
+    //printf("Coefficient variation: %.10lf\n", choosen.coefficient_variation);
     for(int i = 1; i < final_candidates.size(); i++){
-        printf("Coefficient variation: %.10lf\n", final_candidates[i].coefficient_variation);
+        //printf("Coefficient variation: %.10lf\n", final_candidates[i].coefficient_variation);
         if(definitelyLessThan(final_candidates[i].coefficient_variation, choosen.coefficient_variation))
             choosen = final_candidates[i];
     }
@@ -430,7 +430,7 @@ Candidate new_select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** n
     return choosen;
 }
 
-Candidate new_select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_radiation, TIFF** soil_heat, int heigth_band, int width_band){
+Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_radiation, TIFF** soil_heat, int heigth_band, int width_band){
     
     //Auxiliar arrays
     double ndvi_line[width_band], surface_temperature_line[width_band];
@@ -463,13 +463,13 @@ Candidate new_select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** 
 
     }
 
-    cout << "TAMANHO COLD PRE " << pre_candidates.size() << endl; //DEBUG
+    //cout << "TAMANHO COLD PRE " << pre_candidates.size() << endl; //DEBUG
 
     //Sort the candidates by their temperatures and choose the surface temperature of the hot pixel
     sort(pre_candidates.begin(), pre_candidates.end(), compare_candidate_temperature);
     int pos = floor(0.5 * pre_candidates.size());
     double surfaceTempCold = pre_candidates[pos].temperature;
-    cout << "SURFACE COLD TEMP " << surfaceTempCold << endl; //DEBUG
+    //cout << "SURFACE COLD TEMP " << surfaceTempCold << endl; //DEBUG
 
     //Select only the ones with temperature equals the surface temperatura of the Cold pixel
     vector<double> ho_candidates;
@@ -478,7 +478,7 @@ Candidate new_select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** 
         if(essentiallyEqual(c.temperature, surfaceTempCold)){
             ho_candidates.push_back(c.ho);
             lastHOCandidate = c;
-            cout << c.ho << endl; //DEBUG
+            //cout << c.ho << endl; //DEBUG
         }
     }
 
@@ -517,20 +517,19 @@ Candidate new_select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** 
 
     }
 
-    cout << "FINAL COLD SIZE " << final_candidates.size() << endl;
+    //cout << "FINAL COLD SIZE " << final_candidates.size() << endl;
     
     //Calculate the coefficient of variation, after the extract
-    int cont = 0; //DEBUG
     for(int i = 0; i < final_candidates.size(); i++){
-        cout << i << endl; //DEBUG
+        //cout << i << endl; //DEBUG
         final_candidates[i].extract_negative_neighbour(*ndvi);
     }
 
     //Choose as candidate the pixel with the minor CV
     Candidate choosen = final_candidates[0];
-    printf("Negative neighbours: %d\n", choosen.negative_neighbour);
+    //printf("Negative neighbours: %d\n", choosen.negative_neighbour);
     for(int i = 1; i < final_candidates.size(); i++){
-        printf("Negative neighbours: %d\n", final_candidates[i].negative_neighbour);
+        //printf("Negative neighbours: %d\n", final_candidates[i].negative_neighbour);
         if(final_candidates[i].negative_neighbour > choosen.negative_neighbour)
             choosen = final_candidates[i];
     }

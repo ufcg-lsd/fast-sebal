@@ -72,19 +72,19 @@ void Candidate::extract_coefficient_variation(TIFF *ndvi){
     for(int i = 0; i < values_pixels_neighbours.size(); i++)
         sum += values_pixels_neighbours[i];
     
-    cout << "SOMA " << sum << endl;
+    //cout << "SOMA " << sum << endl;
     mean = sum / values_pixels_neighbours.size();
-    cout << "MEDIA " << mean << endl;
+    //cout << "MEDIA " << mean << endl;
 
     sum = 0;
     for(int i = 0; i < values_pixels_neighbours.size(); i++)
         sum += (values_pixels_neighbours[i] - mean) * (values_pixels_neighbours[i] - mean);
-    cout << "SOMA SD " << sum << endl;
+    //cout << "SOMA SD " << sum << endl;
     sd = sqrt(sum / values_pixels_neighbours.size());
-    cout << "SD " << sd << endl;
-    cout << "CV" << (sd / mean) << endl;
+    //cout << "SD " << sd << endl;
+    //cout << "CV" << (sd / mean) << endl;
     this->coefficient_variation = sd / mean;
-    cout << this->coefficient_variation << endl;
+    //cout << this->coefficient_variation << endl;
 }
 
 void Candidate::toString(){
