@@ -415,9 +415,10 @@ Candidate new_select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** n
     //Calculate the coefficient of variation, after the extract
     int cont = 0; //DEBUG
     for(Candidate c : final_candidates){
-        cout << cont << endl; //DEBUG
+	cout << cont << endl; //DEBUG
         c.extract_coefficient_variation(*ndvi);
-        cont++;
+        c.toString();
+	cont++;
     }
 
     //Choose as candidate the pixel with the minor CV
