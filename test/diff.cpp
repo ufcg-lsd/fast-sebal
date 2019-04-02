@@ -52,8 +52,8 @@ double diff_tifs(string compare_path_tiff1, string compare_path_tiff2, string di
     double tif2_line[width_band];
     double diff_line[width_band];
 
-    double max_diff = 0;
-
+    double max_diff_relative = 0;
+    double relative_error_diff;
     for(int line = 0; line < heigth_band; line++){
 
         if(TIFFReadScanline(tif1, tif1_line, line) < 0){
@@ -68,8 +68,12 @@ double diff_tifs(string compare_path_tiff1, string compare_path_tiff2, string di
 
         for(int col = 0; col < width_band; col++){
             diff_line[col] = fabs(tif1_line[col] - tif2_line[col]);
-            if(diff_line[col] > max_diff)
-                max_diff = diff_line[col];
+            relative_error_diff = (diff_line[col]/tif2_line[col]) * 100;
+            if(relative_error_diff > max_diff_relative){
+                printf("TIF C %.7lf\n", tif1_line[col]);
+                printf("TIF R %.7lf\n", tif2_line[col]);
+                max_diff_relative = relative_error_diff;
+            }
         }
 
         if (TIFFWriteScanline(diff, diff_line, line) < 0){
@@ -82,7 +86,7 @@ double diff_tifs(string compare_path_tiff1, string compare_path_tiff2, string di
     TIFFClose(tif2);
     TIFFClose(diff);
 
-    return max_diff;
+    return max_diff_relative;
 };
 
 int main(int argc, char *argv[]){
