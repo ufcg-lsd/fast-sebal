@@ -213,8 +213,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
         save_tiffs(vector<double*> {zom_line, ustar_line, aerodynamic_resistence_line}, 
                vector<TIFF*> {zom, ustar, aerodynamic_resistence}, line);
-        
-        cout << line << endl;
     }
 
     TIFFClose(ndvi);
@@ -295,8 +293,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
         save_tiffs(vector<double*> {ustar_line, aerodynamic_resistence_line, sensible_heat_flux_line}, 
                vector<TIFF*> {ustar_after, aerodynamic_resistence_after, sensible_heat_flux}, line);
-        
-        cout << line << endl;
     }
 
     TIFFClose(zom);
@@ -309,6 +305,8 @@ void Landsat::process_final_products(Station station, MTL mtl){
     //End of Rah correction
 
     //Continuing to the final products
+
+    cout << "Continuing to final products" << endl; 
 
     TIFF *latent_heat_flux, *net_radiation_24h, *latent_heat_flux_24h;
 
@@ -336,8 +334,13 @@ void Landsat::process_final_products(Station station, MTL mtl){
         latent_heat_flux_24h_function(evapotranspiration_fraction_line, net_radiation_24h_line, width_band, latent_heat_flux_24h_line);
         evapotranspiration_24h_function(latent_heat_flux_24h_line, station, width_band, evapotranspiration_24h_line);
 
+        cout << line << endl;
+
         save_tiffs(vector<double*> {latent_heat_flux_line, net_radiation_24h_line, latent_heat_flux_24h_line, evapotranspiration_fraction_line, evapotranspiration_24h_line}, 
                vector<TIFF*> {latent_heat_flux, net_radiation_24h, latent_heat_flux_24h, evapotranspiration_fraction, evapotranspiration_24h}, line);
+
+        cout << line << endl;
+    
     }
     
     TIFFClose(albedo);
