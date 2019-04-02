@@ -13,6 +13,11 @@ struct Landsat{
     string net_radiation_path, evapotranspiration_fraction_path;
     string evapotranspiration_24h_path;
 
+    //DEBUG
+    string zom_path, ustar_path, aerodynamic_resistence_path, sensible_heat_flux_path;
+    string ustar_after_path, aerodynamic_resistence_after_path;
+    string latent_heat_flux_path, net_radiation_24h_path, latent_heat_flux_24h_path;
+
     Landsat();
     Landsat(string tal_path, string output_path);
 
