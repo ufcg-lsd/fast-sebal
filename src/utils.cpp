@@ -114,6 +114,31 @@ double read_position_tiff(TIFF* tif, int col, int line){
     return tif_line[col];
 };
 
+//Generate small tiff 30x30
+void fill_tiff(TIFF** tif, double min, double max){
+    
+    double tif_line[30];
+
+    for(int line = 0; line < 30; line++){
+
+        for(int col = 0; col < 30; col ++){
+           tif_line[col] = getRandomDouble(min, max);
+        }
+
+        if (TIFFWriteScanline(*tif, tif_line, line) < 0){
+            cerr << "Write problem!" << endl;
+            exit(4);
+        }
+    }
+}
+
+double getRandomDouble(double min, double max){
+
+    double f = (double) rand() / RAND_MAX;
+    return min + f * (max - min);
+
+}
+
 void write_line_tiff(TIFF* tif, double tif_line[], int line){
 
     if (TIFFWriteScanline(tif, tif_line, line) < 0){

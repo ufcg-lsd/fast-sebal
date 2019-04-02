@@ -22,9 +22,6 @@ void Landsat::process_parcial_products(TIFF* read_bands[], MTL mtl, Station stat
 
     TIFFGetField(read_bands[1], TIFFTAG_IMAGEWIDTH, &width_band);
     TIFFGetField(read_bands[1], TIFFTAG_IMAGELENGTH, &heigth_band);
-    
-    //cout << heigth_band << " " << width_band << endl;
-    //return; //DEBUG
 
     TIFF *tal = TIFFOpen(this->tal_path.c_str(), "rm");
     check_open_tiff(tal);
@@ -93,48 +90,10 @@ void Landsat::process_final_products(Station station, MTL mtl){
     TIFFGetField(albedo, TIFFTAG_IMAGELENGTH, &heigth_band);
     TIFFGetField(albedo, TIFFTAG_IMAGEWIDTH, &width_band);
 
-    //Candidate pixel = Candidate();
-    //pixel.col = 3564;
-    //pixel.line = 533;
-    //printf("Ponto 1 - 3886100 - L: 533 - C: 3564\n");
-    //printf("Extract pelo cv\n");
-    //pixel.extract_coefficient_variation(ndvi);
-    //printf("Extract pelo ng\n");
-    //pixel.extract_negative_neighbour(ndvi);
-    /*
-    pixel = Candidate();
-    pixel.col = 696;
-    pixel.line = 549;
-    printf("Ponto 2 - 4000000 - L: 549 - C: 696\n");
-    printf("Extract pelo cv\n");
-    pixel.extract_coefficient_variation(ndvi);
-    //printf("Extract pelo ng\n");
-    //pixel.extract_negative_neighbour(ndvi);
-
-    pixel = Candidate();
-    pixel.col = 1228;
-    pixel.line = 355;
-    printf("Ponto 1 - 2584720 - L: 355 - C: 1228\n");
-    printf("Extract pelo cv\n");
-    pixel.extract_coefficient_variation(ndvi);
-    //printf("Extract pelo ng\n");
-    //pixel.extract_negative_neighbour(ndvi);
-
-    
-        7631, 7771
-        line * 7771 + col = 3886100
-        3886100 / 7771 = 5004
-    */
-
-   // return;
-
     Candidate hot_pixel = select_hot_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, heigth_band, width_band);
     Candidate cold_pixel = select_cold_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, heigth_band, width_band);
 /*
-
-              NDVI       TS       Rn        G     ustar      rah   
-    hot   0.2276800 308.3877 476.3515 101.9008 0.4605190 15.86615         
-    cold -0.1008399 297.3030 766.7802 383.3901 0.3511601 20.80721         
+    To run without selecting pixels.
 
     Candidate(double ndvi, double temperature, double net_radiation, double soil_heat_flux, double ho, int line, int col);
 
@@ -150,19 +109,10 @@ void Landsat::process_final_products(Station station, MTL mtl){
     double ustar_station = (VON_KARMAN * station.v6)/(log(station.WIND_SPEED/station.SURFACE_ROUGHNESS));
     double u200 = (ustar_station/VON_KARMAN) * log(200 / station.SURFACE_ROUGHNESS);
 
-   hot_pixel.setAerodynamicResistance(u200, station.A_ZOM, station.B_ZOM, VON_KARMAN);
-   cold_pixel.setAerodynamicResistance(u200, station.A_ZOM, station.B_ZOM, VON_KARMAN);
+    hot_pixel.setAerodynamicResistance(u200, station.A_ZOM, station.B_ZOM, VON_KARMAN);
+    cold_pixel.setAerodynamicResistance(u200, station.A_ZOM, station.B_ZOM, VON_KARMAN);
     hot_pixel.toString();
     cold_pixel.toString();
-	/*
-    TIFFClose(albedo);
-    TIFFClose(ndvi);
-    TIFFClose(soil_heat);
-    TIFFClose(surface_temperature);
-    TIFFClose(net_radiation);
-    TIFFClose(evapotranspiration_fraction);
-    TIFFClose(evapotranspiration_24h);
-    */
 
     double H_hot = hot_pixel.net_radiation - hot_pixel.soil_heat_flux;
     double value_pixel_rah = hot_pixel.aerodynamic_resistance[0];
@@ -239,7 +189,7 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
         zom_fuction(station.A_ZOM, station.B_ZOM, ndvi_line, width_band, zom_line); 
         ustar_fuction(u200, zom_line, width_band, ustar_line);
-        aerodynamic_resistence_fuction(ustar_line, width_band, aerodynamic_resistence_line); 
+        aerodynamic_resistence_fuction(ustar_line, width_band, aerodynamic_resistence_line);
         sensible_heat_flux_function(hot_pixel, cold_pixel, u200, zom_line, ustar_line, aerodynamic_resistence_line, surface_temperature_line, width_band, sensible_heat_flux_line);
         latent_heat_flux_function(net_radiation_line, soil_heat_line, sensible_heat_flux_line, width_band, latent_heat_flux_line);
         net_radiation_24h_function(albedo_line, Ra24h, Rs24h, width_band, net_radiation_24h_line);

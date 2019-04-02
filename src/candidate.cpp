@@ -47,7 +47,6 @@ void Candidate::extract_negative_neighbour(TIFF *ndvi){
                 this->negative_neighbour++;
         }
     }
-    //printf("Negative neighbour: %d\n", this->negative_neighbour);
 }
 
 void Candidate::extract_coefficient_variation(TIFF *ndvi){
@@ -72,19 +71,14 @@ void Candidate::extract_coefficient_variation(TIFF *ndvi){
     for(int i = 0; i < values_pixels_neighbours.size(); i++)
         sum += values_pixels_neighbours[i];
     
-    //cout << "SOMA " << sum << endl;
     mean = sum / values_pixels_neighbours.size();
-    //cout << "MEDIA " << mean << endl;
 
     sum = 0;
     for(int i = 0; i < values_pixels_neighbours.size(); i++)
         sum += (values_pixels_neighbours[i] - mean) * (values_pixels_neighbours[i] - mean);
-    //cout << "SOMA SD " << sum << endl;
+    
     sd = sqrt(sum / values_pixels_neighbours.size());
-    //cout << "SD " << sd << endl;
-    //cout << "CV" << (sd / mean) << endl;
     this->coefficient_variation = sd / mean;
-    //cout << this->coefficient_variation << endl;
 }
 
 void Candidate::toString(){
