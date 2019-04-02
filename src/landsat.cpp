@@ -213,6 +213,8 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
         save_tiffs(vector<double*> {zom_line, ustar_line, aerodynamic_resistence_line}, 
                vector<TIFF*> {zom, ustar, aerodynamic_resistence}, line);
+        
+        cout << line << endl;
     }
 
     TIFFClose(ndvi);
@@ -293,6 +295,8 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
         save_tiffs(vector<double*> {ustar_line, aerodynamic_resistence_line, sensible_heat_flux_line}, 
                vector<TIFF*> {ustar_after, aerodynamic_resistence_after, sensible_heat_flux}, line);
+        
+        cout << line << endl;
     }
 
     TIFFClose(zom);
