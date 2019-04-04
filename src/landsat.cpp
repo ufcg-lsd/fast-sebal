@@ -314,7 +314,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
     TIFFClose(aerodynamic_resistence_tif0);
     TIFFClose(aerodynamic_resistence_tif1);
     TIFFClose(surface_temperature);
-    TIFFClose(sensible_heat_flux);
 
     if(i%2) {
         printf("Rah_after is tif 0\n");
@@ -356,6 +355,8 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
     }
 
+    TIFFClose(sensible_heat_flux);
+    
     //End of Rah correction
 
     //Continuing to the final products
