@@ -242,9 +242,10 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
             for(int col = 0; col < width_band; col++) {
                 sensible_heat_flux_line[col] = RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15))/aerodynamic_resistence_line[col];
+                cout << sensible_heat_flux_line[col] << endl;
                 double ustar_pow_3 = ustar_line[col] * ustar_line[col] * ustar_line[col];
                 L[col] = -1 * ((RHO * SPECIFIC_HEAT_AIR * ustar_pow_3 * surface_temperature_line[col])/(VON_KARMAN * GRAVITY * sensible_heat_flux_line[col]));
-                
+
                 y_01_line[col] = pow((1 - (16*0.1)/L[col]), 0.25);
                 y_2_line[col] = pow((1 - (16*2)/L[col]), 0.25);
                 x_200_line[col] = pow((1 - (16*200)/L[col]), 0.25);
@@ -260,8 +261,14 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
                 ustar_line[col] = (VON_KARMAN * u200) / (log(200/zom_line[col]) - psi_200_line[col]);
                 aerodynamic_resistence_line[col] = (log(2/0.1) - psi_2_line[col] + psi_01_line[col])/(ustar_line[col] * VON_KARMAN);
-            
+
                 if(line == hot_pixel.line && col == hot_pixel.col) {
+                    cout << "L " << L[col] << endl;
+                    cout << "y_line " << y_01_line[col] << " " << y_2_line[col] << " " << x_200_line[col] << endl;
+                    cout << "psi-line " << psi_01_line[col] << " " << psi_2_line[col] << " " << psi_200_line[col] << endl;
+                    cout << ustar_line[col] << endl;
+                    cout << aerodynamic_resistence_line[col] << endl;
+
                     rah_hot = aerodynamic_resistence_line[col];
                     hot_pixel.aerodynamic_resistance.push_back(rah_hot);
                 }
