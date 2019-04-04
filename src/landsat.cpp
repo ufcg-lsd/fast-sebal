@@ -189,15 +189,7 @@ void Landsat::process_final_products(Station station, MTL mtl){
     TIFF *ustar_tif0, *ustar_tif1, *aerodynamic_resistence_tif0, *aerodynamic_resistence_tif1, *sensible_heat_flux;
     zom = TIFFOpen(zom_path.c_str(), "rm"); //It's not modified into the rah cycle
 
-    //Since ustar is both write and read into the rah cycle, two TIFF will be needed
-    ustar_tif0 = TIFFOpen(ustar_path.c_str(), "rm");
-    ustar_tif1 = TIFFOpen(ustar_tif1_path.c_str(), "w8m");
-    setup(ustar_tif1, albedo);
-
-    //Since ustar is both write and read into the rah cycle, two TIFF will be needed
-    aerodynamic_resistence_tif0 = TIFFOpen(aerodynamic_resistence_path.c_str(), "rm");
-    aerodynamic_resistence_tif1 = TIFFOpen(aerodynamic_resistence_tif1_path.c_str(), "w8m");
-    setup(aerodynamic_resistence_tif1, albedo);
+    
 
     //It's only written into the rah cycle
     sensible_heat_flux = TIFFOpen(sensible_heat_flux_path.c_str(), "w8m");
@@ -216,21 +208,35 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
     while(Erro) {
 
-        rah_hot0 = hot_pixel.aerodynamic_resistance[i];
+        if(i%2) {
+            //Since ustar is both write and read into the rah cycle, two TIFF will be needed
+            ustar_tif0 = TIFFOpen(ustar_tif1_path.c_str(), "rm");
+            ustar_tif1 = TIFFOpen(ustar_path.c_str(), "w8m");
+            setup(ustar_tif1, albedo);
+
+            //Since ustar is both write and read into the rah cycle, two TIFF will be needed
+            aerodynamic_resistence_tif0 = TIFFOpen(aerodynamic_resistence_tif1_path.c_str(), "rm");
+            aerodynamic_resistence_tif1 = TIFFOpen(aerodynamic_resistence_path.c_str(), "w8m");
+            setup(aerodynamic_resistence_tif1, albedo);
+        } else {
+            //Since ustar is both write and read into the rah cycle, two TIFF will be needed
+            ustar_tif0 = TIFFOpen(ustar_path.c_str(), "rm");
+            ustar_tif1 = TIFFOpen(ustar_tif1_path.c_str(), "w8m");
+            setup(ustar_tif1, albedo);
+
+            //Since ustar is both write and read into the rah cycle, two TIFF will be needed
+            aerodynamic_resistence_tif0 = TIFFOpen(aerodynamic_resistence_path.c_str(), "rm");
+            aerodynamic_resistence_tif1 = TIFFOpen(aerodynamic_resistence_tif1_path.c_str(), "w8m");
+            setup(aerodynamic_resistence_tif1, albedo);
+        }
 
         for(int line = 0; line < heigth_band; line++){
 
             //Reading data needed
             read_line_tiff(surface_temperature, surface_temperature_line, line);
             read_line_tiff(zom, zom_line, line);
-
-            if (i%2) {
-                read_line_tiff(ustar_tif1, ustar_line, line);
-                read_line_tiff(aerodynamic_resistence_tif1, aerodynamic_resistence_line, line);
-            } else {
-                read_line_tiff(ustar_tif0, ustar_line, line);
-                read_line_tiff(aerodynamic_resistence_tif0, aerodynamic_resistence_line, line);
-            }
+            read_line_tiff(ustar_tif0, ustar_line, line);
+            read_line_tiff(aerodynamic_resistence_tif0, aerodynamic_resistence_line, line);
 
             double dt_hot = H_hot * rah_hot0 / (RHO * SPECIFIC_HEAT_AIR);
             double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
@@ -256,17 +262,17 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
                 ustar_line[col] = (VON_KARMAN * u200) / (log(200/zom_line[col]) - psi_200_line[col]);
                 aerodynamic_resistence_line[col] = (log(2/0.1) - psi_2_line[col] + psi_01_line[col])/(ustar_line[col] * VON_KARMAN);
+            
+                if(line == hot_pixel.line && col == hot_pixel.col) {
+                    rah_hot = aerodynamic_resistence_line[col];
+                    hot_pixel.aerodynamic_resistance.push_back(rah_hot);
+                }
+            
             }
 
             //Saving new ustar e rah
-            if(i%2) {
-                save_tiffs(vector<double*> {ustar_line, aerodynamic_resistence_line}, 
-                    vector<TIFF*> {ustar_tif0, aerodynamic_resistence_tif0}, line);
-
-            } else {
-                save_tiffs(vector<double*> {ustar_line, aerodynamic_resistence_line}, 
+            save_tiffs(vector<double*> {ustar_line, aerodynamic_resistence_line}, 
                     vector<TIFF*> {ustar_tif1, aerodynamic_resistence_tif1}, line);
-            }
 
         }
 
@@ -274,32 +280,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
         TIFFClose(ustar_tif1);
         TIFFClose(aerodynamic_resistence_tif0);
         TIFFClose(aerodynamic_resistence_tif1);
-
-        if(i%2) {
-            ustar_tif0 = TIFFOpen(ustar_tif0_path.c_str(), "rm");
-            ustar_tif1 = TIFFOpen(ustar_tif1_path.c_str(), "w8m");
-            //setup(ustar_tif1, albedo);
-
-            aerodynamic_resistence_tif0 = TIFFOpen(aerodynamic_resistence_tif0_path.c_str(), "rm");
-            aerodynamic_resistence_tif1 = TIFFOpen(aerodynamic_resistence_tif1_path.c_str(), "w8m");
-            //setup(aerodynamic_resistence_tif1, albedo);
-
-            rah_hot = read_position_tiff(aerodynamic_resistence_tif0, hot_pixel.col, hot_pixel.line);
-            hot_pixel.aerodynamic_resistance.push_back(rah_hot);
-
-        } else {
-            ustar_tif0 = TIFFOpen(ustar_tif0_path.c_str(), "w8m");
-            //setup(ustar_tif0, albedo);
-            ustar_tif1 = TIFFOpen(ustar_tif1_path.c_str(), "rm");
-
-            aerodynamic_resistence_tif0 = TIFFOpen(aerodynamic_resistence_tif0_path.c_str(), "w8m");
-            //setup(aerodynamic_resistence_tif0, albedo);
-            aerodynamic_resistence_tif1 = TIFFOpen(aerodynamic_resistence_tif1_path.c_str(), "rm");
-
-            rah_hot = read_position_tiff(aerodynamic_resistence_tif1, hot_pixel.col, hot_pixel.line);
-            hot_pixel.aerodynamic_resistance.push_back(rah_hot);
-
-        }
 
         Erro = (fabs(1 - rah_hot0/rah_hot) >= 0.05);
         i++;
@@ -309,50 +289,29 @@ void Landsat::process_final_products(Station station, MTL mtl){
     TIFFClose(zom);
     TIFFClose(ustar);
     TIFFClose(aerodynamic_resistence);
-    TIFFClose(ustar_tif0);
-    TIFFClose(ustar_tif1);
-    TIFFClose(aerodynamic_resistence_tif0);
-    TIFFClose(aerodynamic_resistence_tif1);
     TIFFClose(surface_temperature);
 
     if(i%2) {
-        printf("Rah_after is tif 0\n");
-        aerodynamic_resistence_tif0 = TIFFOpen(aerodynamic_resistence_tif0_path.c_str(), "rm");
-
-        double dt_hot = H_hot * rah_hot / (RHO * SPECIFIC_HEAT_AIR);
-        double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
-        double a = -b * (cold_pixel.temperature - 273.15);
-
-        for(int line = 0; line < heigth_band; line++){
-            read_line_tiff(aerodynamic_resistence_tif0, aerodynamic_resistence_line, line);
-            
-            for(int col = 0; col < width_band; col++) {
-                sensible_heat_flux_line[col] = RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15))/aerodynamic_resistence_line[col];
-            }
-
-            save_tiffs(vector<double*> {sensible_heat_flux_line}, 
-                    vector<TIFF*> {sensible_heat_flux}, line);
-        }
-        
-    } else {
-        printf("Rah_after is tif 1\n");
+        printf("Rah_after is aerodynamic_resistence_tif1_path\n");
         aerodynamic_resistence_tif1 = TIFFOpen(aerodynamic_resistence_tif1_path.c_str(), "rm");
+    } else {
+        printf("Rah_after is aerodynamic_resistence_path\n");
+        aerodynamic_resistence_tif1 = TIFFOpen(aerodynamic_resistence_path.c_str(), "rm");
+    }
 
-        double dt_hot = H_hot * rah_hot / (RHO * SPECIFIC_HEAT_AIR);
-        double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
-        double a = -b * (cold_pixel.temperature - 273.15);
+    double dt_hot = H_hot * rah_hot / (RHO * SPECIFIC_HEAT_AIR);
+    double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
+    double a = -b * (cold_pixel.temperature - 273.15);
 
-        for(int line = 0; line < heigth_band; line++){
-            read_line_tiff(aerodynamic_resistence_tif1, aerodynamic_resistence_line, line);
+    for(int line = 0; line < heigth_band; line++){
+        read_line_tiff(aerodynamic_resistence_tif1, aerodynamic_resistence_line, line);
             
-            for(int col = 0; col < width_band; col++) {
-                sensible_heat_flux_line[col] = RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15))/aerodynamic_resistence_line[col];
-            }
-
-            save_tiffs(vector<double*> {sensible_heat_flux_line}, 
-                    vector<TIFF*> {sensible_heat_flux}, line);
+        for(int col = 0; col < width_band; col++) {
+            sensible_heat_flux_line[col] = RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15))/aerodynamic_resistence_line[col];
         }
 
+        save_tiffs(vector<double*> {sensible_heat_flux_line}, 
+                    vector<TIFF*> {sensible_heat_flux}, line);
     }
 
     TIFFClose(sensible_heat_flux);
