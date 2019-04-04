@@ -15,7 +15,7 @@ struct Landsat{
 
     //DEBUG
     string zom_path, ustar_path, aerodynamic_resistence_path, sensible_heat_flux_path;
-    string ustar_after_path, aerodynamic_resistence_after_path;
+    string ustar_tif0_path, ustar_tif1_path, aerodynamic_resistence_tif0_path, aerodynamic_resistence_tif1_path;
     string latent_heat_flux_path, net_radiation_24h_path, latent_heat_flux_24h_path;
 
     Landsat();
