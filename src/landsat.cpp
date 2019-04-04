@@ -330,8 +330,8 @@ void Landsat::process_final_products(Station station, MTL mtl){
                 sensible_heat_flux_line[col] = RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15))/aerodynamic_resistence_line[col];
             }
 
-            save_tiffs(vector<double*> {aerodynamic_resistence_line}, 
-                    vector<TIFF*> {aerodynamic_resistence_tif0}, line);
+            save_tiffs(vector<double*> {sensible_heat_flux_line}, 
+                    vector<TIFF*> {sensible_heat_flux}, line);
         }
         
     } else {
@@ -349,14 +349,14 @@ void Landsat::process_final_products(Station station, MTL mtl){
                 sensible_heat_flux_line[col] = RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15))/aerodynamic_resistence_line[col];
             }
 
-            save_tiffs(vector<double*> {aerodynamic_resistence_line}, 
-                    vector<TIFF*> {aerodynamic_resistence_tif1}, line);
+            save_tiffs(vector<double*> {sensible_heat_flux_line}, 
+                    vector<TIFF*> {sensible_heat_flux}, line);
         }
 
     }
 
     TIFFClose(sensible_heat_flux);
-    
+
     //End of Rah correction
 
     //Continuing to the final products
