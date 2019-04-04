@@ -211,9 +211,12 @@ void Landsat::process_final_products(Station station, MTL mtl){
     double y_01_line[width_band], y_2_line[width_band], x_200_line[width_band];
     double psi_01_line[width_band], psi_2_line[width_band], psi_200_line[width_band];
 
+    double rah_hot0;
+    double rah_hot;
+
     while(Erro) {
 
-        double rah_hot0 = hot_pixel.aerodynamic_resistance[i];
+        rah_hot0 = hot_pixel.aerodynamic_resistance[i];
 
         for(int line = 0; line < heigth_band; line++){
 
@@ -257,12 +260,12 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
             //Saving new ustar e rah
             if(i%2) {
-                save_tiffs(vector<double*> {ustar_line, aerodynamic_resistence_line, sensible_heat_flux_line}, 
-                    vector<TIFF*> {ustar_tif0, aerodynamic_resistence_tif0, sensible_heat_flux}, line);
+                save_tiffs(vector<double*> {ustar_line, aerodynamic_resistence_line}, 
+                    vector<TIFF*> {ustar_tif0, aerodynamic_resistence_tif0}, line);
 
             } else {
-                save_tiffs(vector<double*> {ustar_line, aerodynamic_resistence_line, sensible_heat_flux_line}, 
-                    vector<TIFF*> {ustar_tif1, aerodynamic_resistence_tif1, sensible_heat_flux}, line);
+                save_tiffs(vector<double*> {ustar_line, aerodynamic_resistence_line}, 
+                    vector<TIFF*> {ustar_tif1, aerodynamic_resistence_tif1}, line);
             }
 
         }
@@ -271,8 +274,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
         TIFFClose(ustar_tif1);
         TIFFClose(aerodynamic_resistence_tif0);
         TIFFClose(aerodynamic_resistence_tif1);
-
-        double rah_hot;
 
         if(i%2) {
             ustar_tif0 = TIFFOpen(ustar_tif0_path.c_str(), "rm");
@@ -305,12 +306,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
     }
 
-    if(i%2) {
-        printf("Rah_after is tif 0\n");
-    } else {
-        printf("Rah_after is tif 1\n");
-    }
-
     TIFFClose(zom);
     TIFFClose(ustar);
     TIFFClose(aerodynamic_resistence);
@@ -320,6 +315,46 @@ void Landsat::process_final_products(Station station, MTL mtl){
     TIFFClose(aerodynamic_resistence_tif1);
     TIFFClose(surface_temperature);
     TIFFClose(sensible_heat_flux);
+
+    if(i%2) {
+        printf("Rah_after is tif 0\n");
+        aerodynamic_resistence_tif0 = TIFFOpen(aerodynamic_resistence_tif0_path.c_str(), "rm");
+
+        double dt_hot = H_hot * rah_hot / (RHO * SPECIFIC_HEAT_AIR);
+        double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
+        double a = -b * (cold_pixel.temperature - 273.15);
+
+        for(int line = 0; line < heigth_band; line++){
+            read_line_tiff(aerodynamic_resistence_tif0, aerodynamic_resistence_line, line);
+            
+            for(int col = 0; col < width_band; col++) {
+                sensible_heat_flux_line[col] = RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15))/aerodynamic_resistence_line[col];
+            }
+
+            save_tiffs(vector<double*> {aerodynamic_resistence_line}, 
+                    vector<TIFF*> {aerodynamic_resistence_tif0}, line);
+        }
+        
+    } else {
+        printf("Rah_after is tif 1\n");
+        aerodynamic_resistence_tif1 = TIFFOpen(aerodynamic_resistence_tif1_path.c_str(), "rm");
+
+        double dt_hot = H_hot * rah_hot / (RHO * SPECIFIC_HEAT_AIR);
+        double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
+        double a = -b * (cold_pixel.temperature - 273.15);
+
+        for(int line = 0; line < heigth_band; line++){
+            read_line_tiff(aerodynamic_resistence_tif1, aerodynamic_resistence_line, line);
+            
+            for(int col = 0; col < width_band; col++) {
+                sensible_heat_flux_line[col] = RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15))/aerodynamic_resistence_line[col];
+            }
+
+            save_tiffs(vector<double*> {aerodynamic_resistence_line}, 
+                    vector<TIFF*> {aerodynamic_resistence_tif1}, line);
+        }
+
+    }
 
     //End of Rah correction
 
