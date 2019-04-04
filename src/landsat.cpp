@@ -207,7 +207,7 @@ void Landsat::process_final_products(Station station, MTL mtl){
     double rah_hot;
 
     while(Erro) {
-
+        cout << i << endl;
         if(i%2) {
             //Since ustar is both write and read into the rah cycle, two TIFF will be needed
             ustar_tif0 = TIFFOpen(ustar_tif1_path.c_str(), "rm");
