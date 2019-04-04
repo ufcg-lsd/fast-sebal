@@ -274,7 +274,7 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
         double rah_hot;
 
-        if(i%0) {
+        if(i%2) {
             ustar_tif0 = TIFFOpen(ustar_tif0_path.c_str(), "rm");
             ustar_tif1 = TIFFOpen(ustar_tif1_path.c_str(), "w8m");
             aerodynamic_resistence_tif0 = TIFFOpen(aerodynamic_resistence_tif0_path.c_str(), "rm");
