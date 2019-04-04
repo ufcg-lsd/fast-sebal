@@ -278,22 +278,22 @@ void Landsat::process_final_products(Station station, MTL mtl){
         if(i%2) {
             ustar_tif0 = TIFFOpen(ustar_tif0_path.c_str(), "rm");
             ustar_tif1 = TIFFOpen(ustar_tif1_path.c_str(), "w8m");
-            setup(ustar_tif1, albedo);
+            //setup(ustar_tif1, albedo);
 
             aerodynamic_resistence_tif0 = TIFFOpen(aerodynamic_resistence_tif0_path.c_str(), "rm");
             aerodynamic_resistence_tif1 = TIFFOpen(aerodynamic_resistence_tif1_path.c_str(), "w8m");
-            setup(aerodynamic_resistence_tif1, albedo);
+            //setup(aerodynamic_resistence_tif1, albedo);
 
             rah_hot = read_position_tiff(aerodynamic_resistence_tif0, hot_pixel.col, hot_pixel.line);
             hot_pixel.aerodynamic_resistance.push_back(rah_hot);
 
         } else {
             ustar_tif0 = TIFFOpen(ustar_tif0_path.c_str(), "w8m");
-            setup(ustar_tif0, albedo);
+            //setup(ustar_tif0, albedo);
             ustar_tif1 = TIFFOpen(ustar_tif1_path.c_str(), "rm");
 
             aerodynamic_resistence_tif0 = TIFFOpen(aerodynamic_resistence_tif0_path.c_str(), "w8m");
-            setup(aerodynamic_resistence_tif0, albedo);
+            //setup(aerodynamic_resistence_tif0, albedo);
             aerodynamic_resistence_tif1 = TIFFOpen(aerodynamic_resistence_tif1_path.c_str(), "rm");
 
             rah_hot = read_position_tiff(aerodynamic_resistence_tif1, hot_pixel.col, hot_pixel.line);
