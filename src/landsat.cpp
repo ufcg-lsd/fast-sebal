@@ -189,8 +189,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
     TIFF *ustar_tif0, *ustar_tif1, *aerodynamic_resistence_tif0, *aerodynamic_resistence_tif1, *sensible_heat_flux;
     zom = TIFFOpen(zom_path.c_str(), "rm"); //It's not modified into the rah cycle
 
-    
-
     //It's only written into the rah cycle
     sensible_heat_flux = TIFFOpen(sensible_heat_flux_path.c_str(), "w8m");
     setup(sensible_heat_flux, albedo);
@@ -281,6 +279,7 @@ void Landsat::process_final_products(Station station, MTL mtl){
         TIFFClose(aerodynamic_resistence_tif0);
         TIFFClose(aerodynamic_resistence_tif1);
 
+        cout << fabs(1 - rah_hot0/rah_hot) << endl;
         Erro = (fabs(1 - rah_hot0/rah_hot) >= 0.05);
         i++;
 
