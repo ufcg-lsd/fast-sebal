@@ -92,6 +92,8 @@ void Candidate::toString(){
     printf("HO: %.10lf\n", this->ho);
     printf("Negative neighbour: %d\n", this->negative_neighbour);
     printf("Coefficient variation: %.10lf\n", this->coefficient_variation);
+    printf("Line: %d", this->line);
+    printf("Col: %d", this->col);
     
     if(this->aerodynamic_resistance.size() > 0){
         printf("Aerodynamic resistance:\n");
