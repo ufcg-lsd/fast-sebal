@@ -265,6 +265,9 @@ void Landsat::process_final_products(Station station, MTL mtl){
                 aerodynamic_resistence_line[col] = (log(2/0.1) - psi_2_line[col] + psi_01_line[col])/(ustar_line[col] * VON_KARMAN);
 
                 if(line == hot_pixel.line && col == hot_pixel.col) {
+                    cout << "surface temp " << surface_temperature_line[col] << endl;
+                    cout << "ustar " << ustar_line[col] << endl;
+                    cout << "aerodynamic " << aerodynamic_resistence_line[col] << endl;
                     cout << "L " << L[col] << endl;
                     cout << "y_line " << y_01_line[col] << " " << y_2_line[col] << " " << x_200_line[col] << endl;
                     cout << "psi-line " << psi_01_line[col] << " " << psi_2_line[col] << " " << psi_200_line[col] << endl;
