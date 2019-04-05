@@ -204,10 +204,7 @@ void Landsat::process_final_products(Station station, MTL mtl){
     double rah_hot0;
     double rah_hot;
 
-    cout << heigth_band << " " << width_band << endl;
-
     while(Erro) {
-        cout << i << endl;
 
         rah_hot0 = hot_pixel.aerodynamic_resistance[i];
 
@@ -268,16 +265,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
                 aerodynamic_resistence_line[col] = (log(2/0.1) - psi_2_line[col] + psi_01_line[col])/(ustar_line[col] * VON_KARMAN);
 
                 if(line == hot_pixel.line && col == hot_pixel.col) {
-                    cout << "surface temp " << surface_temperature_line[col] << endl;
-                    cout << "ustar " << ustar_line[col] << endl;
-                    cout << "aerodynamic " << aerodynamic_resistence_line[col] << endl;
-                    cout << "sensible heat " << sensible_heat_flux_line[col] << endl;
-                    cout << "L " << L[col] << endl;
-                    cout << "y_line " << y_01_line[col] << " " << y_2_line[col] << " " << x_200_line[col] << endl;
-                    cout << "psi-line " << psi_01_line[col] << " " << psi_2_line[col] << " " << psi_200_line[col] << endl;
-                    cout << ustar_line[col] << endl;
-                    cout << aerodynamic_resistence_line[col] << endl;
-
                     rah_hot = aerodynamic_resistence_line[col];
                     hot_pixel.aerodynamic_resistance.push_back(rah_hot);
                 }
@@ -304,7 +291,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
     TIFFClose(zom);
     TIFFClose(ustar);
     TIFFClose(aerodynamic_resistence);
-    TIFFClose(surface_temperature);
 
     if(i%2) {
         printf("Rah_after is aerodynamic_resistence_tif1_path\n");
@@ -313,13 +299,14 @@ void Landsat::process_final_products(Station station, MTL mtl){
         printf("Rah_after is aerodynamic_resistence_path\n");
         aerodynamic_resistence_tif0 = TIFFOpen(aerodynamic_resistence_path.c_str(), "rm");
     }
-
+    cout << "Depois de ler o tif final..." << endl;
     double dt_hot = H_hot * rah_hot / (RHO * SPECIFIC_HEAT_AIR);
     double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
     double a = -b * (cold_pixel.temperature - 273.15);
 
     for(int line = 0; line < heigth_band; line++){
         read_line_tiff(aerodynamic_resistence_tif0, aerodynamic_resistence_line, line);
+        read_line_tiff(surface_temperature, surface_temperature_line, line);
             
         for(int col = 0; col < width_band; col++) {
             sensible_heat_flux_line[col] = RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15))/aerodynamic_resistence_line[col];
@@ -329,9 +316,10 @@ void Landsat::process_final_products(Station station, MTL mtl){
                     vector<TIFF*> {sensible_heat_flux}, line);
     }
 
+    TIFFClose(surface_temperature);
     TIFFClose(aerodynamic_resistence_tif0);
     TIFFClose(sensible_heat_flux);
-
+    cout << "Salvou o H" << endl;
     //End of Rah correction
 
     //Continuing to the final products
