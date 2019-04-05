@@ -244,7 +244,7 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
             for(int col = 0; col < width_band; col++) {
                 sensible_heat_flux_line[col] = RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15))/aerodynamic_resistence_line[col];
-                cout << sensible_heat_flux_line[col] << endl;
+                
                 double ustar_pow_3 = ustar_line[col] * ustar_line[col] * ustar_line[col];
                 L[col] = -1 * ((RHO * SPECIFIC_HEAT_AIR * ustar_pow_3 * surface_temperature_line[col])/(VON_KARMAN * GRAVITY * sensible_heat_flux_line[col]));
 
