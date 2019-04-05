@@ -676,7 +676,7 @@ void sensible_heat_flux_function(Candidate hot_pixel, Candidate cold_pixel, doub
 void latent_heat_flux_function(double net_radiation_line[], double soil_heat_flux_line[], double sensible_heat_flux_line[], int width_band, double latent_heat_flux[]){
 
     for(int col = 0; col < width_band; col++)
-        latent_heat_flux[col] = max(net_radiation_line[col] - soil_heat_flux_line[col] - sensible_heat_flux_line[col], 0.0);
+        latent_heat_flux[col] = net_radiation_line[col] - soil_heat_flux_line[col] - sensible_heat_flux_line[col];
 
 }; //LE
 

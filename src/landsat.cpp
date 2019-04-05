@@ -306,9 +306,17 @@ void Landsat::process_final_products(Station station, MTL mtl){
     for(int line = 0; line < heigth_band; line++){
         read_line_tiff(aerodynamic_resistence_tif0, aerodynamic_resistence_line, line);
         read_line_tiff(surface_temperature, surface_temperature_line, line);
+        read_line_tiff(net_radiation, net_radiation_line, line);
+        read_line_tiff(soil_heat, soil_heat_line, line);
             
         for(int col = 0; col < width_band; col++) {
             sensible_heat_flux_line[col] = RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15))/aerodynamic_resistence_line[col];
+
+            if (!isnan(sensible_heat_flux_line[col]) && sensible_heat_flux_line[col] > net_radiation_line[col] - soil_heat_line[col]) {
+                sensible_heat_flux_line[col] = net_radiation_line[col] - soil_heat_line[col];
+            }
+            
+
         }
 
         save_tiffs(vector<double*> {sensible_heat_flux_line}, 
