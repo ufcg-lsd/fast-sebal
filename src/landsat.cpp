@@ -208,6 +208,9 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
     while(Erro) {
         cout << i << endl;
+
+        rah_hot0 = hot_pixel.aerodynamic_resistance[i];
+
         if(i%2) {
             //Since ustar is both write and read into the rah cycle, two TIFF will be needed
             ustar_tif0 = TIFFOpen(ustar_tif1_path.c_str(), "rm");
@@ -268,6 +271,7 @@ void Landsat::process_final_products(Station station, MTL mtl){
                     cout << "surface temp " << surface_temperature_line[col] << endl;
                     cout << "ustar " << ustar_line[col] << endl;
                     cout << "aerodynamic " << aerodynamic_resistence_line[col] << endl;
+                    cout << "sensible heat " << sensible_heat_flux_line[col] << endl;
                     cout << "L " << L[col] << endl;
                     cout << "y_line " << y_01_line[col] << " " << y_2_line[col] << " " << x_200_line[col] << endl;
                     cout << "psi-line " << psi_01_line[col] << " " << psi_2_line[col] << " " << psi_200_line[col] << endl;
