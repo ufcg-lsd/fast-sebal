@@ -287,11 +287,11 @@ void Landsat::process_final_products(Station station, MTL mtl){
         i++;
 
     }
-
+    cout << "Antes de fechar tifs depois do while..." << endl;
     TIFFClose(zom);
     TIFFClose(ustar);
     TIFFClose(aerodynamic_resistence);
-
+    cout << "Antes de ler o tif final do while..." << endl;
     if(i%2) {
         printf("Rah_after is aerodynamic_resistence_tif1_path\n");
         aerodynamic_resistence_tif0 = TIFFOpen(aerodynamic_resistence_tif1_path.c_str(), "rm");
