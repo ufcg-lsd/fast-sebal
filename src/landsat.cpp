@@ -119,7 +119,8 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
     double ustar_station = (VON_KARMAN * station.v6)/(log(station.WIND_SPEED/station.SURFACE_ROUGHNESS));
     double u200 = (ustar_station/VON_KARMAN) * log(200 / station.SURFACE_ROUGHNESS);
-
+    cout << station.v6 << endl;
+    cout << "u200 " << u200 << endl;
     //hot_pixel.setAerodynamicResistance(u200, station.A_ZOM, station.B_ZOM, VON_KARMAN);
     //cold_pixel.setAerodynamicResistance(u200, station.A_ZOM, station.B_ZOM, VON_KARMAN);
     hot_pixel.toString();
@@ -177,10 +178,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
     //Initial zom, ustar and aerodynamic_resistence are calculated and saved.
     //Continuing the sebal calculation
 
-    //Extract the hot pixel aerodynamic_resistance
-    hot_pixel.aerodynamic_resistance.push_back(read_position_tiff(aerodynamic_resistence, hot_pixel.col, hot_pixel.line));
-    double H_hot = hot_pixel.net_radiation - hot_pixel.soil_heat_flux;
-
     TIFFClose(ndvi);
     TIFFClose(zom);
     TIFFClose(ustar);
@@ -192,6 +189,10 @@ void Landsat::process_final_products(Station station, MTL mtl){
     //It's only written into the rah cycle
     sensible_heat_flux = TIFFOpen(sensible_heat_flux_path.c_str(), "w8m");
     setup(sensible_heat_flux, albedo);
+
+    //Extract the hot pixel aerodynamic_resistance
+    hot_pixel.aerodynamic_resistance.push_back(read_position_tiff(aerodynamic_resistence, hot_pixel.col, hot_pixel.line));
+    double H_hot = hot_pixel.net_radiation - hot_pixel.soil_heat_flux;
 
     int i = 0;
     bool Erro = true;
