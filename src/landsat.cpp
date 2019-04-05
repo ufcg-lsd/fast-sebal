@@ -200,6 +200,7 @@ void Landsat::process_final_products(Station station, MTL mtl){
     double L[width_band];
     double y_01_line[width_band], y_2_line[width_band], x_200_line[width_band];
     double psi_01_line[width_band], psi_2_line[width_band], psi_200_line[width_band];
+    double ustar_read_line[width_band], ustar_write_line[width_band], aerodynamic_resistence_read_line[width_band], aerodynamic_resistence_write_line[width_band];
 
     double rah_hot0;
     double rah_hot;
@@ -235,17 +236,17 @@ void Landsat::process_final_products(Station station, MTL mtl){
             //Reading data needed
             read_line_tiff(surface_temperature, surface_temperature_line, line);
             read_line_tiff(zom, zom_line, line);
-            read_line_tiff(ustar_tif0, ustar_line, line);
-            read_line_tiff(aerodynamic_resistence_tif0, aerodynamic_resistence_line, line);
+            read_line_tiff(ustar_tif0, ustar_read_line, line);
+            read_line_tiff(aerodynamic_resistence_tif0, aerodynamic_resistence_read_line, line);
 
             double dt_hot = H_hot * rah_hot0 / (RHO * SPECIFIC_HEAT_AIR);
             double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
             double a = -b * (cold_pixel.temperature - 273.15);
 
             for(int col = 0; col < width_band; col++) {
-                sensible_heat_flux_line[col] = RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15))/aerodynamic_resistence_line[col];
+                sensible_heat_flux_line[col] = RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15))/aerodynamic_resistence_read_line[col];
                 
-                double ustar_pow_3 = ustar_line[col] * ustar_line[col] * ustar_line[col];
+                double ustar_pow_3 = ustar_read_line[col] * ustar_read_line[col] * ustar_read_line[col];
                 L[col] = -1 * ((RHO * SPECIFIC_HEAT_AIR * ustar_pow_3 * surface_temperature_line[col])/(VON_KARMAN * GRAVITY * sensible_heat_flux_line[col]));
 
                 y_01_line[col] = pow((1 - (16*0.1)/L[col]), 0.25);
@@ -261,18 +262,18 @@ void Landsat::process_final_products(Station station, MTL mtl){
                 if(!isnan(L[col]) && L > 0) psi_200_line[col] = -5 * (2/L[col]);
                 else psi_200_line[col] = 2 * log((1 + x_200_line[col])/2) + log((1 + x_200_line[col]*x_200_line[col])/2) - 2 * atan(x_200_line[col]) + 0.5 * PI;
 
-                ustar_line[col] = (VON_KARMAN * u200) / (log(200/zom_line[col]) - psi_200_line[col]);
-                aerodynamic_resistence_line[col] = (log(2/0.1) - psi_2_line[col] + psi_01_line[col])/(ustar_line[col] * VON_KARMAN);
+                ustar_write_line[col] = (VON_KARMAN * u200) / (log(200/zom_line[col]) - psi_200_line[col]);
+                aerodynamic_resistence_write_line[col] = (log(2/0.1) - psi_2_line[col] + psi_01_line[col])/(ustar_write_line[col] * VON_KARMAN);
 
                 if(line == hot_pixel.line && col == hot_pixel.col) {
-                    rah_hot = aerodynamic_resistence_line[col];
+                    rah_hot = aerodynamic_resistence_write_line[col];
                     hot_pixel.aerodynamic_resistance.push_back(rah_hot);
                 }
             
             }
 
             //Saving new ustar e rah
-            save_tiffs(vector<double*> {ustar_line, aerodynamic_resistence_line}, 
+            save_tiffs(vector<double*> {ustar_write_line, aerodynamic_resistence_write_line}, 
                     vector<TIFF*> {ustar_tif1, aerodynamic_resistence_tif1}, line);
 
         }
