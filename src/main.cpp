@@ -212,16 +212,16 @@ void setup(TIFF *tif) {
 
 int main(int argc, char *argv[]){
     
-    string metadata_path = argv[8];
+    string metadata_path = argv[0];
     MTL mtl = MTL(metadata_path);
     
-    string station_data_path = argv[10];
+    string station_data_path = argv[1];
     Station station = Station(station_data_path, mtl.image_hour);
     
     Sensor sensor = Sensor(mtl.number_sensor, mtl.year);
 
-    if(argc == 13){
-        string dist_flag = argv[12];
+    if(argc == 3){
+        string dist_flag = argv[2];
         if(dist_flag.substr(0, 6) == "-dist=")
             mtl.distance_earth_sun = atof(dist_flag.substr(6, dist_flag.size()).c_str());
     }
