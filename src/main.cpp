@@ -186,7 +186,7 @@ void fill_tiff(TIFF* tif, double min, double max){
 
         for(int col = 0; col < 30; col ++){
            tif_line[col] = getRandomDouble(min, max);
-           printf("%.7lf\n", tif_line[col]);
+           //printf("%.7lf\n", tif_line[col]);
         }
 
         if (TIFFWriteScanline(tif, tif_line, line) < 0){
@@ -237,6 +237,7 @@ int main(int argc, char *argv[]){
     fill_tiff(ndvi, 0.13, 0.40);
     TIFFClose(ndvi);
     ndvi = TIFFOpen("meuNDVI.tif", "rm");
+    print_tiff(ndvi);
 
     TIFF *surface_temperature = TIFFOpen("meuTS.tif", "w8m");
     setup(surface_temperature);
