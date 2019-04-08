@@ -144,15 +144,15 @@ int main(int argc, char *argv[]){
 
 void print_tiff(TIFF* tif) {
 
-    double tif_line[30];
+    double tif_line[10];
 
     int cont = 0;
 
-    for(int line = 0; line < 30; line++){
+    for(int line = 0; line < 10; line++){
 
         read_line_tiff(tif, tif_line, line);
 
-        for(int col = 0; col < 30; col ++){
+        for(int col = 0; col < 10; col ++){
            printf("%.7lf", tif_line[col]);
            cont++;
 
@@ -182,13 +182,12 @@ double getRandomDouble(double min, double max){
 
 void fill_tiff(TIFF* tif, double min, double max){
     
-    double tif_line[30];
+    double tif_line[10];
 
-    for(int line = 0; line < 30; line++){
+    for(int line = 0; line < 10; line++){
 
-        for(int col = 0; col < 30; col ++){
+        for(int col = 0; col < 10; col ++){
            tif_line[col] = getRandomDouble(min, max);
-           //printf("%.7lf\n", tif_line[col]);
         }
 
         if (TIFFWriteScanline(tif, tif_line, line) < 0){
@@ -200,8 +199,8 @@ void fill_tiff(TIFF* tif, double min, double max){
 
 void setup(TIFF *tif) {
 
-    TIFFSetField(tif, TIFFTAG_IMAGEWIDTH     , 30);
-    TIFFSetField(tif, TIFFTAG_IMAGELENGTH    , 30);
+    TIFFSetField(tif, TIFFTAG_IMAGEWIDTH     , 10);
+    TIFFSetField(tif, TIFFTAG_IMAGELENGTH    , 10);
     TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE  , 64);
     TIFFSetField(tif, TIFFTAG_SAMPLEFORMAT   , 3);
     TIFFSetField(tif, TIFFTAG_COMPRESSION    , 1);
@@ -239,7 +238,6 @@ int main(int argc, char *argv[]){
     fill_tiff(ndvi, 0.13, 0.40);
     TIFFClose(ndvi);
     ndvi = TIFFOpen("meuNDVI.tif", "rm");
-    print_tiff(ndvi);
 
     TIFF *surface_temperature = TIFFOpen("meuTS.tif", "w8m");
     setup(surface_temperature);
@@ -266,18 +264,19 @@ int main(int argc, char *argv[]){
     albedo = TIFFOpen("meuAlbedo.tif", "rm");
 
     Candidate hot_pixel = Candidate();
-    hot_pixel.ndvi = read_position_tiff(ndvi, 10, 10);
-    hot_pixel.soil_heat_flux = read_position_tiff(soil_heat, 10, 10);
-    hot_pixel.temperature = read_position_tiff(surface_temperature, 10, 10);
-    hot_pixel.col = 10;
-    hot_pixel.line = 10;
+    hot_pixel.col = 6;
+    hot_pixel.line = 4;
+    hot_pixel.ndvi = read_position_tiff(ndvi, hot_pixel.col, hot_pixel.line);
+    hot_pixel.soil_heat_flux = read_position_tiff(soil_heat, hot_pixel.col, hot_pixel.line);
+    hot_pixel.temperature = read_position_tiff(surface_temperature, hot_pixel.col, hot_pixel.line);
+    
 
     Candidate cold_pixel = Candidate();
-    cold_pixel.ndvi = read_position_tiff(ndvi, 20, 20);
-    cold_pixel.soil_heat_flux = read_position_tiff(soil_heat, 20, 20);
-    cold_pixel.temperature = read_position_tiff(surface_temperature, 20, 20);
-    hot_pixel.col = 20;
-    hot_pixel.line = 20;
+    cold_pixel.col = 8;
+    cold_pixel.line = 2;
+    cold_pixel.ndvi = read_position_tiff(ndvi, cold_pixel.col, cold_pixel.line);
+    cold_pixel.soil_heat_flux = read_position_tiff(soil_heat, cold_pixel.col, cold_pixel.line);
+    cold_pixel.temperature = read_position_tiff(surface_temperature, cold_pixel.col, cold_pixel.line);
 
     uint32 heigth_band, width_band;
     TIFFGetField(albedo, TIFFTAG_IMAGELENGTH, &heigth_band);
