@@ -149,16 +149,14 @@ void print_tiff(TIFF* tif) {
     int cont = 0;
 
     for(int line = 0; line < 10; line++){
-
+        cout << line << endl;
         read_line_tiff(tif, tif_line, line);
-        cout << "BU" << endl;
         for(int col = 0; col < 10; col ++){
            printf("%.7lf", tif_line[col]);
            cont++;
 
            cout << (cont%7 ? " " : "\n");
         }
-        cout << "HU" << endl;
 
     }
 
@@ -408,6 +406,7 @@ int main(int argc, char *argv[]){
 
         cout << "Rah" << endl;
         print_tiff(aerodynamic_resistence_tif0);
+        cout << "Whats happin" << endl;
         cout << heigth_band << endl;
         for(int line = 0; line < heigth_band; line++){
             cout << "line " << line << endl;
