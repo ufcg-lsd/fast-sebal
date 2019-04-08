@@ -315,13 +315,13 @@ int main(int argc, char *argv[]){
     //FIXME: auxiliar products TIFFs
     TIFF *zom, *ustar, *aerodynamic_resistence;
     zom = TIFFOpen("meuZom.tif", "w8m");
-    setup(zom, albedo);
+    setup(zom);
 
     ustar = TIFFOpen("meuUstar.tif", "w8m");
-    setup(ustar, albedo);
+    setup(ustar);
 
     aerodynamic_resistence = TIFFOpen("meuRah.tif", "w8m");
-    setup(aerodynamic_resistence, albedo);
+    setup(aerodynamic_resistence);
 
     for(int line = 0; line < heigth_band; line++){
         read_line_tiff(ndvi, ndvi_line, line);
@@ -358,7 +358,7 @@ int main(int argc, char *argv[]){
 
     //It's only written into the rah cycle
     sensible_heat_flux = TIFFOpen("meuH.tif", "w8m");
-    setup(sensible_heat_flux, albedo);
+    setup(sensible_heat_flux);
 
     int i = 0;
     bool Erro = true;
@@ -380,23 +380,23 @@ int main(int argc, char *argv[]){
             //Since ustar is both write and read into the rah cycle, two TIFF will be needed
             ustar_tif0 = TIFFOpen("meuUstar_2.tif", "rm");
             ustar_tif1 = TIFFOpen("meuUstar.tif", "w8m");
-            setup(ustar_tif1, albedo);
+            setup(ustar_tif1);
             
             //Since ustar is both write and read into the rah cycle, two TIFF will be needed
             aerodynamic_resistence_tif0 = TIFFOpen("meuRah_2.tif", "rm");
             aerodynamic_resistence_tif1 = TIFFOpen("meuRah.tif", "w8m");
-            setup(aerodynamic_resistence_tif1, albedo);
+            setup(aerodynamic_resistence_tif1);
             
         } else {
             //Since ustar is both write and read into the rah cycle, two TIFF will be needed
             ustar_tif0 = TIFFOpen("meuUstar.tif", "rm");
             ustar_tif1 = TIFFOpen("meuUstar_2.tif", "w8m");
-            setup(ustar_tif1, albedo);
+            setup(ustar_tif1);
 
             //Since ustar is both write and read into the rah cycle, two TIFF will be needed
             aerodynamic_resistence_tif0 = TIFFOpen("meuRah.tif", "rm");
             aerodynamic_resistence_tif1 = TIFFOpen("meuRah_2.tif", "w8m");
-            setup(aerodynamic_resistence_tif1, albedo);
+            setup(aerodynamic_resistence_tif1);
 
         }
 
