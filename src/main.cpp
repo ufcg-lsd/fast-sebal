@@ -144,13 +144,13 @@ int main(int argc, char *argv[]){
 
 void print_tiff(TIFF* tif) {
 
-    double tif_line[10];
-
-    int cont = 0;
-
     uint32 heigth_band, width_band;
     TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &heigth_band);
     TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width_band);
+
+    double tif_line[width_band];
+
+    int cont = 0;
 
     for(int line = 0; line < heigth_band; line++){
         cout << line << endl;
@@ -185,11 +185,11 @@ double getRandomDouble(double min, double max){
 
 void fill_tiff(TIFF* tif, double min, double max){
     
-    double tif_line[10];
-
     uint32 heigth_band, width_band;
     TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &heigth_band);
     TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width_band);
+
+    double tif_line[width_band];
 
     for(int line = 0; line < heigth_band; line++){
 
