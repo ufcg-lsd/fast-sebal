@@ -188,11 +188,11 @@ void fill_tiff(TIFF* tif, double min, double max){
         for(int col = 0; col < 10; col ++){
            tif_line[col] = getRandomDouble(min, max);
         }
-
-        if (TIFFWriteScanline(tif, tif_line, line) < 0){
+        write_line_tiff(tif, tif_line, line);
+        /*if (TIFFWriteScanline(tif, tif_line, line) < 0){
             cerr << "Write problem!" << endl;
             exit(4);
-        }
+        }*/
     }
 }
 
@@ -406,7 +406,6 @@ int main(int argc, char *argv[]){
 
         cout << "Rah" << endl;
         print_tiff(aerodynamic_resistence_tif0);
-        cout << "Whats happin" << endl;
         cout << heigth_band << endl;
         for(int line = 0; line < heigth_band; line++){
             cout << "line " << line << endl;
