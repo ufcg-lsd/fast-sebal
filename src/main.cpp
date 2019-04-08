@@ -103,7 +103,7 @@ int main(int argc, char *argv[]){
 
     ./run input/B2_converted.tif input/B3_converted.tif input/B4_converted.tif input/B5_converted.tif input/B6_converted.tif input/B7_converted.tif input/B10_converted.tif input/MTL.txt tal_converted.tif input/station.csv results -dist=0.98330
 
-*/
+
 int main(int argc, char *argv[]){
     string output_path = argv[11];
 
@@ -138,9 +138,9 @@ int main(int argc, char *argv[]){
     return 0;
 }
 
-/*
-./run input/MTL.txt input/station.csv -dist=0.98330
 
+./run input/MTL.txt input/station.csv -dist=0.98330
+*/
 
 
 void print_tiff(TIFF* tif) {
@@ -154,7 +154,6 @@ void print_tiff(TIFF* tif) {
     int cont = 0;
 
     for(int line = 0; line < heigth_band; line++){
-        cout << line << endl;
         read_line_tiff(tif, tif_line, line);
         for(int col = 0; col < width_band; col ++){
            printf("%.7lf", tif_line[col]);
@@ -418,9 +417,9 @@ int main(int argc, char *argv[]){
 
         cout << "Rah" << endl;
         print_tiff(aerodynamic_resistence_tif0);
-        cout << heigth_band << endl;
+        
         for(int line = 0; line < heigth_band; line++){
-            cout << "line " << line << endl;
+            
             //Reading data needed
             read_line_tiff(surface_temperature, surface_temperature_line, line);
             read_line_tiff(zom, zom_line, line);
@@ -464,7 +463,6 @@ int main(int argc, char *argv[]){
             save_tiffs(vector<double*> {ustar_write_line, aerodynamic_resistence_write_line}, 
                     vector<TIFF*> {ustar_tif1, aerodynamic_resistence_tif1}, line);
             
-            cout << "Hey line" << endl;
 
         }
 
@@ -472,7 +470,7 @@ int main(int argc, char *argv[]){
         TIFFClose(ustar_tif1);
         TIFFClose(aerodynamic_resistence_tif0);
         TIFFClose(aerodynamic_resistence_tif1);
-        cout << "Hey" << endl;
+        
         cout << fabs(1 - rah_hot0/rah_hot) << endl;
         Erro = (fabs(1 - rah_hot0/rah_hot) >= 0.05);
         i++;
@@ -523,4 +521,3 @@ int main(int argc, char *argv[]){
 
     return 0;
 }
-*/
