@@ -231,48 +231,49 @@ int main(int argc, char *argv[]){
     //TIFF Fake data
     TIFF *ndvi = TIFFOpen("meuNDVI.tif", "w8m");
     setup(ndvi);
+    cout << "0.5" << endl;
     fill_tiff(ndvi, 0.13, 0.40);
     TIFFClose(ndvi);
     ndvi = TIFFOpen("meuNDVI.tif", "rm");
-
+    cout << "1" << endl;
     TIFF *surface_temperature = TIFFOpen("meuTS.tif", "w8m");
     setup(surface_temperature);
     fill_tiff(surface_temperature, 290, 315);
     TIFFClose(surface_temperature);
     surface_temperature = TIFFOpen("meuTS.tif", "rm");
-
+    cout << "2" << endl;
     TIFF *net_radiation = TIFFOpen("meuRn.tif", "w8m");
     setup(net_radiation);
     fill_tiff(net_radiation, 400, 655);
     TIFFClose(net_radiation);
     net_radiation = TIFFOpen("meuRn.tif", "rm");
-
+    cout << "3" << endl;
     TIFF *soil_heat = TIFFOpen("meuG.tif", "w8m");
     setup(soil_heat);
     fill_tiff(soil_heat, 70, 110);
     TIFFClose(soil_heat);
     soil_heat = TIFFOpen("meuG.tif", "rm");
-
+    cout << "4" << endl;
     TIFF *albedo = TIFFOpen("meuAlbedo.tif", "w8m");
     setup(albedo);
     fill_tiff(albedo, 0.15, 0.45);
     TIFFClose(albedo);
     albedo = TIFFOpen("meuAlbedo.tif", "rm");
-
+    cout << "5" << endl;
     Candidate hot_pixel = Candidate();
     hot_pixel.ndvi = read_position_tiff(ndvi, 10, 10);
     hot_pixel.soil_heat_flux = read_position_tiff(soil_heat, 10, 10);
     hot_pixel.temperature = read_position_tiff(surface_temperature, 10, 10);
     hot_pixel.col = 10;
     hot_pixel.line = 10;
-
+cout << "6" << endl;
     Candidate cold_pixel = Candidate();
     cold_pixel.ndvi = read_position_tiff(ndvi, 20, 20);
     cold_pixel.soil_heat_flux = read_position_tiff(soil_heat, 20, 20);
     cold_pixel.temperature = read_position_tiff(surface_temperature, 20, 20);
     hot_pixel.col = 20;
     hot_pixel.line = 20;
-
+cout << "7" << endl;
     uint32 heigth_band, width_band;
     TIFFGetField(albedo, TIFFTAG_IMAGELENGTH, &heigth_band);
     TIFFGetField(albedo, TIFFTAG_IMAGEWIDTH, &width_band);
