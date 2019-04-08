@@ -151,13 +151,14 @@ void print_tiff(TIFF* tif) {
     for(int line = 0; line < 10; line++){
 
         read_line_tiff(tif, tif_line, line);
-
+        cout << "BU" << endl;
         for(int col = 0; col < 10; col ++){
            printf("%.7lf", tif_line[col]);
            cont++;
 
            cout << (cont%7 ? " " : "\n");
         }
+        cout << "HU" << endl;
 
     }
 
