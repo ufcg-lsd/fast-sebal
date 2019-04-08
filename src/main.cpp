@@ -405,9 +405,9 @@ int main(int argc, char *argv[]){
 
         cout << "Rah" << endl;
         print_tiff(aerodynamic_resistence_tif0);
-
+        cout << heigth_band << endl;
         for(int line = 0; line < heigth_band; line++){
-            cout << "line " << line;
+            cout << "line " << line << endl;
             //Reading data needed
             read_line_tiff(surface_temperature, surface_temperature_line, line);
             read_line_tiff(zom, zom_line, line);
@@ -450,6 +450,8 @@ int main(int argc, char *argv[]){
             //Saving new ustar e rah
             save_tiffs(vector<double*> {ustar_write_line, aerodynamic_resistence_write_line}, 
                     vector<TIFF*> {ustar_tif1, aerodynamic_resistence_tif1}, line);
+            
+            cout << "Hey line" << endl;
 
         }
 
@@ -457,7 +459,7 @@ int main(int argc, char *argv[]){
         TIFFClose(ustar_tif1);
         TIFFClose(aerodynamic_resistence_tif0);
         TIFFClose(aerodynamic_resistence_tif1);
-
+        cout << "Hey" << endl;
         cout << fabs(1 - rah_hot0/rah_hot) << endl;
         Erro = (fabs(1 - rah_hot0/rah_hot) >= 0.05);
         i++;
