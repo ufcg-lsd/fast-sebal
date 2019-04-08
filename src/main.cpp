@@ -154,7 +154,7 @@ void print_tiff(TIFF* tif) {
            printf("%.7lf", tif_line[col]);
            cont++;
 
-           cout << (cont%7 ? " " : "/n");
+           cout << (cont%7 ? " " : "\n");
         }
 
     }
@@ -186,6 +186,7 @@ void fill_tiff(TIFF* tif, double min, double max){
 
         for(int col = 0; col < 30; col ++){
            tif_line[col] = getRandomDouble(min, max);
+           printf("%.7lf\n", tif_line[col]);
         }
 
         if (TIFFWriteScanline(tif, tif_line, line) < 0){
@@ -231,49 +232,48 @@ int main(int argc, char *argv[]){
     //TIFF Fake data
     TIFF *ndvi = TIFFOpen("meuNDVI.tif", "w8m");
     setup(ndvi);
-    cout << "0.5" << endl;
     fill_tiff(ndvi, 0.13, 0.40);
     TIFFClose(ndvi);
     ndvi = TIFFOpen("meuNDVI.tif", "rm");
-    cout << "1" << endl;
+
     TIFF *surface_temperature = TIFFOpen("meuTS.tif", "w8m");
     setup(surface_temperature);
     fill_tiff(surface_temperature, 290, 315);
     TIFFClose(surface_temperature);
     surface_temperature = TIFFOpen("meuTS.tif", "rm");
-    cout << "2" << endl;
+
     TIFF *net_radiation = TIFFOpen("meuRn.tif", "w8m");
     setup(net_radiation);
     fill_tiff(net_radiation, 400, 655);
     TIFFClose(net_radiation);
     net_radiation = TIFFOpen("meuRn.tif", "rm");
-    cout << "3" << endl;
+
     TIFF *soil_heat = TIFFOpen("meuG.tif", "w8m");
     setup(soil_heat);
     fill_tiff(soil_heat, 70, 110);
     TIFFClose(soil_heat);
     soil_heat = TIFFOpen("meuG.tif", "rm");
-    cout << "4" << endl;
+
     TIFF *albedo = TIFFOpen("meuAlbedo.tif", "w8m");
     setup(albedo);
     fill_tiff(albedo, 0.15, 0.45);
     TIFFClose(albedo);
     albedo = TIFFOpen("meuAlbedo.tif", "rm");
-    cout << "5" << endl;
+
     Candidate hot_pixel = Candidate();
     hot_pixel.ndvi = read_position_tiff(ndvi, 10, 10);
     hot_pixel.soil_heat_flux = read_position_tiff(soil_heat, 10, 10);
     hot_pixel.temperature = read_position_tiff(surface_temperature, 10, 10);
     hot_pixel.col = 10;
     hot_pixel.line = 10;
-cout << "6" << endl;
+
     Candidate cold_pixel = Candidate();
     cold_pixel.ndvi = read_position_tiff(ndvi, 20, 20);
     cold_pixel.soil_heat_flux = read_position_tiff(soil_heat, 20, 20);
     cold_pixel.temperature = read_position_tiff(surface_temperature, 20, 20);
     hot_pixel.col = 20;
     hot_pixel.line = 20;
-cout << "7" << endl;
+
     uint32 heigth_band, width_band;
     TIFFGetField(albedo, TIFFTAG_IMAGELENGTH, &heigth_band);
     TIFFGetField(albedo, TIFFTAG_IMAGEWIDTH, &width_band);
@@ -380,33 +380,29 @@ cout << "7" << endl;
             ustar_tif1 = TIFFOpen("meuUstar.tif", "w8m");
             setup(ustar_tif1, albedo);
             
-            cout << "Ustar" << endl;
-            print_tiff(ustar_tif0);
-
             //Since ustar is both write and read into the rah cycle, two TIFF will be needed
             aerodynamic_resistence_tif0 = TIFFOpen("meuRah_2.tif", "rm");
             aerodynamic_resistence_tif1 = TIFFOpen("meuRah.tif", "w8m");
             setup(aerodynamic_resistence_tif1, albedo);
             
-            cout << "Rah" << endl;
-            print_tiff(aerodynamic_resistence_tif0);
         } else {
             //Since ustar is both write and read into the rah cycle, two TIFF will be needed
             ustar_tif0 = TIFFOpen("meuUstar.tif", "rm");
             ustar_tif1 = TIFFOpen("meuUstar_2.tif", "w8m");
             setup(ustar_tif1, albedo);
-            
-            cout << "Ustar" << endl;
-            print_tiff(ustar_tif0);
 
             //Since ustar is both write and read into the rah cycle, two TIFF will be needed
             aerodynamic_resistence_tif0 = TIFFOpen("meuRah.tif", "rm");
             aerodynamic_resistence_tif1 = TIFFOpen("meuRah_2.tif", "w8m");
             setup(aerodynamic_resistence_tif1, albedo);
-            
-            cout << "Rah" << endl;
-            print_tiff(aerodynamic_resistence_tif0);
+
         }
+
+        cout << "Ustar" << endl;
+        print_tiff(ustar_tif0);
+
+        cout << "Rah" << endl;
+        print_tiff(aerodynamic_resistence_tif0);
 
         for(int line = 0; line < heigth_band; line++){
 
