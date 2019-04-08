@@ -190,7 +190,7 @@ void Landsat::process_final_products(Station station, MTL mtl){
     double H_hot = hot_pixel.net_radiation - hot_pixel.soil_heat_flux;
 
     TIFFClose(aerodynamic_resistence);
-
+    cout << "Passou aqui" << endl;
     TIFF *ustar_tif0, *ustar_tif1, *aerodynamic_resistence_tif0, *aerodynamic_resistence_tif1, *sensible_heat_flux;
     zom = TIFFOpen(zom_path.c_str(), "rm"); //It's not modified into the rah cycle
 
