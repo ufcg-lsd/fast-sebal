@@ -103,7 +103,7 @@ int main(int argc, char *argv[]){
 
     ./run input/B2_converted.tif input/B3_converted.tif input/B4_converted.tif input/B5_converted.tif input/B6_converted.tif input/B7_converted.tif input/B10_converted.tif input/MTL.txt tal_converted.tif input/station.csv results -dist=0.98330
 
-*/
+
 int main(int argc, char *argv[]){
     string output_path = argv[11];
 
@@ -138,7 +138,28 @@ int main(int argc, char *argv[]){
     return 0;
 }
 
-/*
+*/
+
+void print_tiff(TIFF* tif) {
+
+    double tif_line[30];
+
+    int cont = 0;
+
+    for(int line = 0; line < 30; line++){
+
+        for(int col = 0; col < 30; col ++){
+           printf("%.7lf", tif_line[col]);
+           cont++;
+
+           cout << (cont%7 ? " " : "/n");
+        }
+
+    }
+
+    cout << endl;
+
+}
 
 void save_tiffs(vector<double*> products_line, vector<TIFF*> products, int line){
 
@@ -174,7 +195,7 @@ void fill_tiff(TIFF* tif, double min, double max){
 
 void setup(TIFF *tif) {
 
-    TIFFSetField(tif, TIFFTAG_IMAGEWIDTH     , 30); 
+    TIFFSetField(tif, TIFFTAG_IMAGEWIDTH     , 30);
     TIFFSetField(tif, TIFFTAG_IMAGELENGTH    , 30);
     TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE  , 64);
     TIFFSetField(tif, TIFFTAG_SAMPLEFORMAT   , 3);
@@ -236,8 +257,19 @@ int main(int argc, char *argv[]){
     TIFFClose(albedo);
     albedo = TIFFOpen("meuAlbedo.tif", "rm");
 
-    Candidate hot_pixel = Candidate(0.22767996, 308.387664, 476.35150, 101.90081, 476.3515, 10, 10);
-    Candidate cold_pixel = Candidate(-0.10083986, 297.303009, 766.78015, 383.39005, 766.780105, 20, 20);
+    Candidate hot_pixel = Candidate();
+    hot_pixel.ndvi = read_position_tiff(ndvi, 10, 10);
+    hot_pixel.soil_heat_flux = read_position_tiff(soil_heat, 10, 10);
+    hot_pixel.temperature = read_position_tiff(surface_temperature, 10, 10);
+    hot_pixel.col = 10;
+    hot_pixel.line = 10;
+
+    Candidate cold_pixel = Candidate();
+    cold_pixel.ndvi = read_position_tiff(ndvi, 20, 20);
+    cold_pixel.soil_heat_flux = read_position_tiff(soil_heat, 20, 20);
+    cold_pixel.temperature = read_position_tiff(surface_temperature, 20, 20);
+    hot_pixel.col = 20;
+    hot_pixel.line = 20;
 
     uint32 heigth_band, width_band;
     TIFFGetField(albedo, TIFFTAG_IMAGELENGTH, &heigth_band);
@@ -277,13 +309,13 @@ int main(int argc, char *argv[]){
     
     //FIXME: auxiliar products TIFFs
     TIFF *zom, *ustar, *aerodynamic_resistence;
-    zom = TIFFOpen("", "w8m");
+    zom = TIFFOpen("meuZom.tif", "w8m");
     setup(zom, albedo);
 
-    ustar = TIFFOpen("", "w8m");
+    ustar = TIFFOpen("meuUstar.tif", "w8m");
     setup(ustar, albedo);
 
-    aerodynamic_resistence = TIFFOpen("", "w8m");
+    aerodynamic_resistence = TIFFOpen("meuRah.tif", "w8m");
     setup(aerodynamic_resistence, albedo);
 
     for(int line = 0; line < heigth_band; line++){
@@ -314,10 +346,13 @@ int main(int argc, char *argv[]){
     TIFFClose(aerodynamic_resistence);
 
     TIFF *ustar_tif0, *ustar_tif1, *aerodynamic_resistence_tif0, *aerodynamic_resistence_tif1, *sensible_heat_flux;
-    zom = TIFFOpen("", "rm"); //It's not modified into the rah cycle
+    zom = TIFFOpen("meuZom.tif", "rm"); //It's not modified into the rah cycle
+
+    cout << "Zom" << endl;
+    print_tiff(zom);
 
     //It's only written into the rah cycle
-    sensible_heat_flux = TIFFOpen("", "w8m");
+    sensible_heat_flux = TIFFOpen("meuH.tif", "w8m");
     setup(sensible_heat_flux, albedo);
 
     int i = 0;
@@ -333,29 +368,41 @@ int main(int argc, char *argv[]){
     double rah_hot;
 
     while(Erro) {
-
+        cout << "Loop " << i << endl;
         rah_hot0 = hot_pixel.aerodynamic_resistance[i];
 
         if(i%2) {
             //Since ustar is both write and read into the rah cycle, two TIFF will be needed
-            ustar_tif0 = TIFFOpen("", "rm");
-            ustar_tif1 = TIFFOpen("", "w8m");
+            ustar_tif0 = TIFFOpen("meuUstar_2.tif", "rm");
+            ustar_tif1 = TIFFOpen("meuUstar.tif", "w8m");
             setup(ustar_tif1, albedo);
+            
+            cout << "Ustar" << endl;
+            print_tiff(ustar_tif0);
 
             //Since ustar is both write and read into the rah cycle, two TIFF will be needed
-            aerodynamic_resistence_tif0 = TIFFOpen("", "rm");
-            aerodynamic_resistence_tif1 = TIFFOpen("", "w8m");
+            aerodynamic_resistence_tif0 = TIFFOpen("meuRah_2.tif", "rm");
+            aerodynamic_resistence_tif1 = TIFFOpen("meuRah.tif", "w8m");
             setup(aerodynamic_resistence_tif1, albedo);
+            
+            cout << "Rah" << endl;
+            print_tiff(aerodynamic_resistence_tif0);
         } else {
             //Since ustar is both write and read into the rah cycle, two TIFF will be needed
-            ustar_tif0 = TIFFOpen("", "rm");
-            ustar_tif1 = TIFFOpen("", "w8m");
+            ustar_tif0 = TIFFOpen("meuUstar.tif", "rm");
+            ustar_tif1 = TIFFOpen("meuUstar_2.tif", "w8m");
             setup(ustar_tif1, albedo);
+            
+            cout << "Ustar" << endl;
+            print_tiff(ustar_tif0);
 
             //Since ustar is both write and read into the rah cycle, two TIFF will be needed
-            aerodynamic_resistence_tif0 = TIFFOpen("", "rm");
-            aerodynamic_resistence_tif1 = TIFFOpen("", "w8m");
+            aerodynamic_resistence_tif0 = TIFFOpen("meuRah.tif", "rm");
+            aerodynamic_resistence_tif1 = TIFFOpen("meuRah_2.tif", "w8m");
             setup(aerodynamic_resistence_tif1, albedo);
+            
+            cout << "Rah" << endl;
+            print_tiff(aerodynamic_resistence_tif0);
         }
 
         for(int line = 0; line < heigth_band; line++){
@@ -419,11 +466,11 @@ int main(int argc, char *argv[]){
     TIFFClose(zom);
     cout << "Antes de ler o tif final do while..." << endl;
     if(i%2) {
-        printf("Rah_after is aerodynamic_resistence_tif1_path\n");
-        aerodynamic_resistence_tif0 = TIFFOpen("aerodynamic_resistence_tif1_path.c_str()", "rm");
+        printf("Rah_after is meuRah_2\n");
+        aerodynamic_resistence_tif0 = TIFFOpen("meuRah_2.tif", "rm");
     } else {
-        printf("Rah_after is aerodynamic_resistence_path\n");
-        aerodynamic_resistence_tif0 = TIFFOpen("aerodynamic_resistence_path.c_str()", "rm");
+        printf("Rah_after is meuRah\n");
+        aerodynamic_resistence_tif0 = TIFFOpen("meuRah.tif", "rm");
     }
     cout << "Depois de ler o tif final..." << endl;
     double dt_hot = H_hot * rah_hot / (RHO * SPECIFIC_HEAT_AIR);
@@ -453,8 +500,10 @@ int main(int argc, char *argv[]){
     TIFFClose(surface_temperature);
     TIFFClose(aerodynamic_resistence_tif0);
     TIFFClose(sensible_heat_flux);
-    cout << "Salvou o H" << endl;
+    
+    sensible_heat_flux = TIFFOpen("meuH.tif", "rm");
+    print_tiff(sensible_heat_flux);
+    TIFFClose(sensible_heat_flux);
 
     return 0;
 }
-*/

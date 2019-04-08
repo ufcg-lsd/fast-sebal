@@ -113,7 +113,7 @@ double read_position_tiff(TIFF* tif, int col, int line){
 
     return tif_line[col];
 };
-
+/*
 //Generate small tiff 30x30
 void fill_tiff(TIFF** tif, double min, double max){
     
@@ -138,7 +138,7 @@ double getRandomDouble(double min, double max){
     return min + f * (max - min);
 
 }
-
+*/
 void write_line_tiff(TIFF* tif, double tif_line[], int line){
 
     if (TIFFWriteScanline(tif, tif_line, line) < 0){
