@@ -150,6 +150,8 @@ void print_tiff(TIFF* tif) {
 
     for(int line = 0; line < 30; line++){
 
+        read_line_tiff(tif, tif_line, line);
+
         for(int col = 0; col < 30; col ++){
            printf("%.7lf", tif_line[col]);
            cont++;
