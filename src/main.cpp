@@ -103,7 +103,7 @@ int main(int argc, char *argv[]){
 
     ./run input/B2_converted.tif input/B3_converted.tif input/B4_converted.tif input/B5_converted.tif input/B6_converted.tif input/B7_converted.tif input/B10_converted.tif input/MTL.txt tal_converted.tif input/station.csv results -dist=0.98330
 
-
+*/
 int main(int argc, char *argv[]){
     string output_path = argv[11];
 
@@ -138,9 +138,10 @@ int main(int argc, char *argv[]){
     return 0;
 }
 
+/*
 ./run input/MTL.txt input/station.csv -dist=0.98330
 
-*/
+
 
 void print_tiff(TIFF* tif) {
 
@@ -522,3 +523,4 @@ int main(int argc, char *argv[]){
 
     return 0;
 }
+*/

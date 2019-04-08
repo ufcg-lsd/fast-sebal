@@ -178,13 +178,17 @@ void Landsat::process_final_products(Station station, MTL mtl){
     //Initial zom, ustar and aerodynamic_resistence are calculated and saved.
     //Continuing the sebal calculation
 
+    TIFFClose(ndvi);
+    TIFFClose(zom);
+    TIFFClose(ustar);
+    TIFFClose(aerodynamic_resistence);
+
+    aerodynamic_resistence = TIFFOpen(aerodynamic_resistence_path.c_str(), "rm");
+
     //Extract the hot pixel aerodynamic_resistance
     hot_pixel.aerodynamic_resistance.push_back(read_position_tiff(aerodynamic_resistence, hot_pixel.col, hot_pixel.line));
     double H_hot = hot_pixel.net_radiation - hot_pixel.soil_heat_flux;
 
-    TIFFClose(ndvi);
-    TIFFClose(zom);
-    TIFFClose(ustar);
     TIFFClose(aerodynamic_resistence);
 
     TIFF *ustar_tif0, *ustar_tif1, *aerodynamic_resistence_tif0, *aerodynamic_resistence_tif1, *sensible_heat_flux;
