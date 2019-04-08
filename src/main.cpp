@@ -236,32 +236,32 @@ int main(int argc, char *argv[]){
     setup(ndvi);
     fill_tiff(ndvi, 0.13, 0.40);
     TIFFClose(ndvi);
-    ndvi = TIFFOpen("meuNDVI.tif", "rm");
+    //ndvi = TIFFOpen("meuNDVI.tif", "rm");
 
     TIFF *surface_temperature = TIFFOpen("meuTS.tif", "w8m");
     setup(surface_temperature);
     fill_tiff(surface_temperature, 290, 315);
     TIFFClose(surface_temperature);
-    surface_temperature = TIFFOpen("meuTS.tif", "rm");
+    //surface_temperature = TIFFOpen("meuTS.tif", "rm");
 
     TIFF *net_radiation = TIFFOpen("meuRn.tif", "w8m");
     setup(net_radiation);
     fill_tiff(net_radiation, 400, 655);
     TIFFClose(net_radiation);
-    net_radiation = TIFFOpen("meuRn.tif", "rm");
+    //net_radiation = TIFFOpen("meuRn.tif", "rm");
 
     TIFF *soil_heat = TIFFOpen("meuG.tif", "w8m");
     setup(soil_heat);
     fill_tiff(soil_heat, 70, 110);
     TIFFClose(soil_heat);
-    soil_heat = TIFFOpen("meuG.tif", "rm");
+    //soil_heat = TIFFOpen("meuG.tif", "rm");
 
     TIFF *albedo = TIFFOpen("meuAlbedo.tif", "w8m");
     setup(albedo);
     fill_tiff(albedo, 0.15, 0.45);
     TIFFClose(albedo);
-    albedo = TIFFOpen("meuAlbedo.tif", "rm");
-
+    //albedo = TIFFOpen("meuAlbedo.tif", "rm");
+    return 0;
     Candidate hot_pixel = Candidate();
     hot_pixel.col = 6;
     hot_pixel.line = 4;
