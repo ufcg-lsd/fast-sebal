@@ -215,6 +215,8 @@ void setup(TIFF *tif) {
 
 int main(int argc, char *argv[]){
     
+    srand (time(NULL));
+
     string metadata_path = argv[1];
     MTL mtl = MTL(metadata_path);
     
