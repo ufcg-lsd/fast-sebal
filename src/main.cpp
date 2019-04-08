@@ -407,7 +407,7 @@ int main(int argc, char *argv[]){
         print_tiff(aerodynamic_resistence_tif0);
 
         for(int line = 0; line < heigth_band; line++){
-
+            cout << "line " << line;
             //Reading data needed
             read_line_tiff(surface_temperature, surface_temperature_line, line);
             read_line_tiff(zom, zom_line, line);
