@@ -148,10 +148,14 @@ void print_tiff(TIFF* tif) {
 
     int cont = 0;
 
-    for(int line = 0; line < 10; line++){
+    uint32 heigth_band, width_band;
+    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &heigth_band);
+    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width_band);
+
+    for(int line = 0; line < heigth_band; line++){
         cout << line << endl;
         read_line_tiff(tif, tif_line, line);
-        for(int col = 0; col < 10; col ++){
+        for(int col = 0; col < width_band; col ++){
            printf("%.7lf", tif_line[col]);
            cont++;
 
@@ -183,9 +187,13 @@ void fill_tiff(TIFF* tif, double min, double max){
     
     double tif_line[10];
 
-    for(int line = 0; line < 10; line++){
+    uint32 heigth_band, width_band;
+    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &heigth_band);
+    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width_band);
 
-        for(int col = 0; col < 10; col ++){
+    for(int line = 0; line < heigth_band; line++){
+
+        for(int col = 0; col < width_band; col ++){
            tif_line[col] = getRandomDouble(min, max);
         }
         
@@ -236,32 +244,32 @@ int main(int argc, char *argv[]){
     setup(ndvi);
     fill_tiff(ndvi, 0.13, 0.40);
     TIFFClose(ndvi);
-    //ndvi = TIFFOpen("meuNDVI.tif", "rm");
-    return 0;
+    ndvi = TIFFOpen("meuNDVI.tif", "rm");
+
     TIFF *surface_temperature = TIFFOpen("meuTS.tif", "w8m");
     setup(surface_temperature);
     fill_tiff(surface_temperature, 290, 315);
     TIFFClose(surface_temperature);
-    //surface_temperature = TIFFOpen("meuTS.tif", "rm");
+    surface_temperature = TIFFOpen("meuTS.tif", "rm");
 
     TIFF *net_radiation = TIFFOpen("meuRn.tif", "w8m");
     setup(net_radiation);
     fill_tiff(net_radiation, 400, 655);
     TIFFClose(net_radiation);
-    //net_radiation = TIFFOpen("meuRn.tif", "rm");
+    net_radiation = TIFFOpen("meuRn.tif", "rm");
 
     TIFF *soil_heat = TIFFOpen("meuG.tif", "w8m");
     setup(soil_heat);
     fill_tiff(soil_heat, 70, 110);
     TIFFClose(soil_heat);
-    //soil_heat = TIFFOpen("meuG.tif", "rm");
+    soil_heat = TIFFOpen("meuG.tif", "rm");
 
     TIFF *albedo = TIFFOpen("meuAlbedo.tif", "w8m");
     setup(albedo);
     fill_tiff(albedo, 0.15, 0.45);
     TIFFClose(albedo);
-    //albedo = TIFFOpen("meuAlbedo.tif", "rm");
-    return 0;
+    albedo = TIFFOpen("meuAlbedo.tif", "rm");
+
     Candidate hot_pixel = Candidate();
     hot_pixel.col = 6;
     hot_pixel.line = 4;
@@ -269,7 +277,6 @@ int main(int argc, char *argv[]){
     hot_pixel.soil_heat_flux = read_position_tiff(soil_heat, hot_pixel.col, hot_pixel.line);
     hot_pixel.temperature = read_position_tiff(surface_temperature, hot_pixel.col, hot_pixel.line);
     
-
     Candidate cold_pixel = Candidate();
     cold_pixel.col = 8;
     cold_pixel.line = 2;
