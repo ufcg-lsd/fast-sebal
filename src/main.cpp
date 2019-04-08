@@ -188,11 +188,11 @@ void fill_tiff(TIFF* tif, double min, double max){
         for(int col = 0; col < 10; col ++){
            tif_line[col] = getRandomDouble(min, max);
         }
-        write_line_tiff(tif, tif_line, line);
-        /*if (TIFFWriteScanline(tif, tif_line, line) < 0){
+        
+        if (TIFFWriteScanline(tif, tif_line, line) < 0){
             cerr << "Write problem!" << endl;
             exit(4);
-        }*/
+        }
     }
 }
 
@@ -237,7 +237,7 @@ int main(int argc, char *argv[]){
     fill_tiff(ndvi, 0.13, 0.40);
     TIFFClose(ndvi);
     //ndvi = TIFFOpen("meuNDVI.tif", "rm");
-
+    return 0;
     TIFF *surface_temperature = TIFFOpen("meuTS.tif", "w8m");
     setup(surface_temperature);
     fill_tiff(surface_temperature, 290, 315);
