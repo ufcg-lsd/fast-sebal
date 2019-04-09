@@ -264,7 +264,7 @@ void Landsat::process_final_products(Station station, MTL mtl){
                 if(!isnan(L[col]) && L[col] > 0) psi_2_line[col] = -5 * (2/L[col]);
                 else psi_2_line[col] = 2 * log((1 + y_2_line[col]*y_2_line[col])/2);
 
-                if(!isnan(L[col]) && L > 0) psi_200_line[col] = -5 * (2/L[col]);
+                if(!isnan(L[col]) && L[col] > 0) psi_200_line[col] = -5 * (2/L[col]);
                 else psi_200_line[col] = 2 * log((1 + x_200_line[col])/2) + log((1 + x_200_line[col]*x_200_line[col])/2) - 2 * atan(x_200_line[col]) + 0.5 * PI;
 
                 ustar_write_line[col] = (VON_KARMAN * u200) / (log(200/zom_line[col]) - psi_200_line[col]);
