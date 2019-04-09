@@ -296,13 +296,19 @@ void Landsat::process_final_products(Station station, MTL mtl){
     cout << "Antes de fechar tifs depois do while..." << endl;
     TIFFClose(zom);
     cout << "Antes de ler o tif final do while..." << endl;
+
     if(i%2) {
-        printf("Rah_after is aerodynamic_resistence_tif1_path\n");
+
+        printf("Rah_after is aerodynamic_resistence_tif1_path\n");  
         aerodynamic_resistence_tif0 = TIFFOpen(aerodynamic_resistence_tif1_path.c_str(), "rm");
+
     } else {
-        printf("Rah_after is aerodynamic_resistence_path\n");
+        
+        printf("Rah_after is aerodynamic_resistence_path\n"); 
         aerodynamic_resistence_tif0 = TIFFOpen(aerodynamic_resistence_path.c_str(), "rm");
+
     }
+
     cout << "Depois de ler o tif final..." << endl;
     double dt_hot = H_hot * rah_hot0 / (RHO * SPECIFIC_HEAT_AIR);
     double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
