@@ -143,8 +143,8 @@ LE_final[] <- Rn[]-G[]-H
 print("Passou LE")
 
 MTL <- read.table("input/MTL.txt", skip=0, nrows=140, sep="=", quote = "''", as.is=TRUE) # Reading MTL File
-fic <- substr(MTL$V2[MTL$V1 == grep(pattern="LANDSAT_SCENE_ID", MTL$V1, value=T)], 3, 23)
-Dia.juliano <- as.numeric(substr(fic, 14, 16))	#Julian Day
+landsat <- substr(MTL$V2[MTL$V1 == grep(pattern="LANDSAT_SCENE_ID", MTL$V1, value=T)], 3, 23)
+Dia.juliano <- as.numeric(substr(landsat, 14, 16))	#Julian Day
 
 d_sun_earth <- 0.98330
 	# Upscalling temporal
