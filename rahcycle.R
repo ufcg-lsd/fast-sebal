@@ -59,15 +59,14 @@ rah_before <- NDVI
 rah_before[] <-(log(2/0.1))/(ustar[]*k)  #FIXME:
 print("Passou rah")
 
-base_ref<-stack(NDVI,TS,Rn,G,ustar,rah) # Raster
-nbase<-c("NDVI","TS","Rn","G")
-names(base_ref)<-c(nbase,"ustar","rah")
-	
-value.pixels.ref<-extract(base_ref,ll_ref)
-rownames(value.pixels.ref)<-c("hot","cold")
-H.hot<-value.pixels.ref["hot","Rn"]-value.pixels.ref["hot","G"]  
-value.pixel.rah<-value.pixels.ref["hot","rah"]
-print(value.pixels.ref)
+hot.pixel.rn <- Rn[5, 7]
+hot.pixel.g <- G[5, 7]
+hot.pixel.ts <- TS[5, 7]
+cold.pixel.ts <- TS[3, 9]
+print(c(hot.pixel.rn, hot.pixel.g, hot.pixel.ts, cold.pixel.ts))
+
+H.hot<-hot.pixel.rn-hot.pixel.g 
+value.pixel.rah<-rah[5, 7]
 
 i<-1
 Erro<-TRUE
@@ -79,8 +78,8 @@ while(Erro){
   print("rah.hot.0")
   # Hot and cold pixels      
   dt.hot<-H.hot*rah.hot.0/(rho*cp) # Value
-  b<-dt.hot/(value.pixels.ref["hot","TS"]-value.pixels.ref["cold","TS"]) # Value
-  a<- -b*(value.pixels.ref["cold","TS"]-273.15) # Value
+  b<-dt.hot/(hot.pixel.ts-cold.pixel.ts) # Value
+  a<- -b*(cold.pixel.ts-273.15) # Value
   print("before H")
 	  # All pixels
   H<-rho*cp*(a+b*(TS[]-273.15))/rah[] # Changed from Raster to Vector
@@ -97,8 +96,7 @@ while(Erro){
   ustar<-k*u200/(log(200/zom[])-psi_200) # Changed from Raster to Vector # Friction velocity for all pixels
   rah<-NDVI
   rah[]<-(log(2/0.1)-psi_2+psi_0.1)/(ustar*k) # Changed from Raster to Vector # Aerodynamic resistency for all pixels
-  rah.hot<-extract(rah,matrix(ll_ref["hot",],1,2)) # Value
-  value.pixel.rah<-c(value.pixel.rah,rah.hot) # Value
+  value.pixel.rah<-c(value.pixel.rah,rah[5, 7]) # Value
   print("after rah")
   print(i)
   print(value.pixel.rah)
@@ -110,10 +108,9 @@ while(Erro){
 	print("After rah correct")
 	# End sensible heat flux (H)
 	
-	# Hot and cold pixels
-dt.hot<-H.hot*rah.hot/(rho*cp)                  
-b<-dt.hot/(value.pixels.ref["hot","TS"]-value.pixels.ref["cold","TS"]) 
-a<- -b*(value.pixels.ref["cold","TS"]-273.15)                          
+dt.hot<-H.hot*rah.hot.0/(rho*cp) # Value
+b<-dt.hot/(hot.pixel.ts-cold.pixel.ts) # Value
+a<- -b*(cold.pixel.ts-273.15) # Value                      
 	
 	#print(proc.time())
 	
