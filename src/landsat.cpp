@@ -210,6 +210,9 @@ void Landsat::process_final_products(Station station, MTL mtl){
     double rah_hot0;
     double rah_hot;
 
+    //Auxiliar TIFFS
+    TIFF *Ltif, *y01, *y2, *x200, *psi01, *psi2, *psi200; //DEBUG
+
     while(Erro) {
 
         rah_hot0 = hot_pixel.aerodynamic_resistance[i];
@@ -235,6 +238,28 @@ void Landsat::process_final_products(Station station, MTL mtl){
             aerodynamic_resistence_tif1 = TIFFOpen(aerodynamic_resistence_tif1_path.c_str(), "w8m");
             setup(aerodynamic_resistence_tif1, albedo);
         }
+
+        //DEBUG
+        Ltif = TIFFOpen("meuL.tif", "w8m");
+        setup(Ltif, albedo);
+
+        y01 = TIFFOpen("meuy01.tif", "w8m");
+        setup(y01, albedo);
+
+        y2 = TIFFOpen("meuy2.tif", "w8m");
+        setup(y2, albedo);
+
+        x200 = TIFFOpen("meux200.tif", "w8m");
+        setup(x200, albedo);
+
+        psi01 = TIFFOpen("meupsi01.tif", "w8m");
+        setup(psi01, albedo);
+
+        psi2 = TIFFOpen("meupsi2.tif", "w8m");
+        setup(psi2, albedo);
+
+        psi200 = TIFFOpen("meupsi200.tif", "w8m");
+        setup(psi200, albedo);
 
         for(int line = 0; line < heigth_band; line++){
 
@@ -278,11 +303,18 @@ void Landsat::process_final_products(Station station, MTL mtl){
             }
 
             //Saving new ustar e rah
-            save_tiffs(vector<double*> {ustar_write_line, aerodynamic_resistence_write_line}, 
-                    vector<TIFF*> {ustar_tif1, aerodynamic_resistence_tif1}, line);
+            save_tiffs(vector<double*> {ustar_write_line, aerodynamic_resistence_write_line, L, y_01_line, y_2_line, x_200_line, psi_01_line, psi_2_line, psi_200_line}, 
+                    vector<TIFF*> {ustar_tif1, aerodynamic_resistence_tif1, Ltif, y01, y2, x200, psi01, psi2, psi200}, line);
 
         }
 
+        TIFFClose(Ltif);
+        TIFFClose(y01);
+        TIFFClose(y2);
+        TIFFClose(x200);
+        TIFFClose(psi01);
+        TIFFClose(psi2);
+        TIFFClose(psi200);
         TIFFClose(ustar_tif0);
         TIFFClose(ustar_tif1);
         TIFFClose(aerodynamic_resistence_tif0);
