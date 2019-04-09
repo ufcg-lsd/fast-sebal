@@ -102,11 +102,12 @@ while(Erro){
   print(i)
   print(value.pixel.rah)
   Erro<-(abs(1-rah.hot.0/rah.hot)>=0.05)
+  print(Erro)
   i<-i+1
 }
 	
 	#print(proc.time())
-	print("After rah correct")
+print("After rah correct")
 	# End sensible heat flux (H)
 	
 dt.hot<-H.hot*rah.hot.0/(rho*cp) # Value
@@ -140,8 +141,14 @@ LE<-Rn[]-G[]-H
 LE_final <- NDVI
 LE_final[] <- Rn[]-G[]-H
 print("Passou LE")
+
+MTL <- read.table("input/MTL.txt", skip=0, nrows=140, sep="=", quote = "''", as.is=TRUE) # Reading MTL File
+fic <- substr(MTL$V2[MTL$V1 == grep(pattern="LANDSAT_SCENE_ID", MTL$V1, value=T)], 3, 23)
+Dia.juliano <- as.numeric(substr(fic, 14, 16))	#Julian Day
+
+d_sun_earth <- 0.98330
 	# Upscalling temporal
-dr<-(1/d_sun_earth$dist[Dia.juliano])^2 		# Inverse square of the distance on Earth-SOL
+dr<-(1/d_sun_earth)^2 		# Inverse square of the distance on Earth-SOL
 sigma<-0.409*sin(((2*pi/365)*Dia.juliano)-1.39) # Declination Solar (rad)
 phi<-(pi/180)*Lat 								# Solar latitude in degrees
 omegas<-acos(-tan(phi)*tan(sigma)) 				# Angle Time for sunsets (rad)
