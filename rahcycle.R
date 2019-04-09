@@ -207,13 +207,14 @@ output.evapo<-stack(zom, ustar_final, rah, H_final, LE_final, Rn24h_dB_final, LE
 
 output.names <- c('zom', 'ustar_after', 'Rah_after', 'H', 'LatentHF', 'Rn24h', 'LatentHF24h', 'EF', 'ET24h')
 
-output.path <- "Testes/Teste06/R_OUTPUT"
+output.path <- "Testes/Teste06"
+fic <- "R_OUTPUT"
 
 names(output.evapo) <- output.names
 writeRaster(output.evapo, output.path, overwrite=TRUE, format="CDF", varname=fic, varunit="daily", longname=fic, xname="lon", yname="lat", bylayer=TRUE, suffix="names")
 print("Depois do writeRaster")
 	#print(proc.time())
-fic <- "R_OUTPUT"	
+
 	# Opening old EF NetCDF
 var_output<-paste("Testes/Teste06","/",fic,"_EF.nc",sep="")
 nc<-nc_open(var_output, write=TRUE,readunlim=FALSE,verbose=TRUE,auto_GMT=FALSE,suppress_dimvals=FALSE)
