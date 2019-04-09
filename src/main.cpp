@@ -276,6 +276,7 @@ int main(int argc, char *argv[]){
     hot_pixel.ndvi = read_position_tiff(ndvi, hot_pixel.col, hot_pixel.line);
     hot_pixel.soil_heat_flux = read_position_tiff(soil_heat, hot_pixel.col, hot_pixel.line);
     hot_pixel.temperature = read_position_tiff(surface_temperature, hot_pixel.col, hot_pixel.line);
+    hot_pixel.net_radiation = read_position_tiff(net_radiation, hot_pixel.col, hot_pixel.line);
     
     Candidate cold_pixel = Candidate();
     cold_pixel.col = 8;
@@ -283,6 +284,7 @@ int main(int argc, char *argv[]){
     cold_pixel.ndvi = read_position_tiff(ndvi, cold_pixel.col, cold_pixel.line);
     cold_pixel.soil_heat_flux = read_position_tiff(soil_heat, cold_pixel.col, cold_pixel.line);
     cold_pixel.temperature = read_position_tiff(surface_temperature, cold_pixel.col, cold_pixel.line);
+    cold_pixel.net_radiation = read_position_tiff(net_radiation, cold_pixel.col, cold_pixel.line);
 
     cout << "HOT" << endl;
     hot_pixel.toString();
