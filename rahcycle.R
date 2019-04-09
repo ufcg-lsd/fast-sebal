@@ -185,27 +185,29 @@ print("Antes de salvar")
 	#print(proc.time())
 	
 print("ZOM")
-print(zom)
+print(zom[])
 print("USTAR")
-print(ustar_final)
+print(ustar_final[])
 print("RAH")
-print(rah)
+print(rah[])
 print("H")
-print(H_final)
+print(H_final[])
 print("LE")
-print(LE_final)
+print(LE_final[])
 print("RN24H")
-print(Rn24h_dB_final)
+print(Rn24h_dB_final[])
 print("LE24H")
-print(LE24h_dB_final)
+print(LE24h_dB_final[])
 print("EF")
-print(EF)
+print(EF[])
 print("ET24H")
-print(ET24h_dB)
+print(ET24h_dB[])
 
 output.evapo<-stack(zom, ustar_final, rah, H_final, LE_final, Rn24h_dB_final, LE24h_dB_final, EF, ET24h_dB)
 
 output.names <- c('zom', 'ustar_after', 'Rah_after', 'H', 'LatentHF', 'Rn24h', 'LatentHF24h', 'EF', 'ET24h')
+
+output.path <- "Testes/Teste06"
 
 names(output.evapo) <- output.names
 writeRaster(output.evapo, output.path, overwrite=TRUE, format="CDF", varname=fic, varunit="daily", longname=fic, xname="lon", yname="lat", bylayer=TRUE, suffix="names")
