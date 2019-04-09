@@ -151,7 +151,14 @@ while(Erro){
 dt.hot<-H.hot*rah.hot.0/(rho*cp) # Value
 b<-dt.hot/(hot.pixel.ts-cold.pixel.ts) # Value
 a<- -b*(cold.pixel.ts-273.15) # Value                      
-	
+
+print("DT HOT")
+print(dt.hot)
+print("B")
+print(b)
+print("A")
+print(a)
+
 	#print(proc.time())
 	
 	# All pixels

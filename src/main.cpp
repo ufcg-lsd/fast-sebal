@@ -576,6 +576,10 @@ int main(int argc, char *argv[]){
     double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
     double a = -b * (cold_pixel.temperature - 273.15);
 
+    cout << "DT HOT " << dt_hot << endl;
+    cout << "B " << b << endl;
+    cout << "A " << a << endl;
+
     for(int line = 0; line < heigth_band; line++){
         read_line_tiff(aerodynamic_resistence_tif0, aerodynamic_resistence_line, line);
         read_line_tiff(surface_temperature, surface_temperature_line, line);
@@ -585,7 +589,7 @@ int main(int argc, char *argv[]){
         for(int col = 0; col < width_band; col++) {
             sensible_heat_flux_line[col] = RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15))/aerodynamic_resistence_line[col];
 
-            if (!isnan(sensible_heat_flux_line[col]) && sensible_heat_flux_line[col] > net_radiation_line[col] - soil_heat_line[col]) {
+            if (!isnan(sensible_heat_flux_line[col]) && sensible_heat_flux_line[col] > (net_radiation_line[col] - soil_heat_line[col])) {
                 sensible_heat_flux_line[col] = net_radiation_line[col] - soil_heat_line[col];
             }
             
