@@ -76,40 +76,78 @@ print("Before rah correct")
 	#print(proc.time())
 	# Beginning of the cycle stability
 while(Erro){
-  rah.hot.0<-value.pixel.rah[i] # Value
-  print("rah.hot.0")
-  # Hot and cold pixels      
-  dt.hot<-H.hot*rah.hot.0/(rho*cp) # Value
-  b<-dt.hot/(hot.pixel.ts-cold.pixel.ts) # Value
-  a<- -b*(cold.pixel.ts-273.15) # Value
-  print("before H")
-	  # All pixels
-  H<-rho*cp*(a+b*(TS[]-273.15))/rah[] # Changed from Raster to Vector
-  L<- -1*((rho*cp*ustar[]^3*TS[])/(k*g*H)) # Changed from Raster to Vector
-  y_0.1<-(1-16*0.1/L)^0.25 # Changed from Raster to Vector
-  y_2<-(1-16*2/L)^0.25 # Changed from Raster to Vector
-  x200<-(1-16*200/L)^0.25 # Changed from Raster to Vector
-  psi_0.1<-2*log((1+y_0.1^2)/2) # Changed from Raster to Vector
-  psi_0.1[L>0 &!is.na(L)]<--5*(0.1/L[L>0 &!is.na(L)]) # Changed from Raster to Vector
-  psi_2<-2*log((1+y_2^2)/2)  # Changed from Raster to Vector
-  psi_2[L>0 &!is.na(L) ]<--5*(2/L[L>0 &!is.na(L)]) # Changed from Raster to Vector
-  psi_200<-2*log((1+x200)/2)+log((1+x200^2)/2)-2*atan(x200)+0.5*pi # Changed from Raster to Vector
-  psi_200[L>0 &!is.na(L) ]<--5*(2/L[(L>0 &!is.na(L))]) # Changed from Raster to Vector
-  ustar<-k*u200/(log(200/zom[])-psi_200) # Changed from Raster to Vector # Friction velocity for all pixels
-  rah<-NDVI
-  rah[]<-(log(2/0.1)-psi_2+psi_0.1)/(ustar*k) # Changed from Raster to Vector # Aerodynamic resistency for all pixels
-  rah.hot <- rah[5, 7]
-  value.pixel.rah<-c(value.pixel.rah,rah.hot) # Value
-  print("after rah")
-  print(i)
-  print(value.pixel.rah)
-  print(abs(1-rah.hot.0/rah.hot))
-  Erro<-(abs(1-rah.hot.0/rah.hot)>=0.05)
-  i<-i+1
+
+    print(paste("Loop", i))
+
+    print("Ustar before loop")
+    print(ustar[])
+
+    print("Rah before loop")
+    print(rah[])
+
+    rah.hot.0<-value.pixel.rah[i] # Value
+    
+    # Hot and cold pixels      
+    dt.hot<-H.hot*rah.hot.0/(rho*cp) # Value
+    b<-dt.hot/(hot.pixel.ts-cold.pixel.ts) # Value
+    a<- -b*(cold.pixel.ts-273.15) # Value
+    
+	# All pixels
+    H<-rho*cp*(a+b*(TS[]-273.15))/rah[] # Changed from Raster to Vector
+    L<- -1*((rho*cp*ustar[]^3*TS[])/(k*g*H)) # Changed from Raster to Vector
+    y_0.1<-(1-16*0.1/L)^0.25 # Changed from Raster to Vector
+    y_2<-(1-16*2/L)^0.25 # Changed from Raster to Vector
+    x200<-(1-16*200/L)^0.25 # Changed from Raster to Vector
+    psi_0.1<-2*log((1+y_0.1^2)/2) # Changed from Raster to Vector
+    psi_0.1[L>0 &!is.na(L)]<--5*(0.1/L[L>0 &!is.na(L)]) # Changed from Raster to Vector
+    psi_2<-2*log((1+y_2^2)/2)  # Changed from Raster to Vector
+    psi_2[L>0 &!is.na(L) ]<--5*(2/L[L>0 &!is.na(L)]) # Changed from Raster to Vector
+    psi_200<-2*log((1+x200)/2)+log((1+x200^2)/2)-2*atan(x200)+0.5*pi # Changed from Raster to Vector
+    psi_200[L>0 &!is.na(L) ]<--5*(2/L[(L>0 &!is.na(L))]) # Changed from Raster to Vector
+    ustar<-k*u200/(log(200/zom[])-psi_200) # Changed from Raster to Vector # Friction velocity for all pixels
+    rah<-NDVI
+    rah[]<-(log(2/0.1)-psi_2+psi_0.1)/(ustar*k) # Changed from Raster to Vector # Aerodynamic resistency for all pixels
+    rah.hot <- rah[5, 7]
+    value.pixel.rah<-c(value.pixel.rah,rah.hot) # Value
+    
+    print("L")
+    print(L[])
+    print("")
+
+    print("y_0.1")
+    print(y_0.1[])
+    print("")
+
+    print("y_2")
+    print(y_2[])
+    print("")
+
+    print("x_200")
+    print(x200[])
+    print("")
+
+    print("psi_0.1")
+    print(psi_0.1[])
+    print("")
+
+    print("psi_2")
+    print(psi_2[])
+    print("")
+
+    print("psi_200")
+    print(psi_200[])
+    print("")
+
+    print("Rahs do hot pixel")
+    print(value.pixel.rah)
+
+    print("Erro")
+    print(abs(1-rah.hot.0/rah.hot))
+    Erro<-(abs(1-rah.hot.0/rah.hot)>=0.05)
+    i<-i+1
 }
 	
 	#print(proc.time())
-print("After rah correct")
 	# End sensible heat flux (H)
 	
 dt.hot<-H.hot*rah.hot.0/(rho*cp) # Value
@@ -124,25 +162,16 @@ H[(H>(Rn[]-G[]) &!is.na(H))]<-(Rn[]-G[])[(H>(Rn[]-G[]) &!is.na(H))] # Vector
 	
 ustar_final <- NDVI
 ustar_final[] <- ustar
-print("Passou ustar final")
 
-	#rah_final <- NDVI
-	#rah_final[] <- rah
-	#print("Passou rah final")
 
 H_final <- NDVI
-	#H_final[] <-rho*cp*(a+b*(TS[]-273.15))/rah[] # Vector 
-	#H_final[(H>(Rn[]-G[]) &!is.na(H))]<-(Rn[]-G[])[(H>(Rn[]-G[]) &!is.na(H))] # Vector
 H_final[] <- H
-print("Passou H final")
 
-	#print(proc.time())
 
 	# Instant latent heat flux (LE)
 LE<-Rn[]-G[]-H
 LE_final <- NDVI
 LE_final[] <- Rn[]-G[]-H
-print("Passou LE")
 
 Dia.juliano <- 3
 
@@ -164,7 +193,6 @@ FL<-110
 Rn24h_dB<-(1-alb[])*Rs24h-FL*Rs24h/Ra24h		# Method of Bruin #VETOR
 Rn24h_dB_final <- NDVI
 Rn24h_dB_final[] <-(1-alb[])*Rs24h-FL*Rs24h/Ra24h
-print("Passou Rn24h")
 	# Evapotranspiration fraction Bastiaanssen
 EF<-NDVI
 EF[]<-LE/(Rn[]-G[])
@@ -176,32 +204,30 @@ EF[]<-LE/(Rn[]-G[])
 LE24h_dB<-EF[]*Rn24h_dB
 LE24h_dB_final <- NDVI
 LE24h_dB_final[] <- EF[]*Rn24h_dB
-print("Passou LE24h")
 	
 	# Evapotranspiration 24 hours (ET24h)
 ET24h_dB<-NDVI
 ET24h_dB[]<-LE24h_dB*86400/((2.501-0.00236* (max(table.sw$V7[])+min(table.sw$V7[]))/2)*10^6)
-print("Antes de salvar")
 	#print(proc.time())
 	
-print("ZOM")
-print(zom[])
-print("USTAR")
-print(ustar_final[])
-print("RAH")
-print(rah[])
+# print("ZOM")
+# print(zom[])
+# print("USTAR")
+# print(ustar_final[])
+# print("RAH")
+# print(rah[])
 print("H")
 print(H_final[])
-print("LE")
-print(LE_final[])
-print("RN24H")
-print(Rn24h_dB_final[])
-print("LE24H")
-print(LE24h_dB_final[])
-print("EF")
-print(EF[])
-print("ET24H")
-print(ET24h_dB[])
+# print("LE")
+# print(LE_final[])
+# print("RN24H")
+# print(Rn24h_dB_final[])
+# print("LE24H")
+# print(LE24h_dB_final[])
+# print("EF")
+# print(EF[])
+# print("ET24H")
+# print(ET24h_dB[])
 
 output.evapo<-stack(zom, ustar_final, rah, H_final, LE_final, Rn24h_dB_final, LE24h_dB_final, EF, ET24h_dB)
 
