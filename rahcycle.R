@@ -152,6 +152,10 @@ dt.hot<-H.hot*rah.hot.0/(rho*cp) # Value
 b<-dt.hot/(hot.pixel.ts-cold.pixel.ts) # Value
 a<- -b*(cold.pixel.ts-273.15) # Value                      
 
+print("H HOT")
+print(H.hot)
+print("Rah hot")
+print(rah.hot.0)
 print("DT HOT")
 print(dt.hot)
 print("B")

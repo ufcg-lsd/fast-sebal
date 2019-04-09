@@ -572,10 +572,14 @@ int main(int argc, char *argv[]){
         aerodynamic_resistence_tif0 = TIFFOpen("meuRah.tif", "rm");
     }
     cout << "Depois de ler o tif final..." << endl;
-    double dt_hot = H_hot * rah_hot / (RHO * SPECIFIC_HEAT_AIR);
+    double dt_hot = H_hot * rah_hot0 / (RHO * SPECIFIC_HEAT_AIR);
     double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
     double a = -b * (cold_pixel.temperature - 273.15);
 
+    cout << "H Hot" << H_hot << endl;
+    cout << "Rah hot" << rah_hot0 << endl;
+    cout << "RHO " << RHO << endl;
+    cout << "CP " << SPECIFIC_HEAT_AIR;
     cout << "DT HOT " << dt_hot << endl;
     cout << "B " << b << endl;
     cout << "A " << a << endl;
