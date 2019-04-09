@@ -101,8 +101,8 @@ while(Erro){
   print("after rah")
   print(i)
   print(value.pixel.rah)
+  print(abs(1-rah.hot.0/rah.hot))
   Erro<-(abs(1-rah.hot.0/rah.hot)>=0.05)
-  print(Erro)
   i<-i+1
 }
 	
@@ -211,17 +211,17 @@ output.path <- "Testes/Teste06"
 fic <- "R_OUTPUT"
 
 names(output.evapo) <- output.names
-writeRaster(output.evapo, output.path, overwrite=TRUE, format="CDF", varname=fic, varunit="daily", longname=fic, xname="lon", yname="lat", bylayer=TRUE, suffix="names")
+writeRaster(output.evapo, output.path, overwrite=TRUE, format="CDF", varname="R_OUTPUT", varunit="daily", longname="R_OUTPUT", xname="lon", yname="lat", bylayer=TRUE, suffix="names")
 print("Depois do writeRaster")
 	#print(proc.time())
 
 	# Opening old EF NetCDF
-var_output<-paste("Testes/Teste06","/",fic,"_EF.nc",sep="")
+var_output<-paste("Testes/Teste06","/","R_OUTPUT","_EF.nc",sep="")
 nc<-nc_open(var_output, write=TRUE,readunlim=FALSE,verbose=TRUE,auto_GMT=FALSE,suppress_dimvals=FALSE)
 	
 	# New EF file name
-file_output<-paste("Testes/Teste06","/",fic,"_EF.nc",sep="")
-oldEFValues<-ncvar_get(nc,fic)
+file_output<-paste("Testes/Teste06","/","R_OUTPUT","_EF.nc",sep="")
+oldEFValues<-ncvar_get(nc,"R_OUTPUT")
 newEFValues<-ncvar_def("EF","daily",list(dimLonDef,dimLatDef,tdim),longname="EF",missval=NaN,prec="double")
 nc_close(nc)
 newEFNCDF4<-nc_create(file_output,newEFValues)
@@ -231,12 +231,12 @@ nc_close(newEFNCDF4)
 	#print(proc.time())
 	
 	# Opening old ET24h NetCDF
-var_output<-paste("Testes/Teste06","/",fic,"_ET24h.nc",sep="")
+var_output<-paste("Testes/Teste06","/","R_OUTPUT","_ET24h.nc",sep="")
 nc<-nc_open(var_output, write=TRUE, readunlim=FALSE, verbose=TRUE, auto_GMT=FALSE, suppress_dimvals=FALSE)
 	
 	# New ET24h file name
-file_output<-paste("Testes/Teste06","/",fic,"_ET24h.nc",sep="")
-oldET24hValues<-ncvar_get(nc,fic)
+file_output<-paste("Testes/Teste06","/","R_OUTPUT","_ET24h.nc",sep="")
+oldET24hValues<-ncvar_get(nc,"R_OUTPUT")
 newET24hValues<-ncvar_def("ET24h","daily", list(dimLonDef, dimLatDef, tdim), longname="ET24h", missval=NaN, prec="double")
 nc_close(nc)
 newET24hNCDF4<-nc_create(file_output,newET24hValues)
@@ -246,12 +246,12 @@ nc_close(newET24hNCDF4)
 	#print(proc.time())
 	#FIXME:
 	# Opening old ET24h NetCDF
-var_output<-paste("Testes/Teste06","/",fic,"_zom.nc",sep="")
+var_output<-paste("Testes/Teste06","/","R_OUTPUT","_zom.nc",sep="")
 nc<-nc_open(var_output, write=TRUE, readunlim=FALSE, verbose=TRUE, auto_GMT=FALSE, suppress_dimvals=FALSE)
 	
 	# New zom file name
-file_output<-paste("Testes/Teste06","/",fic,"_zom.nc",sep="")
-oldzomValues<-ncvar_get(nc,fic)
+file_output<-paste("Testes/Teste06","/","R_OUTPUT","_zom.nc",sep="")
+oldzomValues<-ncvar_get(nc,"R_OUTPUT")
 newzomValues<-ncvar_def("zom","daily", list(dimLonDef, dimLatDef, tdim), longname="zom", missval=NaN, prec="double")
 nc_close(nc)
 newzomNCDF4<-nc_create(file_output,newzomValues)
@@ -260,12 +260,12 @@ nc_close(newzomNCDF4)
 
 
 	# Opening old ET24h NetCDF
-var_output<-paste("Testes/Teste06","/",fic,"_ustar_after.nc",sep="")
+var_output<-paste("Testes/Teste06","/","R_OUTPUT","_ustar_after.nc",sep="")
 nc<-nc_open(var_output, write=TRUE, readunlim=FALSE, verbose=TRUE, auto_GMT=FALSE, suppress_dimvals=FALSE)
 	
 	# New ustar_after file name
-file_output<-paste("Testes/Teste06","/",fic,"_ustar_after.nc",sep="")
-oldustar_afterValues<-ncvar_get(nc,fic)
+file_output<-paste("Testes/Teste06","/","R_OUTPUT","_ustar_after.nc",sep="")
+oldustar_afterValues<-ncvar_get(nc,"R_OUTPUT")
 newustar_afterValues<-ncvar_def("ustar_after","daily", list(dimLonDef, dimLatDef, tdim), longname="ustar_after", missval=NaN, prec="double")
 nc_close(nc)
 newustar_afterNCDF4<-nc_create(file_output,newustar_afterValues)
@@ -275,12 +275,12 @@ nc_close(newustar_afterNCDF4)
 	#print(proc.time())
 
 	# Opening old ET24h NetCDF
-var_output<-paste("Testes/Teste06","/",fic,"_Rah_after.nc",sep="")
+var_output<-paste("Testes/Teste06","/","R_OUTPUT","_Rah_after.nc",sep="")
 nc<-nc_open(var_output, write=TRUE, readunlim=FALSE, verbose=TRUE, auto_GMT=FALSE, suppress_dimvals=FALSE)
 	
 	# New Rah_after file name
-file_output<-paste("Testes/Teste06","/",fic,"_Rah_after.nc",sep="")
-oldRah_afterValues<-ncvar_get(nc,fic)
+file_output<-paste("Testes/Teste06","/","R_OUTPUT","_Rah_after.nc",sep="")
+oldRah_afterValues<-ncvar_get(nc,"R_OUTPUT")
 newRah_afterValues<-ncvar_def("Rah_after","daily", list(dimLonDef, dimLatDef, tdim), longname="Rah_after", missval=NaN, prec="double")
 nc_close(nc)
 newRah_afterNCDF4<-nc_create(file_output,newRah_afterValues)
@@ -290,12 +290,12 @@ nc_close(newRah_afterNCDF4)
 	#print(proc.time())
 
 	# Opening old ET24h NetCDF
-var_output<-paste("Testes/Teste06","/",fic,"_H.nc",sep="")
+var_output<-paste("Testes/Teste06","/","R_OUTPUT","_H.nc",sep="")
 nc<-nc_open(var_output, write=TRUE, readunlim=FALSE, verbose=TRUE, auto_GMT=FALSE, suppress_dimvals=FALSE)
 	
 	# New H file name
-file_output<-paste("Testes/Teste06","/",fic,"_H.nc",sep="")
-oldHValues<-ncvar_get(nc,fic)
+file_output<-paste("Testes/Teste06","/","R_OUTPUT","_H.nc",sep="")
+oldHValues<-ncvar_get(nc,"R_OUTPUT")
 newHValues<-ncvar_def("H","daily", list(dimLonDef, dimLatDef, tdim), longname="H", missval=NaN, prec="double")
 nc_close(nc)
 newHNCDF4<-nc_create(file_output,newHValues)
@@ -305,12 +305,12 @@ nc_close(newHNCDF4)
 	#print(proc.time())
 
 	# Opening old ET24h NetCDF
-var_output<-paste("Testes/Teste06","/",fic,"_LatentHF.nc",sep="")
+var_output<-paste("Testes/Teste06","/","R_OUTPUT","_LatentHF.nc",sep="")
 nc<-nc_open(var_output, write=TRUE, readunlim=FALSE, verbose=TRUE, auto_GMT=FALSE, suppress_dimvals=FALSE)
 	
 	# New LatentHF file name
-file_output<-paste("Testes/Teste06","/",fic,"_LatentHF.nc",sep="")
-oldLatentHFValues<-ncvar_get(nc,fic)
+file_output<-paste("Testes/Teste06","/","R_OUTPUT","_LatentHF.nc",sep="")
+oldLatentHFValues<-ncvar_get(nc,"R_OUTPUT")
 newLatentHFValues<-ncvar_def("LatentHF","daily", list(dimLonDef, dimLatDef, tdim), longname="LatentHF", missval=NaN, prec="double")
 nc_close(nc)
 newLatentHFNCDF4<-nc_create(file_output,newLatentHFValues)
@@ -320,12 +320,12 @@ nc_close(newLatentHFNCDF4)
 	#print(proc.time())
 
 	# Opening old ET24h NetCDF
-var_output<-paste("Testes/Teste06","/",fic,"_Rn24h.nc",sep="")
+var_output<-paste("Testes/Teste06","/","R_OUTPUT","_Rn24h.nc",sep="")
 nc<-nc_open(var_output, write=TRUE, readunlim=FALSE, verbose=TRUE, auto_GMT=FALSE, suppress_dimvals=FALSE)
 	
 	# New Rn24h file name
-file_output<-paste("Testes/Teste06","/",fic,"_Rn24h.nc",sep="")
-oldRn24hValues<-ncvar_get(nc,fic)
+file_output<-paste("Testes/Teste06","/","R_OUTPUT","_Rn24h.nc",sep="")
+oldRn24hValues<-ncvar_get(nc,"R_OUTPUT")
 newRn24hValues<-ncvar_def("Rn24h","daily", list(dimLonDef, dimLatDef, tdim), longname="Rn24h", missval=NaN, prec="double")
 nc_close(nc)
 newRn24hNCDF4<-nc_create(file_output,newRn24hValues)
@@ -335,12 +335,12 @@ nc_close(newRn24hNCDF4)
 	#print(proc.time())
 
 	# Opening old ET24h NetCDF
-var_output<-paste("Testes/Teste06","/",fic,"_LatentHF24h.nc",sep="")
+var_output<-paste("Testes/Teste06","/","R_OUTPUT","_LatentHF24h.nc",sep="")
 nc<-nc_open(var_output, write=TRUE, readunlim=FALSE, verbose=TRUE, auto_GMT=FALSE, suppress_dimvals=FALSE)
 	
 	# New LatentHF24h file name
-file_output<-paste("Testes/Teste06","/",fic,"_LatentHF24h.nc",sep="")
-oldLatentHF24hValues<-ncvar_get(nc,fic)
+file_output<-paste("Testes/Teste06","/","R_OUTPUT","_LatentHF24h.nc",sep="")
+oldLatentHF24hValues<-ncvar_get(nc,"R_OUTPUT")
 newLatentHF24hValues<-ncvar_def("LatentHF24h","daily", list(dimLonDef, dimLatDef, tdim), longname="LatentHF24h", missval=NaN, prec="double")
 nc_close(nc)
 newLatentHF24hNCDF4<-nc_create(file_output,newLatentHF24hValues)
