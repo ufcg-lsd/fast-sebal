@@ -100,18 +100,18 @@ void Landsat::process_final_products(Station station, MTL mtl){
     uint32 heigth_band, width_band;
     TIFFGetField(albedo, TIFFTAG_IMAGELENGTH, &heigth_band);
     TIFFGetField(albedo, TIFFTAG_IMAGEWIDTH, &width_band);
-    
+    /*
     Candidate hot_pixel = select_hot_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, heigth_band, width_band);
     Candidate cold_pixel = select_cold_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, heigth_band, width_band);
-    
+    */
 /*
     //To run without selecting pixels.
 
     //Candidate(double ndvi, double temperature, double net_radiation, double soil_heat_flux, double ho, int line, int col);
-
+*/
     Candidate hot_pixel = Candidate(0.227679967882490234375, 308.387664794921875, 476.35150146484375, 101.90081024169921875, 476.35150146484375 - 101.90081024169921875, 3444, 2493);
     Candidate cold_pixel = Candidate(-0.1008398681879043579102, 297.303009033203125, 766.78015136718750, 383.39007568359375, 766.780105136718750 - 383.39007568359375, 840, 4433);
-  */
+  
     double sensible_heat_flux_line[width_band];
     double zom_line[width_band];
     double ustar_line[width_band];
@@ -317,7 +317,7 @@ void Landsat::process_final_products(Station station, MTL mtl){
         for(int col = 0; col < width_band; col++) {
             sensible_heat_flux_line[col] = RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15))/aerodynamic_resistence_line[col];
 
-            if (!isnan(sensible_heat_flux_line[col]) && sensible_heat_flux_line[col] > net_radiation_line[col] - soil_heat_line[col]) {
+            if (!isnan(sensible_heat_flux_line[col]) && sensible_heat_flux_line[col] > (net_radiation_line[col] - soil_heat_line[col])) {
                 sensible_heat_flux_line[col] = net_radiation_line[col] - soil_heat_line[col];
             }
             
