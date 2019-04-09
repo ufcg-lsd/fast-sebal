@@ -284,6 +284,12 @@ int main(int argc, char *argv[]){
     cold_pixel.soil_heat_flux = read_position_tiff(soil_heat, cold_pixel.col, cold_pixel.line);
     cold_pixel.temperature = read_position_tiff(surface_temperature, cold_pixel.col, cold_pixel.line);
 
+    cout << "HOT" << endl;
+    hot_pixel.toString();
+
+    cout << "COLD" << endl;
+    cold_pixel.toString();
+
     uint32 heigth_band, width_band;
     TIFFGetField(albedo, TIFFTAG_IMAGELENGTH, &heigth_band);
     TIFFGetField(albedo, TIFFTAG_IMAGEWIDTH, &width_band);
