@@ -96,7 +96,8 @@ while(Erro){
   ustar<-k*u200/(log(200/zom[])-psi_200) # Changed from Raster to Vector # Friction velocity for all pixels
   rah<-NDVI
   rah[]<-(log(2/0.1)-psi_2+psi_0.1)/(ustar*k) # Changed from Raster to Vector # Aerodynamic resistency for all pixels
-  value.pixel.rah<-c(value.pixel.rah,rah[5, 7]) # Value
+  rah.hot <- rah[5, 7]
+  value.pixel.rah<-c(value.pixel.rah,rah.hot) # Value
   print("after rah")
   print(i)
   print(value.pixel.rah)
