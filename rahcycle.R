@@ -15,6 +15,12 @@ alb<-raster("Testes/Teste06/meuAlbedo.tif")
 fic.sw <- "input/station.csv"
 table.sw <- (read.csv(fic.sw, sep=";", header=FALSE, stringsAsFactors=FALSE))
 
+k <- 0.41		# Von Karman
+g <- 9.81		# Gravity
+rho <- 1.15		# Air density
+cp <- 1004		# Specific heat of air
+Gsc <- 0.082		# Solar constant (0.0820 MJ m-2 min-1)
+
 x<-3                                    # Wind speed sensor Height (meters)
 hc<-0.2                                 # Vegetation height (meters)
 Lat<-table.sw$V4[1]    # Station Latitude
