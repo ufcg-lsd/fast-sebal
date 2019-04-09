@@ -240,35 +240,35 @@ int main(int argc, char *argv[]){
     }
 
     //TIFF Fake data
-    TIFF *ndvi = TIFFOpen("meuNDVI.tif", "w8m");
-    setup(ndvi);
-    fill_tiff(ndvi, 0.13, 0.40);
-    TIFFClose(ndvi);
-    ndvi = TIFFOpen("meuNDVI.tif", "rm");
+    //TIFF *ndvi = TIFFOpen("meuNDVI.tif", "w8m");
+    //setup(ndvi);
+    //fill_tiff(ndvi, 0.13, 0.40);
+    //TIFFClose(ndvi);
+    TIFF * ndvi = TIFFOpen("Testes/Teste06/meuNDVI.tif", "rm");
 
-    TIFF *surface_temperature = TIFFOpen("meuTS.tif", "w8m");
-    setup(surface_temperature);
-    fill_tiff(surface_temperature, 290, 315);
-    TIFFClose(surface_temperature);
-    surface_temperature = TIFFOpen("meuTS.tif", "rm");
+    //TIFF *surface_temperature = TIFFOpen("meuTS.tif", "w8m");
+    //setup(surface_temperature);
+    //fill_tiff(surface_temperature, 290, 315);
+    //TIFFClose(surface_temperature);
+    TIFF *surface_temperature = TIFFOpen("Testes/Teste06/meuTS.tif", "rm");
 
-    TIFF *net_radiation = TIFFOpen("meuRn.tif", "w8m");
-    setup(net_radiation);
-    fill_tiff(net_radiation, 400, 655);
-    TIFFClose(net_radiation);
-    net_radiation = TIFFOpen("meuRn.tif", "rm");
+    //TIFF *net_radiation = TIFFOpen("meuRn.tif", "w8m");
+    //setup(net_radiation);
+    //fill_tiff(net_radiation, 400, 655);
+    //TIFFClose(net_radiation);
+    TIFF *net_radiation = TIFFOpen("Testes/Teste06/meuRn.tif", "rm");
 
-    TIFF *soil_heat = TIFFOpen("meuG.tif", "w8m");
-    setup(soil_heat);
-    fill_tiff(soil_heat, 70, 110);
-    TIFFClose(soil_heat);
-    soil_heat = TIFFOpen("meuG.tif", "rm");
+    //TIFF *soil_heat = TIFFOpen("meuG.tif", "w8m");
+    //setup(soil_heat);
+    //fill_tiff(soil_heat, 70, 110);
+    //TIFFClose(soil_heat);
+    TIFF *soil_heat = TIFFOpen("Testes/Teste06/meuG.tif", "rm");
 
-    TIFF *albedo = TIFFOpen("meuAlbedo.tif", "w8m");
-    setup(albedo);
-    fill_tiff(albedo, 0.15, 0.45);
-    TIFFClose(albedo);
-    albedo = TIFFOpen("meuAlbedo.tif", "rm");
+    //TIFF *albedo = TIFFOpen("meuAlbedo.tif", "w8m");
+    //setup(albedo);
+    //fill_tiff(albedo, 0.15, 0.45);
+    //TIFFClose(albedo);
+    TIFF *albedo = TIFFOpen("Testes/Teste06/meuAlbedo.tif", "rm");
 
     Candidate hot_pixel = Candidate();
     hot_pixel.col = 6;
