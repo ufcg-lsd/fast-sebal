@@ -156,7 +156,7 @@ void print_tiff(TIFF* tif) {
     for(int line = 0; line < heigth_band; line++){
         read_line_tiff(tif, tif_line, line);
         for(int col = 0; col < width_band; col ++){
-           printf("%.7lf", tif_line[col]);
+           printf("%.4lf", tif_line[col]);
            cont++;
 
            cout << (cont%7 ? " " : "\n");
@@ -392,6 +392,9 @@ int main(int argc, char *argv[]){
     double rah_hot0;
     double rah_hot;
 
+    //Auxiliar TIFFS
+    TIFF *Ltif, *y01, *y2, *x200, *psi01, *psi2, *psi200;
+
     while(Erro) {
         cout << "Loop " << i << endl;
         rah_hot0 = hot_pixel.aerodynamic_resistance[i];
@@ -420,11 +423,34 @@ int main(int argc, char *argv[]){
 
         }
 
-        cout << "Ustar" << endl;
-        print_tiff(ustar_tif0);
+        Ltif = TIFFOpen("meuL.tif", "w8m");
+        setup(Ltif);
 
-        cout << "Rah" << endl;
+        y01 = TIFFOpen("meuy01.tif", "w8m");
+        setup(y01);
+
+        y2 = TIFFOpen("meuy2.tif", "w8m");
+        setup(y2);
+
+        x200 = TIFFOpen("meux200.tif", "w8m");
+        setup(x200);
+
+        psi01 = TIFFOpen("meupsi01.tif", "w8m");
+        setup(psi01);
+
+        psi2 = TIFFOpen("meupsi2.tif", "w8m");
+        setup(psi2);
+
+        psi200 = TIFFOpen("meupsi200.tif", "w8m");
+        setup(psi200);
+
+        cout << "Ustar before loop" << endl;
+        print_tiff(ustar_tif0);
+        cout << endl;
+
+        cout << "Rah before loop" << endl;
         print_tiff(aerodynamic_resistence_tif0);
+        cout << endl;
         
         for(int line = 0; line < heigth_band; line++){
             
@@ -468,11 +494,62 @@ int main(int argc, char *argv[]){
             }
 
             //Saving new ustar e rah
-            save_tiffs(vector<double*> {ustar_write_line, aerodynamic_resistence_write_line}, 
-                    vector<TIFF*> {ustar_tif1, aerodynamic_resistence_tif1}, line);
-            
+            save_tiffs(vector<double*> {ustar_write_line, aerodynamic_resistence_write_line, L, y_01_line, y_2_line, x_200_line, psi_01_line, psi_2_line, psi_200_line}, 
+                    vector<TIFF*> {ustar_tif1, aerodynamic_resistence_tif1, Ltif, y01, y2, x200, psi01, psi2, psi200}, line);
 
         }
+
+        TIFFClose(Ltif);
+        TIFFClose(y01);
+        TIFFClose(y2);
+        TIFFClose(x200);
+        TIFFClose(psi01);
+        TIFFClose(psi2);
+        TIFFClose(psi200);
+
+        Ltif = TIFFOpen("meuL.tif", "rm");
+        y01 = TIFFOpen("meuy01.tif", "rm");
+        y2 = TIFFOpen("meuy2.tif", "rm");
+        x200 = TIFFOpen("meux200.tif", "rm");
+        psi01 = TIFFOpen("meupsi01.tif", "rm");
+        psi2 = TIFFOpen("meupsi2.tif", "rm");
+        psi200 = TIFFOpen("meupsi200.tif", "rm");
+
+        cout << "L" << endl;
+        print_tiff(Ltif);
+        cout << endl;
+
+        cout << "y_0.1" << endl;
+        print_tiff(y01);
+        cout << endl;
+
+        cout << "y_2" << endl;
+        print_tiff(y2);
+        cout << endl;
+
+        cout << "x_200" << endl;
+        print_tiff(x200);
+        cout << endl;
+
+        cout << "psi_0.1" << endl;
+        print_tiff(psi01);
+        cout << endl;
+
+        cout << "psi_2" << endl;
+        print_tiff(psi2);
+        cout << endl;
+
+        cout << "psi_200" << endl;
+        print_tiff(psi200);
+        cout << endl;
+
+        TIFFClose(Ltif);
+        TIFFClose(y01);
+        TIFFClose(y2);
+        TIFFClose(x200);
+        TIFFClose(psi01);
+        TIFFClose(psi2);
+        TIFFClose(psi200);
 
         TIFFClose(ustar_tif0);
         TIFFClose(ustar_tif1);
@@ -484,9 +561,9 @@ int main(int argc, char *argv[]){
         i++;
 
     }
-    cout << "Antes de fechar tifs depois do while..." << endl;
+    
     TIFFClose(zom);
-    cout << "Antes de ler o tif final do while..." << endl;
+    
     if(i%2) {
         printf("Rah_after is meuRah_2\n");
         aerodynamic_resistence_tif0 = TIFFOpen("meuRah_2.tif", "rm");
