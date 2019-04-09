@@ -15,6 +15,8 @@ alb<-raster("Testes/Teste06/meuAlbedo.tif")
 fic.sw <- "input/station.csv"
 table.sw <- (read.csv(fic.sw, sep=";", header=FALSE, stringsAsFactors=FALSE))
 
+print(NDVI[])
+
 k <- 0.41		# Von Karman
 g <- 9.81		# Gravity
 rho <- 1.15		# Air density
