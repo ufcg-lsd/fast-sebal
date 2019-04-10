@@ -371,8 +371,8 @@ int main(int argc, char *argv[]){
     TIFF *ustar_tif0, *ustar_tif1, *aerodynamic_resistence_tif0, *aerodynamic_resistence_tif1, *sensible_heat_flux;
     zom = TIFFOpen("meuZom.tif", "rm"); //It's not modified into the rah cycle
 
-    cout << "Zom" << endl;
-    print_tiff(zom);
+    // cout << "Zom" << endl;
+    // print_tiff(zom);
 
     //It's only written into the rah cycle
     sensible_heat_flux = TIFFOpen("meuH.tif", "w8m");
