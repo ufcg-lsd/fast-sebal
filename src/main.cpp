@@ -103,7 +103,7 @@ int main(int argc, char *argv[]){
 
     ./run input/B2_converted.tif input/B3_converted.tif input/B4_converted.tif input/B5_converted.tif input/B6_converted.tif input/B7_converted.tif input/B10_converted.tif input/MTL.txt tal_converted.tif input/station.csv results -dist=0.98330
 
-*/
+
 int main(int argc, char *argv[]){
     string output_path = argv[11];
 
@@ -138,9 +138,9 @@ int main(int argc, char *argv[]){
     return 0;
 }
 
-/*
-./run input/MTL.txt input/station.csv -dist=0.98330
 
+./run input/MTL.txt input/station.csv -dist=0.98330
+*/
 void print_tiff(TIFF* tif) {
 
     uint32 heigth_band, width_band;
@@ -608,8 +608,51 @@ int main(int argc, char *argv[]){
     
     sensible_heat_flux = TIFFOpen("meuH.tif", "rm");
     print_tiff(sensible_heat_flux);
+
+    TIFF *latent_heat_flux, *net_radiation_24h, *latent_heat_flux_24h, *evapotranspiration_fraction, *evapotranspiration_24h;
+
+    latent_heat_flux = TIFFOpen("meuLatentHF.tif", "w8m");
+    setup(latent_heat_flux, albedo);
+
+    net_radiation_24h = TIFFOpen("meuRn24h.tif", "w8m");
+    setup(net_radiation_24h, albedo);
+
+    latent_heat_flux_24h = TIFFOpen("meuLatentHF24h.tif", "w8m");
+    setup(latent_heat_flux_24h, albedo);
+
+    evapotranspiration_fraction = TIFFOpen("meuEF.tif", "w8m");
+    setup(evapotranspiration_fraction, albedo);
+
+    evapotranspiration_24h = TIFFOpen("meuET24h.tif", "w8m");
+    setup(evapotranspiration_24h, albedo);
+
+    for(int line = 0; line < heigth_band; line++){
+        read_line_tiff(net_radiation, net_radiation_line, line);
+        read_line_tiff(soil_heat, soil_heat_line, line);
+        read_line_tiff(albedo, albedo_line, line);
+        read_line_tiff(sensible_heat_flux, sensible_heat_flux_line, line);
+
+        latent_heat_flux_function(net_radiation_line, soil_heat_line, sensible_heat_flux_line, width_band, latent_heat_flux_line);
+        net_radiation_24h_function(albedo_line, Ra24h, Rs24h, width_band, net_radiation_24h_line);
+        evapotranspiration_fraction_fuction(latent_heat_flux_line, net_radiation_line, soil_heat_line, width_band, evapotranspiration_fraction_line);
+        sensible_heat_flux_24h_fuction(evapotranspiration_fraction_line, net_radiation_24h_line, width_band, sensible_heat_flux_24h_line);
+        latent_heat_flux_24h_function(evapotranspiration_fraction_line, net_radiation_24h_line, width_band, latent_heat_flux_24h_line);
+        evapotranspiration_24h_function(latent_heat_flux_24h_line, station, width_band, evapotranspiration_24h_line);
+        
+        save_tiffs(vector<double*> {latent_heat_flux_line, net_radiation_24h_line, latent_heat_flux_24h_line, evapotranspiration_fraction_line, evapotranspiration_24h_line}, 
+               vector<TIFF*> {latent_heat_flux, net_radiation_24h, latent_heat_flux_24h, evapotranspiration_fraction, evapotranspiration_24h}, line);
+    
+    }
+    
+    TIFFClose(albedo);
+    TIFFClose(soil_heat);
+    TIFFClose(net_radiation);
     TIFFClose(sensible_heat_flux);
+    TIFFClose(latent_heat_flux);
+    TIFFClose(net_radiation_24h);
+    TIFFClose(latent_heat_flux_24h);
+    TIFFClose(evapotranspiration_fraction);
+    TIFFClose(evapotranspiration_24h);
 
     return 0;
 }
-*/
