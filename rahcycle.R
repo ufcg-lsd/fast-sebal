@@ -7,11 +7,11 @@ library(sp)
 library(snow)
 library(here)
 
-Rn<-raster("Testes/Teste06/meuRn.tif")
-TS<-raster("Testes/Teste06/meuTS.tif")
-NDVI<-raster("Testes/Teste06/meuNDVI.tif")
-G<-raster("Testes/Teste06/meuG.tif")
-alb<-raster("Testes/Teste06/meuAlbedo.tif")
+Rn<-raster("Testes/Teste04/Rn.tif")
+TS<-raster("Testes/Teste04/TS.tif")
+NDVI<-raster("Testes/Teste04/NDVI.tif")
+G<-raster("Testes/Teste04/G.tif")
+alb<-raster("Testes/Teste04/alb.tif")
 fic.sw <- "input/station.csv"
 table.sw <- (read.csv(fic.sw, sep=";", header=FALSE, stringsAsFactors=FALSE))
 
@@ -59,14 +59,14 @@ rah_before <- NDVI
 rah_before[] <-(log(2/0.1))/(ustar[]*k)  #FIXME:
 print("Passou rah")
 
-hot.pixel.rn <- Rn[5, 7]
-hot.pixel.g <- G[5, 7]
-hot.pixel.ts <- TS[5, 7]
-cold.pixel.ts <- TS[3, 9]
+hot.pixel.rn <- Rn[1408, 1440]
+hot.pixel.g <- G[1408, 1440]
+hot.pixel.ts <- TS[1408, 1440]
+cold.pixel.ts <- TS[4289, 5765]
 print(c(hot.pixel.rn, hot.pixel.g, hot.pixel.ts, cold.pixel.ts))
 
 H.hot<-hot.pixel.rn-hot.pixel.g 
-value.pixel.rah<-rah[5, 7]
+value.pixel.rah<-rah[1408, 1440]
 
 i<-1
 Erro<-TRUE
@@ -77,11 +77,11 @@ while(Erro){
 
     print(paste("Loop", i))
 
-    print("Ustar before loop")
-    print(ustar[])
+    # print("Ustar before loop")
+    # print(ustar[])
 
-    print("Rah before loop")
-    print(rah[])
+    # print("Rah before loop")
+    # print(rah[])
 
     rah.hot.0<-value.pixel.rah[i] # Value
     
@@ -105,36 +105,36 @@ while(Erro){
     ustar<-k*u200/(log(200/zom[])-psi_200) # Changed from Raster to Vector # Friction velocity for all pixels
     rah<-NDVI
     rah[]<-(log(2/0.1)-psi_2+psi_0.1)/(ustar*k) # Changed from Raster to Vector # Aerodynamic resistency for all pixels
-    rah.hot <- rah[5, 7]
+    rah.hot <- rah[1408, 1440]
     value.pixel.rah<-c(value.pixel.rah,rah.hot) # Value
     
-    print("L")
-    print(L[])
-    print("")
+    # print("L")
+    # print(L[])
+    # print("")
 
-    print("y_0.1")
-    print(y_0.1[])
-    print("")
+    # print("y_0.1")
+    # print(y_0.1[])
+    # print("")
 
-    print("y_2")
-    print(y_2[])
-    print("")
+    # print("y_2")
+    # print(y_2[])
+    # print("")
 
-    print("x_200")
-    print(x200[])
-    print("")
+    # print("x_200")
+    # print(x200[])
+    # print("")
 
-    print("psi_0.1")
-    print(psi_0.1[])
-    print("")
+    # print("psi_0.1")
+    # print(psi_0.1[])
+    # print("")
 
-    print("psi_2")
-    print(psi_2[])
-    print("")
+    # print("psi_2")
+    # print(psi_2[])
+    # print("")
 
-    print("psi_200")
-    print(psi_200[])
-    print("")
+    # print("psi_200")
+    # print(psi_200[])
+    # print("")
 
     print("Rahs do hot pixel")
     print(value.pixel.rah)
@@ -225,8 +225,8 @@ ET24h_dB[]<-LE24h_dB*86400/((2.501-0.00236* (max(table.sw$V7[])+min(table.sw$V7[
 # print(ustar_final[])
 # print("RAH")
 # print(rah[])
-print("H")
-print(H_final[])
+# print("H")
+# print(H_final[])
 # print("LE")
 # print(LE_final[])
 # print("RN24H")
