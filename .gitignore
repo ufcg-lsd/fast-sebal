@@ -26,5 +26,6 @@ test/Outs
 Testes
 test/Teste*
 test/outputR
+test/*.tar.gz
 outputR
 testeS
