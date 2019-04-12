@@ -311,7 +311,7 @@ output.evapo<-stack(zom, ustar_final, rah, H_final, LE_final, Rn24h_dB_final, LE
 
 output.names <- c('zom', 'ustar_after', 'Rah_after', 'H', 'LatentHF', 'Rn24h', 'LatentHF24h', 'EF', 'ET24h')
 
-output.path <- "Testes/Teste11/R_OUTPUT"
+output.path <- "Testes/Teste11R/R_OUTPUT"
 
 names(output.evapo) <- output.names
 writeRaster(output.evapo, output.path, overwrite=TRUE, format="GTiff", varname="R_OUTPUT", varunit="daily", longname="R_OUTPUT", xname="lon", yname="lat", bylayer=TRUE, suffix="names")
