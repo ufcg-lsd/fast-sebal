@@ -271,13 +271,17 @@ LE<-Rn[]-G[]-H
 LE_final <- NDVI
 LE_final[] <- Rn[]-G[]-H
 print("Passou LE")
-# Upscalling temporal
-dr<-(1/d_sun_earth$dist[Dia.juliano])^2 		# Inverse square of the distance on Earth-SOL
+
+Dia.juliano <- 3
+
+d_sun_earth <- 0.98330
+	# Upscalling temporal
+dr<-(1/d_sun_earth)^2 		# Inverse square of the distance on Earth-SOL
 sigma<-0.409*sin(((2*pi/365)*Dia.juliano)-1.39) # Declination Solar (rad)
 phi<-(pi/180)*Lat 								# Solar latitude in degrees
 omegas<-acos(-tan(phi)*tan(sigma)) 				# Angle Time for sunsets (rad)
 Ra24h<-(((24*60/pi)*Gsc*dr)*(omegas*sin(phi)*
-        sin(sigma)+cos(phi)*cos(sigma)*sin(omegas)))*(1000000/86400)
+	        sin(sigma)+cos(phi)*cos(sigma)*sin(omegas)))*(1000000/86400)
 
 #print(proc.time())
 
