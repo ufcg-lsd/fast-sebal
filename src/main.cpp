@@ -82,7 +82,7 @@ int main(int argc, char *argv[]){
     return 0;
 }
 
-
+*/
 /*
     Execution test (after resample function)
 
@@ -137,10 +137,10 @@ int main(int argc, char *argv[]){
     close_tifs(bands_resampled, 8);
     return 0;
 }
-
-
-./run input/MTL.txt input/station.csv -dist=0.98330
 */
+/*
+./run input/MTL.txt input/station.csv -dist=0.98330
+
 void print_tiff(TIFF* tif) {
 
     uint32 heigth_band, width_band;
@@ -202,7 +202,7 @@ void fill_tiff(TIFF* tif, double min, double max){
     }
 }
 
-/*void setup(TIFF *tif) {
+void setup(TIFF *tif) {
 
     TIFFSetField(tif, TIFFTAG_IMAGEWIDTH     , 10);
     TIFFSetField(tif, TIFFTAG_IMAGELENGTH    , 10);
@@ -217,7 +217,7 @@ void fill_tiff(TIFF* tif, double min, double max){
     TIFFSetField(tif, TIFFTAG_YRESOLUTION    , 1);
     TIFFSetField(tif, TIFFTAG_PLANARCONFIG   , PLANARCONFIG_CONTIG);
 
-}*/
+}
 
 int main(int argc, char *argv[]){
     
@@ -653,6 +653,28 @@ int main(int argc, char *argv[]){
     TIFFClose(latent_heat_flux_24h);
     TIFFClose(evapotranspiration_fraction);
     TIFFClose(evapotranspiration_24h);
+
+    return 0;
+}*/
+
+int main(int argc, char *argv[]){
+
+    string metadata_path = argv[1];
+    MTL mtl = MTL(metadata_path);
+    
+    string station_data_path = argv[2];
+    Station station = Station(station_data_path, mtl.image_hour);
+    
+    Sensor sensor = Sensor(mtl.number_sensor, mtl.year);
+
+    if(argc == 4){
+        string dist_flag = argv[3];
+        if(dist_flag.substr(0, 6) == "-dist=")
+            mtl.distance_earth_sun = atof(dist_flag.substr(6, dist_flag.size()).c_str());
+    }
+
+    Landsat landsat = Landsat("", "Testes/Teste12/");
+    landsat.process_final_products(station, mtl);
 
     return 0;
 }
