@@ -355,7 +355,7 @@ void Landsat::process_final_products(Station station, MTL mtl){
     }
 
     cout << "Depois de ler o tif final..." << endl;
-    double dt_hot = H_hot * rah_hot0 / (RHO * SPECIFIC_HEAT_AIR);
+    double dt_hot = H_hot * rah_hot / (RHO * SPECIFIC_HEAT_AIR);
     double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
     double a = -b * (cold_pixel.temperature - 273.15);
 

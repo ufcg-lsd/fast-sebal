@@ -148,7 +148,7 @@ while(Erro){
 	#print(proc.time())
 	# End sensible heat flux (H)
 	
-dt.hot<-H.hot*rah.hot.0/(rho*cp) # Value
+dt.hot<-H.hot*rah.hot/(rho*cp) # Value
 b<-dt.hot/(hot.pixel.ts-cold.pixel.ts) # Value
 a<- -b*(cold.pixel.ts-273.15) # Value                      
 
