@@ -95,14 +95,14 @@ void Landsat::process_final_products(Station station, MTL mtl){
     TIFF *albedo, *ndvi, *soil_heat, *surface_temperature, *net_radiation;
     TIFF *evapotranspiration_fraction, *evapotranspiration_24h;
 
-    //open_tiffs(&albedo, &ndvi, &soil_heat, &surface_temperature, &net_radiation, &evapotranspiration_fraction, &evapotranspiration_24h);
+    open_tiffs(&albedo, &ndvi, &soil_heat, &surface_temperature, &net_radiation, &evapotranspiration_fraction, &evapotranspiration_24h);
 
     //DEBUG
-    ndvi = TIFFOpen("outputR/NDVI_converted.tif", "rm");
-    surface_temperature = TIFFOpen("outputR/TS_converted.tif", "rm");
-    net_radiation = TIFFOpen("outputR/Rn_converted.tif", "rm");
-    soil_heat = TIFFOpen("outputR/G_converted.tif", "rm");
-    albedo = TIFFOpen("outputR/alb_converted.tif", "rm");
+    //ndvi = TIFFOpen("outputR/NDVI_converted.tif", "rm");
+    //surface_temperature = TIFFOpen("outputR/TS_converted.tif", "rm");
+    //net_radiation = TIFFOpen("outputR/Rn_converted.tif", "rm");
+    //soil_heat = TIFFOpen("outputR/G_converted.tif", "rm");
+    //albedo = TIFFOpen("outputR/alb_converted.tif", "rm");
 
     evapotranspiration_fraction = TIFFOpen(evapotranspiration_fraction_path.c_str(), "w8m");
     setup(evapotranspiration_fraction, albedo);
