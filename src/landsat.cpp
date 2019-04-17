@@ -39,8 +39,8 @@ void Landsat::process_parcial_products(TIFF* read_bands[], MTL mtl, Station stat
 
     double tal_line[width_band];
 
-    TIFF *albedo, *ndvi, *evi, *lai, *soil_heat, *surface_temperature, *net_radiation;
-    create_tiffs(&tal, &albedo, &ndvi, &evi, &lai, &soil_heat, &surface_temperature, &net_radiation);
+    //TIFF *albedo, *ndvi, *evi, *lai, *soil_heat, *surface_temperature, *net_radiation;
+    //create_tiffs(&tal, &albedo, &ndvi, &evi, &lai, &soil_heat, &surface_temperature, &net_radiation);
 
     //Declare array with product information
     double albedo_line[width_band], ndvi_line[width_band];
@@ -61,38 +61,38 @@ void Landsat::process_parcial_products(TIFF* read_bands[], MTL mtl, Station stat
 
     for(int line = 0; line < heigth_band; line ++){
         countnan += radiance_function(read_bands, mtl, sensor, width_band, line, radiance_line);
-        reflectance_function(read_bands, mtl, sensor, radiance_line, width_band, line, reflectance_line);
+        // reflectance_function(read_bands, mtl, sensor, radiance_line, width_band, line, reflectance_line);
 
-        read_line_tiff(tal, tal_line, line);
+        // read_line_tiff(tal, tal_line, line);
 
-        albedo_function(reflectance_line, sensor, tal_line, width_band, mtl.number_sensor, albedo_line);
-        short_wave_radiation_function(tal_line, mtl, width_band, short_wave_radiation_line);
-        ndvi_function(reflectance_line, width_band, ndvi_line);
-        lai_function(reflectance_line, width_band, lai_line);
-        evi_function(reflectance_line, width_band, evi_line);
-        enb_emissivity_function(lai_line, ndvi_line, width_band, enb_emissivity_line);
-        eo_emissivity_function(lai_line, ndvi_line, width_band, eo_emissivity_line);
-        surface_temperature_function(radiance_line, enb_emissivity_line, mtl.number_sensor, width_band, surface_temperature_line);
-        large_wave_radiation_surface_function(eo_emissivity_line, surface_temperature_line, width_band, large_wave_radiation_surface_line);
-        ea_emissivity_function(tal_line, width_band, ea_emissivity_line);
-        large_wave_radiation_atmosphere_function(ea_emissivity_line, width_band, station.temperature_image, large_wave_radiation_atmosphere_line);
-        net_radiation_function(short_wave_radiation_line, large_wave_radiation_surface_line, large_wave_radiation_atmosphere_line, albedo_line, eo_emissivity_line, width_band, net_radiation_line);
-        soil_heat_flux_function(ndvi_line, surface_temperature_line, albedo_line, net_radiation_line, width_band, soil_heat_line);
+        // albedo_function(reflectance_line, sensor, tal_line, width_band, mtl.number_sensor, albedo_line);
+        // short_wave_radiation_function(tal_line, mtl, width_band, short_wave_radiation_line);
+        // ndvi_function(reflectance_line, width_band, ndvi_line);
+        // lai_function(reflectance_line, width_band, lai_line);
+        // evi_function(reflectance_line, width_band, evi_line);
+        // enb_emissivity_function(lai_line, ndvi_line, width_band, enb_emissivity_line);
+        // eo_emissivity_function(lai_line, ndvi_line, width_band, eo_emissivity_line);
+        // surface_temperature_function(radiance_line, enb_emissivity_line, mtl.number_sensor, width_band, surface_temperature_line);
+        // large_wave_radiation_surface_function(eo_emissivity_line, surface_temperature_line, width_band, large_wave_radiation_surface_line);
+        // ea_emissivity_function(tal_line, width_band, ea_emissivity_line);
+        // large_wave_radiation_atmosphere_function(ea_emissivity_line, width_band, station.temperature_image, large_wave_radiation_atmosphere_line);
+        // net_radiation_function(short_wave_radiation_line, large_wave_radiation_surface_line, large_wave_radiation_atmosphere_line, albedo_line, eo_emissivity_line, width_band, net_radiation_line);
+        // soil_heat_flux_function(ndvi_line, surface_temperature_line, albedo_line, net_radiation_line, width_band, soil_heat_line);
 
-        save_tiffs(vector<double*> {albedo_line, ndvi_line, evi_line, lai_line, soil_heat_line, surface_temperature_line, net_radiation_line},
-                    vector<TIFF*> {albedo, ndvi, evi, lai, soil_heat, surface_temperature, net_radiation}, line);
+        // save_tiffs(vector<double*> {albedo_line, ndvi_line, evi_line, lai_line, soil_heat_line, surface_temperature_line, net_radiation_line},
+        //             vector<TIFF*> {albedo, ndvi, evi, lai, soil_heat, surface_temperature, net_radiation}, line);
     }
 
     cout << countnan << endl;
 
-    TIFFClose(albedo);
-    TIFFClose(ndvi);
-    TIFFClose(evi);
-    TIFFClose(lai);
-    TIFFClose(soil_heat);
-    TIFFClose(surface_temperature);
-    TIFFClose(net_radiation);
-    TIFFClose(tal);
+    // TIFFClose(albedo);
+    // TIFFClose(ndvi);
+    // TIFFClose(evi);
+    // TIFFClose(lai);
+    // TIFFClose(soil_heat);
+    // TIFFClose(surface_temperature);
+    // TIFFClose(net_radiation);
+    // TIFFClose(tal);
 };
 
 void Landsat::process_final_products(Station station, MTL mtl){
