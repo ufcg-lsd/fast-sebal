@@ -7,7 +7,7 @@
 #include "candidate.h"
 
 string tal_function(TIFF* raster_elevation, string output_path);
-int radiance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, int width_band, int line, double radiance_line[][8]);
+void radiance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, int width_band, int line, double radiance_line[][8]);
 void reflectance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, double radiance_line[][8], int width_band, int line, double reflectance_line[][8]);
 void albedo_function(double reflectance_line[][8], Sensor sensor, double tal_line[], int width_band, int number_sensor, double albedo_line[]);
 void ndvi_function(double reflectance_line[][8], int width_band, double ndvi_line[]);

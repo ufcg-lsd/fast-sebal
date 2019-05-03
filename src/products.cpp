@@ -40,13 +40,12 @@ string tal_function(TIFF *raster_elevation, string output_path){
     return tal_path;
 }; //tal
 
-int radiance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, int width_band, int line, double radiance_line[][8]){
+void radiance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, int width_band, int line, double radiance_line[][8]){
     double line_band[width_band];
-    int count = 0;
+
     if (mtl.number_sensor == 8){
         read_line_tiff(read_bands[7], line_band, line);
         for (int col = 0; col < width_band; col++) {
-            if(isnan(line_band[col])) count++;
             radiance_line[col][7] = line_band[col] * mtl.rad_mult_10 + mtl.rad_add_10;
         }
     }
@@ -57,7 +56,7 @@ int radiance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, int width_band
                 radiance_line[col][i] = min(line_band[col] * sensor.parameters[i][sensor.GRESCALE] + sensor.parameters[i][sensor.BRESCALE], 0.0);
         }
     }
-    return count;
+
 }; //rad
 
 void reflectance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, double radiance_line[][8], int width_band, int line, double reflectance_line[][8]){
