@@ -12,8 +12,8 @@ for i in $(ls $DIR | grep nc); do
     gdalwarp -cutline $MASK_PATH $FILE_NAME_FULL $OUTPUT_FILE_NC
     OUTPUT_FILE_TIF=$DIR$FILE_NAME$ENDT
     gdal_translate -of GTiff $OUTPUT_FILE_NC $OUTPUT_FILE_TIF
-    rm $OUTPUT_FILE_NC
+    #rm $OUTPUT_FILE_NC
     OUTPUT_FILE_TIF_CONVERTED=$DIR$FILE_NAME"_converted.tif"
     ./test/conv $OUTPUT_FILE_TIF $OUTPUT_FILE_TIF_CONVERTED
-    rm $OUTPUT_FILE_TIF
+    #rm $OUTPUT_FILE_TIF
 done
