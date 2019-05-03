@@ -57,8 +57,6 @@ void Landsat::process_parcial_products(TIFF* read_bands[], MTL mtl, Station stat
     double large_wave_radiation_atmosphere_line[width_band], large_wave_radiation_surface_line[width_band];
     double short_wave_radiation_line[width_band];
 
-    long long countnan = 0;
-
     for(int line = 0; line < heigth_band; line ++){
         radiance_function(read_bands, mtl, sensor, width_band, line, radiance_line);
         reflectance_function(read_bands, mtl, sensor, radiance_line, width_band, line, reflectance_line);
@@ -82,8 +80,6 @@ void Landsat::process_parcial_products(TIFF* read_bands[], MTL mtl, Station stat
         save_tiffs(vector<double*> {albedo_line, ndvi_line, evi_line, lai_line, soil_heat_line, surface_temperature_line, net_radiation_line},
                     vector<TIFF*> {albedo, ndvi, evi, lai, soil_heat, surface_temperature, net_radiation}, line);
     }
-
-    cout << countnan << endl;
 
     TIFFClose(albedo);
     TIFFClose(ndvi);

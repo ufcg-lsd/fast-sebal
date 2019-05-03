@@ -336,7 +336,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     vector<Candidate> pre_candidates;
 
     for(int line = 0; line < heigth_band; line ++){
-
+        cout << line << endl;
         read_line_tiff(*net_radiation, net_radiation_line, line);
         read_line_tiff(*soil_heat, soil_heat_line, line);
 
