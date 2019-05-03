@@ -132,7 +132,6 @@ int main(int argc, char *argv[]){
 
     Landsat landsat = Landsat(tal_path, output_path);
     landsat.process_parcial_products(bands_resampled, mtl, station, sensor);
-    return 0;
     landsat.process_final_products(station, mtl);
 
     close_tifs(bands_resampled, 8);
