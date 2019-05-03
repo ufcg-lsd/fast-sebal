@@ -15,5 +15,4 @@ for i in $(ls $DIR | grep nc); do
     OUTPUT_FILE_TIF=$DIR"/"$FILE_NAME$ENDT &&
     echo "Converting from $OUTPUT_FILE_NC to $OUTPUT_FILE_TIF" &&
     gdal_translate -of GTiff $OUTPUT_FILE_NC $OUTPUT_FILE_TIF &&
-    rm $OUTPUT_FILE_NC
 done
