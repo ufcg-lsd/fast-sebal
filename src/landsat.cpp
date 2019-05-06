@@ -310,6 +310,7 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
                 if(line == hot_pixel.line && col == hot_pixel.col) {
                     rah_hot = aerodynamic_resistence_write_line[col];
+                    cout << rah_hot << endl;
                     hot_pixel.aerodynamic_resistance.push_back(rah_hot);
                 }
             
