@@ -360,6 +360,11 @@ void Landsat::process_final_products(Station station, MTL mtl){
     double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
     double a = -b * (cold_pixel.temperature - 273.15);
 
+    cout << H_hot << endl;
+    cout << dt_hot << endl;
+    cout << b << endl;
+    cout << a << endl;
+
     for(int line = 0; line < heigth_band; line++){
         read_line_tiff(aerodynamic_resistence_tif0, aerodynamic_resistence_line, line);
         read_line_tiff(surface_temperature, surface_temperature_line, line);
