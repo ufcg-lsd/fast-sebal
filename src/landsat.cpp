@@ -195,12 +195,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
     TIFFClose(zom);
     TIFFClose(ustar);
     TIFFClose(aerodynamic_resistence);
-    TIFFClose(albedo);
-    TIFFClose(soil_heat);
-    TIFFClose(net_radiation);
-    TIFFClose(evapotranspiration_fraction);
-    TIFFClose(evapotranspiration_24h);
-    return;
 
     aerodynamic_resistence = TIFFOpen(aerodynamic_resistence_path.c_str(), "rm");
 
@@ -280,6 +274,15 @@ void Landsat::process_final_products(Station station, MTL mtl){
         psi200 = TIFFOpen("meupsi200.tif", "w8m");
         setup(psi200, albedo);
 
+        double dt_hot = H_hot * rah_hot0 / (RHO * SPECIFIC_HEAT_AIR);
+        double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
+        double a = -b * (cold_pixel.temperature - 273.15);
+
+        cout << H_hot << endl;
+        cout << dt_hot << endl;
+        cout << b << endl;
+        cout << a << endl;
+
         for(int line = 0; line < heigth_band; line++){
 
             //Reading data needed
@@ -287,10 +290,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
             read_line_tiff(zom, zom_line, line);
             read_line_tiff(ustar_tif0, ustar_read_line, line);
             read_line_tiff(aerodynamic_resistence_tif0, aerodynamic_resistence_read_line, line);
-
-            double dt_hot = H_hot * rah_hot0 / (RHO * SPECIFIC_HEAT_AIR);
-            double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
-            double a = -b * (cold_pixel.temperature - 273.15);
 
             for(int col = 0; col < width_band; col++) {
                 sensible_heat_flux_line[col] = RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15))/aerodynamic_resistence_read_line[col];
