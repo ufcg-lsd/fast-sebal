@@ -68,7 +68,7 @@ double diff_tifs(string compare_path_tiff1, string compare_path_tiff2, string di
 
         for(int col = 0; col < width_band; col++){
 
-            if (fabs(tif1_line[col]) < 1e-7 || fabs(tif2_line[col]) < 1e-7) {
+            if (fabs(tif1_line[col]) < 1e-7 && fabs(tif2_line[col]) < 1e-7) {
                 diff_line[col] = 0;
                 continue;
             }
