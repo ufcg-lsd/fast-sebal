@@ -195,6 +195,12 @@ void Landsat::process_final_products(Station station, MTL mtl){
     TIFFClose(zom);
     TIFFClose(ustar);
     TIFFClose(aerodynamic_resistence);
+    TIFFClose(albedo);
+    TIFFClose(soil_heat);
+    TIFFClose(net_radiation);
+    TIFFClose(evapotranspiration_fraction);
+    TIFFClose(evapotranspiration_24h);
+    return;
 
     aerodynamic_resistence = TIFFOpen(aerodynamic_resistence_path.c_str(), "rm");
 
