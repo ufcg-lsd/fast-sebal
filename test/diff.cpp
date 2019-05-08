@@ -68,7 +68,7 @@ double diff_tifs(string compare_path_tiff1, string compare_path_tiff2, string di
 
         for(int col = 0; col < width_band; col++){
             diff_line[col] = fabs(tif1_line[col] - tif2_line[col]);
-            relative_error_diff = (diff_line[col]/tif2_line[col]) * 100;
+            relative_error_diff = fabs(diff_line[col]/tif2_line[col]) * 100;
             if(relative_error_diff > max_diff_relative){
                 printf("TIF C %.7lf\n", tif1_line[col]);
                 printf("TIF R %.7lf\n", tif2_line[col]);
