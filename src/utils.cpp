@@ -141,6 +141,11 @@ double getRandomDouble(double min, double max){
 */
 void write_line_tiff(TIFF* tif, double tif_line[], int line){
 
+    uint32 width_band;
+    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width_band);
+
+    truncateArray(tif_line, width_band, 4);
+
     if (TIFFWriteScanline(tif, tif_line, line) < 0){
         cerr << "Write problem!" << endl;
         exit(4);
@@ -152,6 +157,20 @@ void close_tifs(TIFF* tifs[], int quant_tifs){
     for(int i = 1; i < quant_tifs; i++)
         TIFFClose(tifs[i]);
 };
+
+void truncateArray(double* array, int size, int dec) {
+
+    int pot = pow(10, dec);
+    int arrayAux[size];
+
+    for (int i = 0; i < size; i++){
+        
+        arrayAux[i] = int(floor(array[i] * pot));
+        array[i] = double(arrayAux[i]) / pot;
+
+    }
+
+}
 
 /*
 The following definitions are from The art of computer programming by Knuth
