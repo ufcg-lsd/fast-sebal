@@ -25,6 +25,8 @@ void fill_tiff(TIFF** tif, double min, double max);
 
 double getRandomDouble(double min, double max);
 
+double truncateArray(double[] array, int dec);
+
 /*
 The following definitions are from The art of computer programming by Knuth
 */
