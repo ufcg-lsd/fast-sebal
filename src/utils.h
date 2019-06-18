@@ -21,10 +21,6 @@ void write_line_tiff(TIFF* tif, double tif_line[], int line);
 
 void close_tifs(TIFF* tifs[], int quant_tifs);
 
-void fill_tiff(TIFF** tif, double min, double max);
-
-double getRandomDouble(double min, double max);
-
 /*
 The following definitions are from The art of computer programming by Knuth
 */

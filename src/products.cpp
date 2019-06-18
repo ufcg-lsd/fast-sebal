@@ -257,73 +257,6 @@ void ho_function(double net_radiation_line[], double soil_heat_flux[], int width
         ho_line[col] = net_radiation_line[col] - soil_heat_flux[col];
 
 }; //HO
-/*
-Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_radiation, TIFF** soil_heat, int heigth_band, int width_band){
-
-    double ndvi_line[width_band], surface_temperature_line[width_band];
-    double net_radiation_line[width_band], soil_heat_line[width_band];
-    double ho_line[width_band];
-
-    vector<Candidate> pre_candidates;
-
-    for(int line = 0; line < heigth_band; line ++){
-
-        read_line_tiff(*net_radiation, net_radiation_line, line);
-        read_line_tiff(*soil_heat, soil_heat_line, line);
-
-        ho_function(net_radiation_line, soil_heat_line, width_band, ho_line);
-
-        read_line_tiff(*ndvi, ndvi_line, line);
-        read_line_tiff(*surface_temperature, surface_temperature_line, line);
-
-        for(int col = 0; col < width_band; col ++){
-            if(!isnan(ndvi_line[col]) && definitelyGreaterThan(ndvi_line[col], 0.15) && definitelyLessThan(ndvi_line[col], 0.20) && definitelyGreaterThan(surface_temperature_line[col], 273.16)){
-                pre_candidates.push_back(Candidate(ndvi_line[col],
-                                    surface_temperature_line[col],
-                                    net_radiation_line[col],
-                                    soil_heat_line[col],
-                                    ho_line[col],
-                                    line, col));
-            }
-        }
-    }
-    
-    sort(pre_candidates.begin(), pre_candidates.end(), compare_candidate_temperature);
-    int pos = floor(0.95 * pre_candidates.size());
-    double surface_temperature_hot_pixel = pre_candidates[pos].temperature;
-
-    printf("Size pre candidates: %d\n", (int)pre_candidates.size());
-
-    vector<Candidate> candidates;
-    for(Candidate c : pre_candidates){
-        if(essentiallyEqual(c.temperature, surface_temperature_hot_pixel))
-            candidates.push_back(c);
-    }
-
-    printf("Size candidates: %d\n", (int)candidates.size());
-
-    Candidate choosen;
-    if(candidates.size() == 1){
-        choosen = candidates[0];
-    } else {
-        sort(candidates.begin(), candidates.end(), compare_candidate_ho); 
-        int posmin = floor(0.25 * candidates.size()), posmax = floor(0.75 * candidates.size());
-
-        for(int i = posmin+1; i < posmax; i++)
-            candidates[i].extract_coefficient_variation(*ndvi);
-
-        choosen = candidates[posmin+1];
-
-        for(int i = posmin+2; i < posmax; i++){
-            printf("Coefficient variation: %.10lf\n", candidates[i].coefficient_variation);
-            if(definitelyLessThan(candidates[i].coefficient_variation, choosen.coefficient_variation))
-                choosen = candidates[i];
-        }
-    }
-
-    return choosen;
-};
-*/
 
 Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_radiation, TIFF** soil_heat, int heigth_band, int width_band){
     
@@ -358,13 +291,10 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
 
     }
 
-    cout << "TAMANHO PRE CANDIDATOS " << pre_candidates.size() << endl; //DEBUG
-
     //Sort the candidates by their temperatures and choose the surface temperature of the hot pixel
     sort(pre_candidates.begin(), pre_candidates.end(), compare_candidate_temperature);
     int pos = floor(0.95 * pre_candidates.size());
     double surfaceTempHot = pre_candidates[pos].temperature;
-    cout << "HOT SURF TEMP " << surfaceTempHot << endl; //DEBUG
 
     //Select only the ones with temperature equals the surface temperatura of the hot pixel
     vector<double> ho_candidates;
@@ -373,7 +303,6 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
         if(essentiallyEqual(c.temperature, surfaceTempHot)){
             ho_candidates.push_back(c.ho);
             lastHOCandidate = c;
-            cout << c.ho << endl; //DEBUG
         }
     }
 
@@ -411,22 +340,20 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
         }
 
     }
-
-    cout << "FINAL CAND SIZE " << final_candidates.size() << endl;
     
     //Calculate the coefficient of variation, after the extract
     for(int i = 0; i < final_candidates.size(); i++){
-        cout << i << endl; //DEBUG
         final_candidates[i].extract_coefficient_variation(*ndvi);
     }
 
     //Choose as candidate the pixel with the minor CV
     Candidate choosen = final_candidates[0];
-    printf("Coefficient variation: %.10lf\n", choosen.coefficient_variation);
+
     for(int i = 1; i < final_candidates.size(); i++){
-        printf("Coefficient variation: %.10lf\n", final_candidates[i].coefficient_variation);
+        
         if(definitelyLessThan(final_candidates[i].coefficient_variation, choosen.coefficient_variation))
             choosen = final_candidates[i];
+
     }
 
     return choosen;
@@ -465,13 +392,10 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
 
     }
 
-    cout << "TAMANHO COLD PRE " << pre_candidates.size() << endl; //DEBUG
-
     //Sort the candidates by their temperatures and choose the surface temperature of the hot pixel
     sort(pre_candidates.begin(), pre_candidates.end(), compare_candidate_temperature);
     int pos = floor(0.5 * pre_candidates.size());
     double surfaceTempCold = pre_candidates[pos].temperature;
-    cout << "SURFACE COLD TEMP " << surfaceTempCold << endl; //DEBUG
 
     //Select only the ones with temperature equals the surface temperatura of the Cold pixel
     vector<double> ho_candidates;
@@ -480,7 +404,6 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
         if(essentiallyEqual(c.temperature, surfaceTempCold)){
             ho_candidates.push_back(c.ho);
             lastHOCandidate = c;
-            cout << c.ho << endl; //DEBUG
         }
     }
 
@@ -518,8 +441,6 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
         }
 
     }
-
-    cout << "FINAL COLD SIZE " << final_candidates.size() << endl;
     
     //Calculate the coefficient of variation, after the extract
     for(int i = 0; i < final_candidates.size(); i++){
@@ -529,9 +450,7 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
 
     //Choose as candidate the pixel with the minor CV
     Candidate choosen = final_candidates[0];
-    printf("Negative neighbours: %d\n", choosen.negative_neighbour);
     for(int i = 1; i < final_candidates.size(); i++){
-        printf("Negative neighbours: %d\n", final_candidates[i].negative_neighbour);
         if(final_candidates[i].negative_neighbour > choosen.negative_neighbour)
             choosen = final_candidates[i];
     }
@@ -539,72 +458,6 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     return choosen;
 }
 
-/*
-Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_radiation, TIFF** soil_heat, int heigth_band, int width_band){
-    double ndvi_line[width_band], surface_temperature_line[width_band];
-    double net_radiation_line[width_band], soil_heat_line[width_band];
-    double ho_line[width_band];
-
-    vector<Candidate> pre_candidates;
-
-    for(int line = 0; line < heigth_band; line ++){
-
-        read_line_tiff(*net_radiation, net_radiation_line, line);
-        read_line_tiff(*soil_heat, soil_heat_line, line);
-
-        ho_function(net_radiation_line, soil_heat_line, width_band, ho_line);
-
-        read_line_tiff(*ndvi, ndvi_line, line);
-        read_line_tiff(*surface_temperature, surface_temperature_line, line);
-
-        for(int col = 0; col < width_band; col ++){
-            if(!isnan(ndvi_line[col]) && !isnan(ho_line[col]) && definitelyLessThan(ndvi_line[col], 0.0) && definitelyGreaterThan(surface_temperature_line[col], 273.16)){
-                pre_candidates.push_back(Candidate(ndvi_line[col],
-                                    surface_temperature_line[col],
-                                    net_radiation_line[col],
-                                    soil_heat_line[col],
-                                    ho_line[col],
-                                    line, col));
-            }
-        }
-    }
-    
-    sort(pre_candidates.begin(), pre_candidates.end(), compare_candidate_temperature);
-    int pos = floor(0.5 * pre_candidates.size());
-    double surface_temperature_cold_pixel = pre_candidates[pos].temperature;
-
-    printf("Size pre candidates: %d\n", (int)pre_candidates.size());
-
-    vector<Candidate> candidates;
-    for(Candidate c : pre_candidates){
-        if(essentiallyEqual(c.temperature, surface_temperature_cold_pixel))
-            candidates.push_back(c);
-    }
-
-    printf("Size candidates: %d\n", (int)candidates.size());
-
-    Candidate choosen;
-    if(candidates.size() == 1){
-        choosen = candidates[0];
-    } else {
-        sort(candidates.begin(), candidates.end(), compare_candidate_ho); 
-        int posmin = floor(0.25 * candidates.size()), posmax = floor(0.75 * candidates.size());
-
-        for(int i = posmin+1; i < posmax; i++)
-            candidates[i].extract_negative_neighbour(*ndvi);
-
-        choosen = candidates[posmin+1];
-
-        for(int i = posmin+2; i < posmax; i++){
-            printf("Negative neighbour: %d", candidates[i].negative_neighbour);
-            if(candidates[i].negative_neighbour > choosen.negative_neighbour)
-                choosen = candidates[i];
-        }
-    }
-
-    return choosen;
-};
-*/
 void zom_fuction(double A_ZOM, double B_ZOM, double ndvi_line[], int width_band, double zom_line[]){
 
     for(int col = 0; col < width_band; col++)
@@ -625,7 +478,7 @@ void aerodynamic_resistence_fuction(double ustar_line[], int width_band, double 
         aerodynamic_resistence_line[col] = log(20)/(ustar_line[col] * VON_KARMAN);
 
 }; //rah
-
+/*
 void sensible_heat_flux_function(Candidate hot_pixel, Candidate cold_pixel, double u200, double zom_line[], double ustar_line[], double aerodynamic_resistence_line[], double surface_temperature_line[], int width_band, double sensible_heat_flux_line[]){
     double H_hot = hot_pixel.net_radiation - hot_pixel.soil_heat_flux;
     double rah_hot0;
@@ -657,7 +510,7 @@ void sensible_heat_flux_function(Candidate hot_pixel, Candidate cold_pixel, doub
             if(!isnan(L[col]) && L[col] > 0) psi_2_line[col] = -5 * (2/L[col]);
             else psi_2_line[col] = 2 * log((1 + y_2_line[col]*y_2_line[col])/2);
 
-            if(!isnan(L[col]) && L > 0) psi_200_line[col] = -5 * (2/L[col]);
+            if(!isnan(L[col]) && L[col] > 0) psi_200_line[col] = -5 * (2/L[col]);
             else psi_200_line[col] = 2 * log((1 + x_200_line[col])/2) + log((1 + x_200_line[col]*x_200_line[col])/2) - 2 * atan(x_200_line[col]) + 0.5 * PI;
 
             ustar_line[col] = (VON_KARMAN * u200) / (log(200/zom_line[col]) - psi_200_line[col]);
@@ -673,7 +526,7 @@ void sensible_heat_flux_function(Candidate hot_pixel, Candidate cold_pixel, doub
     for(int col = 0; col < width_band; col ++)
         sensible_heat_flux_line[col] = (RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15)))/aerodynamic_resistence_line[col];
 
-}; //H
+}; //H*/
 
 void latent_heat_flux_function(double net_radiation_line[], double soil_heat_flux_line[], double sensible_heat_flux_line[], int width_band, double latent_heat_flux[]){
 

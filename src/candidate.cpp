@@ -40,8 +40,6 @@ void Candidate::extract_negative_neighbour(TIFF *ndvi){
     for(int i = -3; i <= 2; i++){
         for(int j = -3; j <= 2; j++){
             pixel_value = read_position_tiff(ndvi, this->col + i, this->line + j);
-            printf("%.7lf", pixel_value); //DEBUG
-            cout << (cont % 7 == 0 ? '\n' : ' ');
             cont++;
             if(!isnan(pixel_value) && pixel_value < 0)
                 this->negative_neighbour++;
@@ -56,14 +54,11 @@ void Candidate::extract_coefficient_variation(TIFF *ndvi){
     for(int i = -3; i <= 2; i++){
         for(int j = -3; j <= 2; j++){
             pixel_value = read_position_tiff(ndvi, this->col + i, this->line + j);
-            printf("%.7lf", pixel_value); //DEBUG
-            cout << (cont % 7 == 0 ? '\n' : ' ');
             cont++;
             if(!isnan(pixel_value))
                 values_pixels_neighbours.push_back(pixel_value);
         }
     }
-    cout << endl;
     
     double mean, sd;
     double sum = 0;

@@ -97,13 +97,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
     open_tiffs(&albedo, &ndvi, &soil_heat, &surface_temperature, &net_radiation, &evapotranspiration_fraction, &evapotranspiration_24h);
 
-    //DEBUG
-    //ndvi = TIFFOpen("outputR/NDVI_converted.tif", "rm");
-    //surface_temperature = TIFFOpen("outputR/TS_converted.tif", "rm");
-    //net_radiation = TIFFOpen("outputR/Rn_converted.tif", "rm");
-    //soil_heat = TIFFOpen("outputR/G_converted.tif", "rm");
-    //albedo = TIFFOpen("outputR/alb_converted.tif", "rm");
-
     evapotranspiration_fraction = TIFFOpen(evapotranspiration_fraction_path.c_str(), "w8m");
     setup(evapotranspiration_fraction, albedo);
 
@@ -117,14 +110,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
     Candidate hot_pixel = select_hot_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, heigth_band, width_band);
     Candidate cold_pixel = select_cold_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, heigth_band, width_band);
     
-  /* 
-    //To run without selecting pixels.
-
-    //Candidate(double ndvi, double temperature, double net_radiation, double soil_heat_flux, double ho, int line, int col);
-
-    Candidate hot_pixel = Candidate(0.227679967882490234375, 308.387664794921875, 476.35150146484375, 101.90081024169921875, 476.35150146484375 - 101.90081024169921875, 3444, 2493);
-    Candidate cold_pixel = Candidate(-0.1008398681879043579102, 297.303009033203125, 766.78015136718750, 383.39007568359375, 766.780105136718750 - 383.39007568359375, 840, 4433);
-*/
     double sensible_heat_flux_line[width_band];
     double zom_line[width_band];
     double ustar_line[width_band];
@@ -133,11 +118,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
     double ustar_station = (VON_KARMAN * station.v6)/(log(station.WIND_SPEED/station.SURFACE_ROUGHNESS));
     double u200 = (ustar_station/VON_KARMAN) * log(200 / station.SURFACE_ROUGHNESS);
-
-    //hot_pixel.setAerodynamicResistance(u200, station.A_ZOM, station.B_ZOM, VON_KARMAN);
-    //cold_pixel.setAerodynamicResistance(u200, station.A_ZOM, station.B_ZOM, VON_KARMAN);
-    hot_pixel.toString();
-    cold_pixel.toString();
 
     //Parcial products
     double ndvi_line[width_band], surface_temperature_line[width_band];
@@ -203,7 +183,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
     double H_hot = hot_pixel.net_radiation - hot_pixel.soil_heat_flux;
 
     TIFFClose(aerodynamic_resistence);
-    cout << "Passou aqui" << endl;
     TIFF *ustar_tif0, *ustar_tif1, *aerodynamic_resistence_tif0, *aerodynamic_resistence_tif1, *sensible_heat_flux;
     zom = TIFFOpen(zom_path.c_str(), "rm"); //It's not modified into the rah cycle
 
@@ -224,7 +203,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
     double rah_hot;
 
     //Auxiliar TIFFS
-    TIFF *Ltif, *y01, *y2, *x200, *psi01, *psi2, *psi200; //DEBUG
 
     while(Erro) {
 
@@ -251,28 +229,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
             aerodynamic_resistence_tif1 = TIFFOpen(aerodynamic_resistence_tif1_path.c_str(), "w8m");
             setup(aerodynamic_resistence_tif1, albedo);
         }
-
-        //DEBUG
-        Ltif = TIFFOpen("meuL.tif", "w8m");
-        setup(Ltif, albedo);
-
-        y01 = TIFFOpen("meuy01.tif", "w8m");
-        setup(y01, albedo);
-
-        y2 = TIFFOpen("meuy2.tif", "w8m");
-        setup(y2, albedo);
-
-        x200 = TIFFOpen("meux200.tif", "w8m");
-        setup(x200, albedo);
-
-        psi01 = TIFFOpen("meupsi01.tif", "w8m");
-        setup(psi01, albedo);
-
-        psi2 = TIFFOpen("meupsi2.tif", "w8m");
-        setup(psi2, albedo);
-
-        psi200 = TIFFOpen("meupsi200.tif", "w8m");
-        setup(psi200, albedo);
 
         double dt_hot = H_hot * rah_hot0 / (RHO * SPECIFIC_HEAT_AIR);
         double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
@@ -322,18 +278,11 @@ void Landsat::process_final_products(Station station, MTL mtl){
             }
 
             //Saving new ustar e rah
-            save_tiffs(vector<double*> {ustar_write_line, aerodynamic_resistence_write_line, L, y_01_line, y_2_line, x_200_line, psi_01_line, psi_2_line, psi_200_line}, 
-                    vector<TIFF*> {ustar_tif1, aerodynamic_resistence_tif1, Ltif, y01, y2, x200, psi01, psi2, psi200}, line);
+            save_tiffs(vector<double*> {ustar_write_line, aerodynamic_resistence_write_line}, 
+                    vector<TIFF*> {ustar_tif1, aerodynamic_resistence_tif1}, line);
 
         }
 
-        TIFFClose(Ltif);
-        TIFFClose(y01);
-        TIFFClose(y2);
-        TIFFClose(x200);
-        TIFFClose(psi01);
-        TIFFClose(psi2);
-        TIFFClose(psi200);
         TIFFClose(ustar_tif0);
         TIFFClose(ustar_tif1);
         TIFFClose(aerodynamic_resistence_tif0);
@@ -344,10 +293,9 @@ void Landsat::process_final_products(Station station, MTL mtl){
         i++;
 
     }
-    cout << "Antes de fechar tifs depois do while..." << endl;
+    
     TIFFClose(zom);
-    cout << "Antes de ler o tif final do while..." << endl;
-
+    
     if(i%2) {
 
         printf("Rah_after is aerodynamic_resistence_tif1_path\n");  
@@ -360,7 +308,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
     }
 
-    cout << "Depois de ler o tif final..." << endl;
     double dt_hot = H_hot * rah_hot / (RHO * SPECIFIC_HEAT_AIR);
     double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
     double a = -b * (cold_pixel.temperature - 273.15);
@@ -393,7 +340,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
     TIFFClose(surface_temperature);
     TIFFClose(aerodynamic_resistence_tif0);
     TIFFClose(sensible_heat_flux);
-    cout << "Salvou o H" << endl;
     //End of Rah correction
 
     //Continuing to the final products
@@ -438,16 +384,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
     TIFFClose(latent_heat_flux_24h);
     TIFFClose(evapotranspiration_fraction);
     TIFFClose(evapotranspiration_24h);
-
-    /*
-    TIFFClose(albedo);
-    TIFFClose(ndvi);
-    TIFFClose(soil_heat);
-    TIFFClose(surface_temperature);
-    TIFFClose(net_radiation);
-    TIFFClose(evapotranspiration_fraction);
-    TIFFClose(evapotranspiration_24h);
-    */
 
 };
 
