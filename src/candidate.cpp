@@ -35,28 +35,51 @@ void Candidate::setAerodynamicResistance(double u200, double A_ZOM, double B_ZOM
 }
 
 void Candidate::extract_negative_neighbour(TIFF *ndvi){
+
+    uint32 heigth_band, width_band;
+    TIFFGetField(ndvi, TIFFTAG_IMAGELENGTH, &heigth_band);
+    TIFFGetField(ndvi, TIFFTAG_IMAGEWIDTH, &width_band);
+
     double pixel_value;
     int cont = 1;
     for(int i = -3; i <= 2; i++){
         for(int j = -3; j <= 2; j++){
-            pixel_value = read_position_tiff(ndvi, this->col + i, this->line + j);
-            cont++;
-            if(!isnan(pixel_value) && pixel_value < 0)
-                this->negative_neighbour++;
+
+            if (this->col + i >= 0 && this->col + i < width_band && this->line + j >= 0 && this->line + j < heigth_band) {
+
+                pixel_value = read_position_tiff(ndvi, this->col + i, this->line + j);
+                cont++;
+                if(!isnan(pixel_value) && pixel_value < 0)
+                    this->negative_neighbour++;
+
+            }
+
         }
     }
+
 }
 
 void Candidate::extract_coefficient_variation(TIFF *ndvi){
+
+    uint32 heigth_band, width_band;
+    TIFFGetField(ndvi, TIFFTAG_IMAGELENGTH, &heigth_band);
+    TIFFGetField(ndvi, TIFFTAG_IMAGEWIDTH, &width_band);
+
     vector<double> values_pixels_neighbours;
     double pixel_value;
     int cont = 1;
     for(int i = -3; i <= 2; i++){
         for(int j = -3; j <= 2; j++){
-            pixel_value = read_position_tiff(ndvi, this->col + i, this->line + j);
-            cont++;
-            if(!isnan(pixel_value))
-                values_pixels_neighbours.push_back(pixel_value);
+
+            if (this->col + i >= 0 && this->col + i < width_band && this->line + j >= 0 && this->line + j < heigth_band) {
+
+                pixel_value = read_position_tiff(ndvi, this->col + i, this->line + j);
+                cont++;
+                if(!isnan(pixel_value))
+                    values_pixels_neighbours.push_back(pixel_value);
+
+            }
+            
         }
     }
     
