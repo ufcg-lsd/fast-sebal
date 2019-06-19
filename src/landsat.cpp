@@ -234,11 +234,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
         double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
         double a = -b * (cold_pixel.temperature - 273.15);
 
-        cout << H_hot << endl;
-        cout << dt_hot << endl;
-        cout << b << endl;
-        cout << a << endl;
-
         for(int line = 0; line < heigth_band; line++){
 
             //Reading data needed
@@ -271,7 +266,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
                 if(line == hot_pixel.line && col == hot_pixel.col) {
                     rah_hot = aerodynamic_resistence_write_line[col];
-                    cout << rah_hot << endl;
                     hot_pixel.aerodynamic_resistance.push_back(rah_hot);
                 }
             
@@ -288,7 +282,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
         TIFFClose(aerodynamic_resistence_tif0);
         TIFFClose(aerodynamic_resistence_tif1);
 
-        cout << fabs(1 - rah_hot0/rah_hot) << endl;
         Erro = (fabs(1 - rah_hot0/rah_hot) >= 0.05);
         i++;
 
@@ -311,11 +304,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
     double dt_hot = H_hot * rah_hot / (RHO * SPECIFIC_HEAT_AIR);
     double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
     double a = -b * (cold_pixel.temperature - 273.15);
-
-    cout << H_hot << endl;
-    cout << dt_hot << endl;
-    cout << b << endl;
-    cout << a << endl;
 
     for(int line = 0; line < heigth_band; line++){
         read_line_tiff(aerodynamic_resistence_tif0, aerodynamic_resistence_line, line);
