@@ -1,11 +1,11 @@
 #include "products.h"
 
 string tal_function(TIFF *raster_elevation, string output_path){
-    uint32 heigth_band, width_band;
+    uint32 height_band, width_band;
     uint16 sample_band;
 
     TIFFGetField(raster_elevation, TIFFTAG_IMAGEWIDTH, &width_band);
-    TIFFGetField(raster_elevation, TIFFTAG_IMAGELENGTH, &heigth_band);
+    TIFFGetField(raster_elevation, TIFFTAG_IMAGELENGTH, &height_band);
     TIFFGetField(raster_elevation, TIFFTAG_SAMPLEFORMAT, &sample_band);
 
     string tal_path = output_path + "/tal.tif";
@@ -20,7 +20,7 @@ string tal_function(TIFF *raster_elevation, string output_path){
     line_band = _TIFFmalloc(TIFFScanlineSize(raster_elevation));
     pixel_read_band = PixelReader(sample_band, byte_size_band, line_band);
 
-    for (int line = 0; line < heigth_band; line++){
+    for (int line = 0; line < height_band; line++){
         read_line_tiff(raster_elevation, line_band, line);
 
         for (int col = 0; col < width_band; col++){
@@ -258,17 +258,17 @@ void ho_function(double net_radiation_line[], double soil_heat_flux[], int width
 
 }; //HO
 
-Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_radiation, TIFF** soil_heat, int heigth_band, int width_band){
+Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_radiation, TIFF** soil_heat, int height_band, int width_band){
     
-    //Auxiliar arrays
+    //Auxiliary arrays
     double ndvi_line[width_band], surface_temperature_line[width_band];
     double net_radiation_line[width_band], soil_heat_line[width_band];
     double ho_line[width_band];
 
-    //Contains the candidates with NDVI between 0.15 and 0.20, which surface temperatura is greater than 273.16
+    //Contains the candidates with NDVI between 0.15 and 0.20, which surface temperature is greater than 273.16
     vector<Candidate> pre_candidates;
 
-    for(int line = 0; line < heigth_band; line ++){
+    for(int line = 0; line < height_band; line ++){
         read_line_tiff(*net_radiation, net_radiation_line, line);
         read_line_tiff(*soil_heat, soil_heat_line, line);
 
@@ -295,7 +295,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     int pos = floor(0.95 * pre_candidates.size());
     double surfaceTempHot = pre_candidates[pos].temperature;
 
-    //Select only the ones with temperature equals the surface temperatura of the hot pixel
+    //Select only the ones with temperature equals the surface temperature of the hot pixel
     vector<double> ho_candidates;
     Candidate lastHOCandidate;
     for(Candidate c : pre_candidates){
@@ -314,10 +314,10 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     double HO_min = ho_candidates[floor(0.25 * ho_candidates.size())];
     double HO_max = ho_candidates[floor(0.75 * ho_candidates.size())];
 
-    //Contains the final candidates which HO is in (HO_min, HO_max) and surface temperatura is greater than 273.16
+    //Contains the final candidates which HO is in (HO_min, HO_max) and surface temperature is greater than 273.16
     vector<Candidate> final_candidates;
 
-    for(int line = 0; line < heigth_band; line ++){
+    for(int line = 0; line < height_band; line ++){
 
         read_line_tiff(*net_radiation, net_radiation_line, line);
         read_line_tiff(*soil_heat, soil_heat_line, line);
@@ -358,17 +358,17 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     return choosen;
 }
 
-Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_radiation, TIFF** soil_heat, int heigth_band, int width_band){
+Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_radiation, TIFF** soil_heat, int height_band, int width_band){
     
-    //Auxiliar arrays
+    //Auxiliary arrays
     double ndvi_line[width_band], surface_temperature_line[width_band];
     double net_radiation_line[width_band], soil_heat_line[width_band];
     double ho_line[width_band];
 
-    //Contains the candidates with NDVI less than 0, which surface temperatura is greater than 273.16
+    //Contains the candidates with NDVI less than 0, which surface temperature is greater than 273.16
     vector<Candidate> pre_candidates;
 
-    for(int line = 0; line < heigth_band; line ++){
+    for(int line = 0; line < height_band; line ++){
 
         read_line_tiff(*net_radiation, net_radiation_line, line);
         read_line_tiff(*soil_heat, soil_heat_line, line);
@@ -396,7 +396,7 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     int pos = floor(0.5 * pre_candidates.size());
     double surfaceTempCold = pre_candidates[pos].temperature;
 
-    //Select only the ones with temperature equals the surface temperatura of the Cold pixel
+    //Select only the ones with temperature equals the surface temperature of the Cold pixel
     vector<double> ho_candidates;
     Candidate lastHOCandidate;
     for(Candidate c : pre_candidates){
@@ -415,10 +415,10 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     double HO_min = ho_candidates[floor(0.25 * ho_candidates.size())];
     double HO_max = ho_candidates[floor(0.75 * ho_candidates.size())];
 
-    //Contains the final candidates which HO is in (HO_min, HO_max) and surface temperatura is greater than 273.16
+    //Contains the final candidates which HO is in (HO_min, HO_max) and surface temperature is greater than 273.16
     vector<Candidate> final_candidates;
 
-    for(int line = 0; line < heigth_band; line ++){
+    for(int line = 0; line < height_band; line ++){
 
         read_line_tiff(*net_radiation, net_radiation_line, line);
         read_line_tiff(*soil_heat, soil_heat_line, line);
@@ -476,55 +476,6 @@ void aerodynamic_resistance_fuction(double ustar_line[], int width_band, double 
         aerodynamic_resistance_line[col] = log(20)/(ustar_line[col] * VON_KARMAN);
 
 }; //rah
-/*
-void sensible_heat_flux_function(Candidate hot_pixel, Candidate cold_pixel, double u200, double zom_line[], double ustar_line[], double aerodynamic_resistence_line[], double surface_temperature_line[], int width_band, double sensible_heat_flux_line[]){
-    double H_hot = hot_pixel.net_radiation - hot_pixel.soil_heat_flux;
-    double rah_hot0;
-
-    //LINE PIXEL CALCULATION
-    double L[width_band];
-    double y_01_line[width_band], y_2_line[width_band], x_200_line[width_band];
-    double psi_01_line[width_band], psi_2_line[width_band], psi_200_line[width_band];
-    
-    for(unsigned i = 0; i < hot_pixel.aerodynamic_resistance.size(); i++){
-        rah_hot0 = hot_pixel.aerodynamic_resistance[i];
-
-        double dt_hot = (H_hot * rah_hot0)/(RHO * SPECIFIC_HEAT_AIR);
-        double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
-        double a = -b * (cold_pixel.temperature - 273.15);
-
-        for(int col = 0; col < width_band; col++){
-            sensible_heat_flux_line[col] = (RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15)))/aerodynamic_resistence_line[col];
-            double ustar_pow_3 = ustar_line[col] * ustar_line[col] * ustar_line[col];
-            L[col] = -1 * ((RHO * SPECIFIC_HEAT_AIR * ustar_pow_3 * surface_temperature_line[col])/(VON_KARMAN * GRAVITY * sensible_heat_flux_line[col]));
-            
-            y_01_line[col] = pow((1 - 16*0.1/L[col]), 0.25);
-            y_2_line[col] = pow((1 - 16*2/L[col]), 0.25);
-            x_200_line[col] = pow((1 - 16*200/L[col]), 0.25);
-
-            if(!isnan(L[col]) && L[col] > 0) psi_01_line[col] = -5 * (0.1/L[col]);
-            else psi_01_line[col] = 2 * log((1 + y_01_line[col]*y_01_line[col])/2);
-
-            if(!isnan(L[col]) && L[col] > 0) psi_2_line[col] = -5 * (2/L[col]);
-            else psi_2_line[col] = 2 * log((1 + y_2_line[col]*y_2_line[col])/2);
-
-            if(!isnan(L[col]) && L[col] > 0) psi_200_line[col] = -5 * (2/L[col]);
-            else psi_200_line[col] = 2 * log((1 + x_200_line[col])/2) + log((1 + x_200_line[col]*x_200_line[col])/2) - 2 * atan(x_200_line[col]) + 0.5 * PI;
-
-            ustar_line[col] = (VON_KARMAN * u200) / (log(200/zom_line[col]) - psi_200_line[col]);
-            aerodynamic_resistence_line[col] = (log(20) - psi_2_line[col] + psi_01_line[col])/(ustar_line[col] * VON_KARMAN);
-        }
-        
-    }
-
-    double dt_hot = (H_hot * rah_hot0)/(RHO * SPECIFIC_HEAT_AIR);
-    double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
-    double a = -b * (cold_pixel.temperature - 273.15);
-
-    for(int col = 0; col < width_band; col ++)
-        sensible_heat_flux_line[col] = (RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15)))/aerodynamic_resistence_line[col];
-
-}; //H*/
 
 void latent_heat_flux_function(double net_radiation_line[], double soil_heat_flux_line[], double sensible_heat_flux_line[], int width_band, double latent_heat_flux[]){
 

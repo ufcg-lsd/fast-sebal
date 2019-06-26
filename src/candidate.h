@@ -33,10 +33,10 @@ struct Candidate{
 
 	/**
 	 * @brief  Calculates a initial value for Pixel's aerodynamic resistance. Adding this value to attribute aerodynamic resistance.
-	 * @param  u200: 
-	 * @param  A_ZOM: 
-	 * @param  B_ZOM: 
-	 * @param  VON_KARMAN: Karman's constant. TODO:
+	 * @param  u200: Wind speed at 200 m.
+	 * @param  A_ZOM: Coefficient A.
+	 * @param  B_ZOM: Coefficient B.
+	 * @param  VON_KARMAN: Karman's constant.
 	 */
 	void setAerodynamicResistance(double u200, double A_ZOM, double B_ZOM, double VON_KARMAN);
 

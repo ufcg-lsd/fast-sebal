@@ -1,5 +1,8 @@
 #include "candidate.h"
 
+/**
+ * @brief  Empty constructor, all attributes are initialized with 0.
+ */
 Candidate::Candidate(){
     this->ndvi = 0;
     this->temperature = 0;
@@ -14,6 +17,16 @@ Candidate::Candidate(){
     this->ustar = 0;
 }
 
+/**
+ * @brief  Constructor with initialization values to attributes.
+ * @param  ndvi: Pixel's NDVI.
+ * @param  temperature: Pixel's surface temperature.
+ * @param  net_radiation: Pixel's net radiation.
+ * @param  soil_heat_flux: Pixel's soil heat flux.
+ * @param  ho: Pixel's ho.
+ * @param  line: Pixel's line on TIFF.
+ * @param  col: Pixel's column on TIFF.
+ */
 Candidate::Candidate(double ndvi, double temperature, double net_radiation, double soil_heat_flux, double ho, int line, int col){
     this->ndvi = ndvi;
     this->temperature = temperature;
@@ -28,6 +41,13 @@ Candidate::Candidate(double ndvi, double temperature, double net_radiation, doub
     this->ustar = 0;
 }
 
+/**
+ * @brief  Calculates a initial value for Pixel's aerodynamic resistance. Adding this value to attribute aerodynamic resistance.
+ * @param  u200: Wind speed at 200 m.
+ * @param  A_ZOM: Coefficient A.
+ * @param  B_ZOM: Coefficient B.
+ * @param  VON_KARMAN: Karman's constant.
+ */
 void Candidate::setAerodynamicResistance(double u200, double A_ZOM, double B_ZOM, double VON_KARMAN){
     this->zom = exp(A_ZOM + B_ZOM * this->ndvi);
     this->ustar = (VON_KARMAN * u200)/log(200/this->zom);
@@ -99,6 +119,9 @@ void Candidate::extract_coefficient_variation(TIFF *ndvi){
     this->coefficient_variation = sd / mean;
 }
 
+/**
+ * @brief  Prints the data contained at the struct.
+ */
 void Candidate::toString(){
     string toString;
     printf("NDVI: %.10lf\n", this->ndvi);
@@ -123,10 +146,22 @@ void Candidate::toString(){
     printf("\n");
 }
 
+/**
+ * @brief  Compares two Candidates based upon their surface temperature.
+ * @param  a: First candidate.
+ * @param  b: Second candidate.
+ * @retval TRUE if second candidate is greater than first one, and FALSE otherwise.
+ */
 bool compare_candidate_temperature(Candidate a, Candidate b){
     return a.temperature < b.temperature;
 }
 
+/**
+ * @brief  Compares two Candidates based upon their HO.
+ * @param  a: First candidate.
+ * @param  b: Second candidate.
+ * @retval TRUE if second candidate is greater than first one, and FALSE otherwise.
+ */
 bool compare_candidate_ho(Candidate a, Candidate b){
     return a.ho < b.ho;
 }

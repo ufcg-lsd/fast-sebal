@@ -1,11 +1,21 @@
 #include "landsat.h"
 
+/**
+ * @brief  Empty constructor.
+ */
 Landsat::Landsat(){
 };
 
+/**
+ * @brief  Constructor of the struct.
+ * @param  tal_path: Path to tal TIFF.
+ * @param  output_path: Output path where TIFF should be saved.
+ */
 Landsat::Landsat(string tal_path, string output_path){
     this->tal_path = tal_path;
     this->output_path = output_path;
+
+    //Initialize the path of products TIFF based on the output path.
     this->albedo_path = output_path + "/alb.tif";
     this->ndvi_path = output_path + "/NDVI.tif";
     this->evi_path = output_path + "/EVI.tif";
@@ -28,6 +38,13 @@ Landsat::Landsat(string tal_path, string output_path){
     this->latent_heat_flux_24h_path = output_path + "/LatentHF24h.tif";
 };
 
+/**
+ * @brief  Calculates the partials products (e. g. Albedo, NDVI, Rn, G) of the SEBAL execution.
+ * @param  read_bands[]: Satellite images as TIFFs.
+ * @param  mtl: MTL struct.
+ * @param  station: Station struct.
+ * @param  sensor: Sensor struct.
+ */
 void Landsat::process_partial_products(TIFF* read_bands[], MTL mtl, Station station, Sensor sensor){
     uint32 height_band, width_band;
 
@@ -57,6 +74,7 @@ void Landsat::process_partial_products(TIFF* read_bands[], MTL mtl, Station stat
     double large_wave_radiation_atmosphere_line[width_band], large_wave_radiation_surface_line[width_band];
     double short_wave_radiation_line[width_band];
 
+    //Calculating the partial products for each line
     for(int line = 0; line < height_band; line ++){
         radiance_function(read_bands, mtl, sensor, width_band, line, radiance_line);
         reflectance_function(read_bands, mtl, sensor, radiance_line, width_band, line, reflectance_line);
@@ -81,6 +99,7 @@ void Landsat::process_partial_products(TIFF* read_bands[], MTL mtl, Station stat
                     vector<TIFF*> {albedo, ndvi, evi, lai, soil_heat, surface_temperature, net_radiation}, line);
     }
 
+    //Closing the open TIFFs.
     TIFFClose(albedo);
     TIFFClose(ndvi);
     TIFFClose(evi);
@@ -91,25 +110,34 @@ void Landsat::process_partial_products(TIFF* read_bands[], MTL mtl, Station stat
     TIFFClose(tal);
 };
 
+/**
+ * @brief  Process the final products (e. g. Evapotranspiration 24 hours) of the SEBAL execution.
+ * @param  station: Station struct.
+ * @param  mtl: MTL struct.
+ */
 void Landsat::process_final_products(Station station, MTL mtl){
     TIFF *albedo, *ndvi, *soil_heat, *surface_temperature, *net_radiation;
     TIFF *evapotranspiration_fraction, *evapotranspiration_24h;
 
     open_tiffs(&albedo, &ndvi, &soil_heat, &surface_temperature, &net_radiation, &evapotranspiration_fraction, &evapotranspiration_24h);
 
-    evapotranspiration_fraction = TIFFOpen(evapotranspiration_fraction_path.c_str(), "w8m");
-    setup(evapotranspiration_fraction, albedo);
+    // TODO: This seems duplicated, remove after test execution.
+    // evapotranspiration_fraction = TIFFOpen(evapotranspiration_fraction_path.c_str(), "w8m");
+    // setup(evapotranspiration_fraction, albedo);
 
-    evapotranspiration_24h = TIFFOpen(evapotranspiration_24h_path.c_str(), "w8m");
-    setup(evapotranspiration_24h, albedo);
+    // evapotranspiration_24h = TIFFOpen(evapotranspiration_24h_path.c_str(), "w8m");
+    // setup(evapotranspiration_24h, albedo);
 
     uint32 height_band, width_band;
     TIFFGetField(albedo, TIFFTAG_IMAGELENGTH, &height_band);
     TIFFGetField(albedo, TIFFTAG_IMAGEWIDTH, &width_band);
-   
+
+    // Selecting hot and cold pixels
+
     Candidate hot_pixel = select_hot_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, height_band, width_band);
     Candidate cold_pixel = select_cold_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, height_band, width_band);
     
+    //Intermediaries products
     double sensible_heat_flux_line[width_band];
     double zom_line[width_band];
     double ustar_line[width_band];
@@ -142,7 +170,7 @@ void Landsat::process_final_products(Station station, MTL mtl){
     //Short wave radiation incident in 24 hours (Rs24h)
     double Rs24h = station.INTERNALIZATION_FACTOR * sqrt(station.v7_max - station.v7_min) * Ra24h;
     
-    //FIXME: auxiliary products TIFFs
+    //Auxiliary products TIFFs
     TIFF *zom, *ustar, *aerodynamic_resistance;
     zom = TIFFOpen(zom_path.c_str(), "w8m");
     setup(zom, albedo);
@@ -152,6 +180,8 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
     aerodynamic_resistance = TIFFOpen(aerodynamic_resistance_path.c_str(), "w8m");
     setup(aerodynamic_resistance, albedo);
+
+    //Calculates initial values of zom, ustar and aerodynamic_resistance
 
     for(int line = 0; line < height_band; line++){
         read_line_tiff(ndvi, ndvi_line, line);
@@ -201,8 +231,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
     double rah_hot0;
     double rah_hot;
-
-    //Auxiliaries TIFFS
 
     while(Erro) {
 
@@ -375,6 +403,17 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
 };
 
+/**
+ * @brief  Initializes TIFFs of the partial execution products as writable. Doing their setup based upon the tal TIFF characteristics.
+ * @param  **tal: Tal TIFF.
+ * @param  **albedo: Albedo TIFF.
+ * @param  **ndvi: NDVI TIFF.
+ * @param  **evi: EVI TIFF.
+ * @param  **lai: LAI TIFF.
+ * @param  **soil_heat: Soil heat flux TIFF.
+ * @param  **surface_temperature: Surface temperature TIFF.
+ * @param  **net_radiation: Net radiation TIFF.
+ */
 void Landsat::create_tiffs(TIFF **tal, TIFF **albedo, TIFF **ndvi, TIFF **evi, TIFF **lai, TIFF **soil_heat, TIFF **surface_temperature, TIFF **net_radiation){
     *albedo = TIFFOpen(albedo_path.c_str(), "w8m");
     setup(*albedo, *tal);
@@ -398,6 +437,16 @@ void Landsat::create_tiffs(TIFF **tal, TIFF **albedo, TIFF **ndvi, TIFF **evi, T
     setup(*net_radiation, *tal);
 };
 
+/**
+ * @brief  Open the partial products TIFF as readble TIFFs and create the final products TIFF (evapotranspiration_fraction and evapotranspiration_24h) as writable. For use them at the final phase.  
+ * @param  **albedo: Albedo TIFF.
+ * @param  **ndvi: NDVI TIFF. 
+ * @param  **soil_heat: Soil heat flux TIFF.
+ * @param  **surface_temperature: Surface temperature TIFF.
+ * @param  **net_radiation: Net radiation TIFF.
+ * @param  **evapotranspiration_fraction: Evapotranspiration fraction TIFF.
+ * @param  **evapotranspiration_24h: Evapotranspiration 24 hours TIFF.
+ */
 void Landsat::open_tiffs(TIFF **albedo, TIFF **ndvi, TIFF **soil_heat, TIFF **surface_temperature, TIFF **net_radiation, TIFF **evapotranspiration_fraction, TIFF **evapotranspiration_24h){
 
     *albedo = TIFFOpen(albedo_path.c_str(), "rm");
@@ -414,6 +463,13 @@ void Landsat::open_tiffs(TIFF **albedo, TIFF **ndvi, TIFF **soil_heat, TIFF **su
 
 }
 
+/**
+ * @brief  Writes values from an array to a specific line in a TIFF. Doing this for each respective array and TIFF at the vectors parameters passed.
+ * @note:  The positions both vectors should be corresponding arrays and TIFFs.
+ * @param  products_line: Vector containing the arrays of a line to be written on a respective TIFF.
+ * @param  products: Vector containing the respective TIFF for each array.
+ * @param  line: Number of the line that should be written.
+ */
 void Landsat::save_tiffs(vector<double*> products_line, vector<TIFF*> products, int line){
 
     for (unsigned i = 0; i < products.size(); i++)

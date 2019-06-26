@@ -64,7 +64,6 @@ struct Landsat{
     
     /**
      * @brief  Open the partial products TIFF as readble TIFFs and create the final products TIFF (evapotranspiration_fraction and evapotranspiration_24h) as writable. For use them at the final phase.
-     * @note   
      * @param  **albedo: Albedo TIFF.
      * @param  **ndvi: NDVI TIFF. 
      * @param  **soil_heat: Soil heat flux TIFF.
