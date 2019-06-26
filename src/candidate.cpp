@@ -36,8 +36,8 @@ void Candidate::setAerodynamicResistance(double u200, double A_ZOM, double B_ZOM
 
 void Candidate::extract_negative_neighbour(TIFF *ndvi){
 
-    uint32 heigth_band, width_band;
-    TIFFGetField(ndvi, TIFFTAG_IMAGELENGTH, &heigth_band);
+    uint32 height_band, width_band;
+    TIFFGetField(ndvi, TIFFTAG_IMAGELENGTH, &height_band);
     TIFFGetField(ndvi, TIFFTAG_IMAGEWIDTH, &width_band);
 
     double pixel_value;
@@ -45,7 +45,7 @@ void Candidate::extract_negative_neighbour(TIFF *ndvi){
     for(int i = -3; i <= 2; i++){
         for(int j = -3; j <= 2; j++){
 
-            if (this->col + i >= 0 && this->col + i < width_band && this->line + j >= 0 && this->line + j < heigth_band) {
+            if (this->col + i >= 0 && this->col + i < width_band && this->line + j >= 0 && this->line + j < height_band) {
 
                 pixel_value = read_position_tiff(ndvi, this->col + i, this->line + j);
                 cont++;
@@ -61,22 +61,22 @@ void Candidate::extract_negative_neighbour(TIFF *ndvi){
 
 void Candidate::extract_coefficient_variation(TIFF *ndvi){
 
-    uint32 heigth_band, width_band;
-    TIFFGetField(ndvi, TIFFTAG_IMAGELENGTH, &heigth_band);
+    uint32 height_band, width_band;
+    TIFFGetField(ndvi, TIFFTAG_IMAGELENGTH, &height_band);
     TIFFGetField(ndvi, TIFFTAG_IMAGEWIDTH, &width_band);
 
-    vector<double> values_pixels_neighbours;
+    vector<double> values_pixels_neighbors;
     double pixel_value;
     int cont = 1;
     for(int i = -3; i <= 2; i++){
         for(int j = -3; j <= 2; j++){
 
-            if (this->col + i >= 0 && this->col + i < width_band && this->line + j >= 0 && this->line + j < heigth_band) {
+            if (this->col + i >= 0 && this->col + i < width_band && this->line + j >= 0 && this->line + j < height_band) {
 
                 pixel_value = read_position_tiff(ndvi, this->col + i, this->line + j);
                 cont++;
                 if(!isnan(pixel_value))
-                    values_pixels_neighbours.push_back(pixel_value);
+                    values_pixels_neighbors.push_back(pixel_value);
 
             }
             
@@ -86,16 +86,16 @@ void Candidate::extract_coefficient_variation(TIFF *ndvi){
     double mean, sd;
     double sum = 0;
 
-    for(int i = 0; i < values_pixels_neighbours.size(); i++)
-        sum += values_pixels_neighbours[i];
+    for(int i = 0; i < values_pixels_neighbors.size(); i++)
+        sum += values_pixels_neighbors[i];
     
-    mean = sum / values_pixels_neighbours.size();
+    mean = sum / values_pixels_neighbors.size();
 
     sum = 0;
-    for(int i = 0; i < values_pixels_neighbours.size(); i++)
-        sum += (values_pixels_neighbours[i] - mean) * (values_pixels_neighbours[i] - mean);
+    for(int i = 0; i < values_pixels_neighbors.size(); i++)
+        sum += (values_pixels_neighbors[i] - mean) * (values_pixels_neighbors[i] - mean);
     
-    sd = sqrt(sum / values_pixels_neighbours.size());
+    sd = sqrt(sum / values_pixels_neighbors.size());
     this->coefficient_variation = sd / mean;
 }
 

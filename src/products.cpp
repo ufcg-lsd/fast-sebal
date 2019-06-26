@@ -470,10 +470,10 @@ void ustar_fuction(double u200, double zom_line[], int width_band, double ustar_
 
 }; //ustar
 
-void aerodynamic_resistence_fuction(double ustar_line[], int width_band, double aerodynamic_resistence_line[]){
+void aerodynamic_resistance_fuction(double ustar_line[], int width_band, double aerodynamic_resistance_line[]){
 
     for(int col = 0; col < width_band; col++)
-        aerodynamic_resistence_line[col] = log(20)/(ustar_line[col] * VON_KARMAN);
+        aerodynamic_resistance_line[col] = log(20)/(ustar_line[col] * VON_KARMAN);
 
 }; //rah
 /*

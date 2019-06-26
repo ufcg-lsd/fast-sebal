@@ -38,5 +38,5 @@ struct Station {
 	const double INTERNALIZATION_FACTOR = 0.16;
 
 	Station();
-	Station(string estation_data_path, double image_hour);
+	Station(string station_data_path, double image_hour);
 };
