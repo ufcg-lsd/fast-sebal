@@ -19,31 +19,31 @@ if(suscess) {
     TiffC <- raster(path.tiff.c)
 
     cat("----------- R interval -----------", "\n")
-    maxR <- max(TiffR, na.rm = TRUE)
-    minR <- min(TiffR, na.rm = TRUE)
+    maxR <- max(TiffR[], na.rm = TRUE)
+    minR <- min(TiffR[], na.rm = TRUE)
     toPrint <- paste("[", maxR, ",", minR, "]")
     cat(toPrint, "\n")
 
     cat("----------- C++ interval -----------", "\n")
-    maxC <- max(TiffC, na.rm = TRUE)
-    minC <- min(TiffC, na.rm = TRUE)
+    maxC <- max(TiffC[], na.rm = TRUE)
+    minC <- min(TiffC[], na.rm = TRUE)
     toPrint <- paste("[", maxC, ",", minC, "]")
     cat(toPrint, "\n")
 
     cat("----------- Absolute error -----------", "\n")
     TiffDiff <- abs(TiffR[] - TiffC[])
-    maxDiff <- max(TiffDiff, na.rm = TRUE)
+    maxDiff <- max(TiffDiff[], na.rm = TRUE)
     cat(paste("Max absolute error:", maxDiff), "\n")
 
     cat("----------- Percentual error -----------", "\n")
-    TiffPer <- (TiffDiff / abs(TiffR[])) * 100
-    maxDiff <- max(TiffPer, na.rm = TRUE)
+    TiffPer <- (TiffDiff[] / abs(TiffR[])) * 100
+    maxDiff <- max(TiffPer[], na.rm = TRUE)
 
     if (maxDiff == Inf) {
        
-        TiffR[TiffR == 0] <- NA
-        TiffPer <- (TiffDiff / abs(TiffR[])) * 100
-        maxDiff <- max(TiffPer, na.rm = TRUE)
+        TiffR[TiffR[] == 0] <- NA
+        TiffPer <- (TiffDiff[] / abs(TiffR[])) * 100
+        maxDiff <- max(TiffPer[], na.rm = TRUE)
 
     }
 
@@ -61,11 +61,11 @@ if(suscess) {
 
     cat("----------- Percentual error ignoring values less than 1e-4 -----------", "\n")
 
-    TiffC[TiffC < 1e-4] <- NA
-    TiffR[TiffR < 1e-4] <- NA
+    TiffC[TiffC[] < 1e-4] <- NA
+    TiffR[TiffR[] < 1e-4] <- NA
     TiffDiff <- abs(TiffR[] - TiffC[])
-    TiffPer <- (TiffDiff / abs(TiffR[])) * 100
-    maxDiff <- max(TiffPer, na.rm = TRUE)
+    TiffPer <- (TiffDiff[] / abs(TiffR[])) * 100
+    maxDiff <- max(TiffPer[], na.rm = TRUE)
 
     cat(paste("Max percentual error:", maxDiff), "\n")
 
