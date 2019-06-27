@@ -21,13 +21,13 @@ if(suscess) {
     cat("----------- R interval -----------", "\n")
     maxR <- max(TiffR[], na.rm = TRUE)
     minR <- min(TiffR[], na.rm = TRUE)
-    toPrint <- paste("[", maxR, ",", minR, "]")
+    toPrint <- paste("[", minR, ",", maxR, "]")
     cat(toPrint, "\n")
 
     cat("----------- C++ interval -----------", "\n")
     maxC <- max(TiffC[], na.rm = TRUE)
     minC <- min(TiffC[], na.rm = TRUE)
-    toPrint <- paste("[", maxC, ",", minC, "]")
+    toPrint <- paste("[", minC, ",", maxC, "]")
     cat(toPrint, "\n")
 
     cat("----------- Absolute error -----------", "\n")
@@ -57,7 +57,7 @@ if(suscess) {
     distribution[4] <- length(which(TiffPer[] > 1 && TiffPer[] <= 10))
     distribution[5] <- length(which(TiffPer[] > 10))
 
-    cat(distribution, "\n")
+    print(distribution)
 
     cat("----------- Percentual error ignoring values less than 1e-4 -----------", "\n")
 
@@ -77,7 +77,7 @@ if(suscess) {
     distribution[4] <- length(which(TiffPer[] > 1 && TiffPer[] <= 10))
     distribution[5] <- length(which(TiffPer[] > 10))
 
-    cat(distribution, "\n")
+    print(distribution)
 
 } else {
 
