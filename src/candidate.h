@@ -41,16 +41,17 @@ struct Candidate{
 	void setAerodynamicResistance(double u200, double A_ZOM, double B_ZOM, double VON_KARMAN);
 
 	/**
-	 * @brief  
-	 * @note   
-	 * @param  *ndvi: TODO:
+	 * @brief  Counts how many neighbors pixels of the Candidate pixel have a negative value of NDVI.
+	 * @note   Increases the value of negative_neighbour attribute.
+	 * @note   A pixel is a neighbour pixel if it is in a radius of 105 meters from the Candidate pixel.
+	 * @param  *ndvi: NDVI TIFF.
 	 */
 	void extract_negative_neighbour(TIFF *ndvi);
 
 	/**
-	 * @brief  
-	 * @note   
-	 * @param  *ndvi: TODO:
+	 * @brief  Calculates the coefficient of variation (CV) of NDVI for neighbors pixels of the Candidate pixel.
+	 * @note   A pixel is a neighbour pixel if it is in a radius of 105 meters from the Candidate pixel.
+	 * @param  *ndvi: NDVI TIFF.
 	 */
 	void extract_coefficient_variation(TIFF *ndvi);
 

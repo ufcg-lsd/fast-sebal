@@ -1,52 +1,6 @@
 #include "products.h"
 
 /**
- * @brief   //TODO:  
- * @param  raster_elevation: 
- * @param  output_path: 
- * @retval 
- */
-string tal_function(TIFF *raster_elevation, string output_path){
-    uint32 height_band, width_band;
-    uint16 sample_band;
-
-    TIFFGetField(raster_elevation, TIFFTAG_IMAGEWIDTH, &width_band);
-    TIFFGetField(raster_elevation, TIFFTAG_IMAGELENGTH, &height_band);
-    TIFFGetField(raster_elevation, TIFFTAG_SAMPLEFORMAT, &sample_band);
-
-    string tal_path = output_path + "/tal.tif";
-    TIFF *tal = TIFFOpen(tal_path.c_str(), "w8m");
-    setup(tal, raster_elevation);
-
-    PixelReader pixel_read_band;
-    tdata_t line_band;
-    double tal_line_band[width_band];
-
-    unsigned short byte_size_band = TIFFScanlineSize(raster_elevation) / width_band;
-    line_band = _TIFFmalloc(TIFFScanlineSize(raster_elevation));
-    pixel_read_band = PixelReader(sample_band, byte_size_band, line_band);
-
-    for (int line = 0; line < height_band; line++){
-        read_line_tiff(raster_elevation, line_band, line);
-
-        for (int col = 0; col < width_band; col++){
-            double pixel_read = pixel_read_band.read_pixel(col);
-
-            if (fabs(pixel_read - 0) <= EPS)
-                tal_line_band[col] = NaN;
-            else
-                tal_line_band[col] = 0.75 + 2 * 1e-5 * pixel_read;
-        }
-
-        write_line_tiff(tal, tal_line_band, line);
-    }
-
-    TIFFClose(tal);
-
-    return tal_path;
-};
-
-/**
  * @brief  The spectral radiance for each band is computed.
  * @param  read_bands[]: Satellite bands.
  * @param  mtl: MTL struct.
@@ -666,8 +620,8 @@ void latent_heat_flux_function(double net_radiation_line[], double soil_heat_flu
 /**
  * @brief  Calculates the Net Radiation for 24 hours (Rn24h).
  * @param  albedo_line[]: Array containing the specified line from the albedo computation.
- * @param  Ra24h: //TODO:
- * @param  Rs24h: 
+ * @param  Ra24h: Extraterrestrial Radiation defined as solar short wave radiation in the absence of an atmosphere (Ra24h).
+ * @param  Rs24h: Short wave radiation incident in 24 hours (Rs24h).
  * @param  width_band: Band width.
  * @param  net_radiation_24h_line[]: Auxiliary array for save the calculated value of Rn24h for the line.
  */

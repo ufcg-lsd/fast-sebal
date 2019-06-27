@@ -10,5 +10,5 @@ struct PixelReader{
 	PixelReader();
 	PixelReader(uint16 _sampleFormat, uint8 _byteSize,tdata_t _buffer);
 
-	double read_pixel(uint32 colunm);
+	double read_pixel(uint32 column);
 };

@@ -7,14 +7,6 @@
 #include "candidate.h"
 
 /**
- * @brief   //TODO:  
- * @param  raster_elevation: 
- * @param  output_path: 
- * @retval 
- */
-string tal_function(TIFF* raster_elevation, string output_path);
-
-/**
  * @brief  The spectral radiance for each band is computed.
  * @param  read_bands[]: Satellite bands.
  * @param  mtl: MTL struct.
@@ -235,8 +227,8 @@ void latent_heat_flux_function(double net_radiation_line[], double soil_heat_flu
 /**
  * @brief  Calculates the Net Radiation for 24 hours (Rn24h).
  * @param  albedo_line[]: Array containing the specified line from the albedo computation.
- * @param  Ra24h: //TODO:
- * @param  Rs24h: 
+ * @param  Ra24h: Ra24h: Extraterrestrial Radiation defined as solar short wave radiation in the absence of an atmosphere (Ra24h).
+ * @param  Rs24h: Short wave radiation incident in 24 hours (Rs24h).
  * @param  width_band: Band width.
  * @param  net_radiation_24h_line[]: Auxiliary array for save the calculated value of Rn24h for the line.
  */

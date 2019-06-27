@@ -54,6 +54,11 @@ void Candidate::setAerodynamicResistance(double u200, double A_ZOM, double B_ZOM
     this->aerodynamic_resistance.push_back(log(20)/(this->ustar * VON_KARMAN));
 }
 
+/**
+ * @brief  Counts how many neighbors pixels of the Candidate pixel have a negative value of NDVI.
+ * @note   A pixel is a neighbour pixel if it is in a radius of 105 meters from the Candidate pixel.
+ * @param  *ndvi: NDVI TIFF.
+ */
 void Candidate::extract_negative_neighbour(TIFF *ndvi){
 
     uint32 height_band, width_band;
@@ -79,6 +84,11 @@ void Candidate::extract_negative_neighbour(TIFF *ndvi){
 
 }
 
+/**
+ * @brief  Calculates the coefficient of variation (CV) of NDVI for neighbors pixels of the Candidate pixel.
+ * @note   A pixel is a neighbour pixel if it is in a radius of 105 meters from the Candidate pixel.
+ * @param  *ndvi: NDVI TIFF.
+ */
 void Candidate::extract_coefficient_variation(TIFF *ndvi){
 
     uint32 height_band, width_band;
