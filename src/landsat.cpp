@@ -121,13 +121,6 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
     open_tiffs(&albedo, &ndvi, &soil_heat, &surface_temperature, &net_radiation, &evapotranspiration_fraction, &evapotranspiration_24h);
 
-    // TODO: This seems duplicated, remove after test execution.
-    // evapotranspiration_fraction = TIFFOpen(evapotranspiration_fraction_path.c_str(), "w8m");
-    // setup(evapotranspiration_fraction, albedo);
-
-    // evapotranspiration_24h = TIFFOpen(evapotranspiration_24h_path.c_str(), "w8m");
-    // setup(evapotranspiration_24h, albedo);
-
     uint32 height_band, width_band;
     TIFFGetField(albedo, TIFFTAG_IMAGELENGTH, &height_band);
     TIFFGetField(albedo, TIFFTAG_IMAGEWIDTH, &width_band);
