@@ -51,11 +51,11 @@ if(suscess) {
 
     distribution <- c(0, 0, 0, 0, 0)
     names(distribution) <- c("equals 0", "0% ~ 0.1%", "0.1% ~ 1%", "1% ~ 10%", "bigger than 10%")
-    distribution[1] <- length(which(TiffPer[] == 0))
-    distribution[2] <- length(which(TiffPer[] > 0 && TiffPer[] <= 0.1))
-    distribution[3] <- length(which(TiffPer[] > 0.1 && TiffPer[] <= 1))
-    distribution[4] <- length(which(TiffPer[] > 1 && TiffPer[] <= 10))
-    distribution[5] <- length(which(TiffPer[] > 10))
+    distribution[1] <- length(TiffPer[TiffPer[] == 0])
+    distribution[2] <- length(TiffPer[TiffPer[] > 0 && TiffPer[] <= 0.1])
+    distribution[3] <- length(TiffPer[TiffPer[] > 0.1 & TiffPer[] <= 1])
+    distribution[4] <- length(TiffPer[TiffPer[] > 1 & TiffPer[] <= 10])
+    distribution[5] <- length(TiffPer[TiffPer[] > 10])
 
     print(distribution)
 
@@ -71,11 +71,11 @@ if(suscess) {
 
     distribution <- c(0, 0, 0, 0, 0)
     names(distribution) <- c("equals 0", "0% ~ 0.1%", "0.1% ~ 1%", "1% ~ 10%", "bigger than 10%")
-    distribution[1] <- length(which(TiffPer[] == 0))
-    distribution[2] <- length(which(TiffPer[] > 0 && TiffPer[] <= 0.1))
-    distribution[3] <- length(which(TiffPer[] > 0.1 && TiffPer[] <= 1))
-    distribution[4] <- length(which(TiffPer[] > 1 && TiffPer[] <= 10))
-    distribution[5] <- length(which(TiffPer[] > 10))
+    distribution[1] <- length(TiffPer[TiffPer[] == 0])
+    distribution[2] <- length(TiffPer[TiffPer[] > 0 & TiffPer[] <= 0.1])
+    distribution[3] <- length(TiffPer[TiffPer[] > 0.1 & TiffPer[] <= 1])
+    distribution[4] <- length(TiffPer[TiffPer[] > 1 & TiffPer[] <= 10])
+    distribution[5] <- length(TiffPer[TiffPer[] > 10])
 
     print(distribution)
 
