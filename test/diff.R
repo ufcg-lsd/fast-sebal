@@ -21,6 +21,9 @@ if(suscess) {
     TiffC <- raster(path.tiff.c)
     number.cell <- ncell(TiffR)
 
+    TiffC[is.nan(TiffR[])] <- NaN
+    TiffR[is.nan(TiffC[])] <- NaN
+
     print(paste("Number of cell:", number.cell))
 
     cat("----------- R interval -----------", "\n")
