@@ -64,8 +64,6 @@ if(suscess) {
 
     }
 
-    cat("\n")
-
     cat(paste("Max percentual error:", maxDiff), "\n")
 
     distribution <- c(0, 0, 0, 0, 0, 0)
