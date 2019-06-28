@@ -81,7 +81,11 @@ if(suscess) {
 
     distribution <- distribution * 100 / number.cell
 
+    options(digits = 5)
+
     print(distribution)
+
+    options(digits = 10)
 
     cat("\n")
 
@@ -109,6 +113,8 @@ if(suscess) {
     }
 
     distribution <- distribution * 100 / number.cell
+    
+    options(digits = 5)
 
     print(distribution)
 
