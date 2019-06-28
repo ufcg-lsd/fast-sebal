@@ -14,9 +14,14 @@ if(suscess) {
     } else {
        sink("out")
     }
+
+    cat("----------- Tiff Informations -----------", "\n")
     
     TiffR <- raster(path.tiff.r)
     TiffC <- raster(path.tiff.c)
+    number.cell <- ncell(TiffR)
+
+    print(paste("Number of cell:", number.cell))
 
     cat("----------- R interval -----------", "\n")
     maxR <- max(TiffR[], na.rm = TRUE)
