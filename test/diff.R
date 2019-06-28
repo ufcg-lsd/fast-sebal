@@ -3,6 +3,7 @@ suscess <- require(raster)
 if(suscess) {
 
     options(digits = 10)
+    options(width = 10)
 
     args = commandArgs(trailingOnly=TRUE)
 
@@ -70,6 +71,8 @@ if(suscess) {
        print("Something wrong here!")
     }
 
+    distribution <- distribution * 100 / number.cell
+
     print(distribution)
 
     cat("----------- Percentual error ignoring values less than 1e-4 -----------", "\n")
@@ -94,6 +97,8 @@ if(suscess) {
     if (sum(distribution) != number.cell) {
        print("Something wrong here!")
     }
+
+    distribution <- distribution * 100 / number.cell
 
     print(distribution)
 
