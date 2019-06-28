@@ -25,7 +25,9 @@ if(suscess) {
     TiffC[is.nan(TiffR[])] <- NaN
     TiffR[is.nan(TiffC[])] <- NaN
 
-    print(paste("Number of cell:", number.cell))
+    cat(paste("Number of cell:", number.cell), "\n")
+
+    cat("\n")
 
     cat("----------- R interval -----------", "\n")
     maxR <- max(TiffR[], na.rm = TRUE)
@@ -33,16 +35,22 @@ if(suscess) {
     toPrint <- paste("[", minR, ",", maxR, "]")
     cat(toPrint, "\n")
 
+    cat("\n")
+
     cat("----------- C++ interval -----------", "\n")
     maxC <- max(TiffC[], na.rm = TRUE)
     minC <- min(TiffC[], na.rm = TRUE)
     toPrint <- paste("[", minC, ",", maxC, "]")
     cat(toPrint, "\n")
 
+    cat("\n")
+
     cat("----------- Absolute error -----------", "\n")
     TiffDiff <- abs(TiffR[] - TiffC[])
     maxDiff <- max(TiffDiff[], na.rm = TRUE)
     cat(paste("Max absolute error:", maxDiff), "\n")
+
+    cat("\n")
 
     cat("----------- Percentual error -----------", "\n")
     TiffPer <- (TiffDiff[] / abs(TiffR[])) * 100
@@ -55,6 +63,8 @@ if(suscess) {
         maxDiff <- max(TiffPer[], na.rm = TRUE)
 
     }
+
+    cat("\n")
 
     cat(paste("Max percentual error:", maxDiff), "\n")
 
@@ -78,6 +88,8 @@ if(suscess) {
     print(distribution)
 
     options(digits = 10)
+
+    cat("\n")
 
     cat("----------- Percentual error ignoring values less than 1e-4 -----------", "\n")
 
