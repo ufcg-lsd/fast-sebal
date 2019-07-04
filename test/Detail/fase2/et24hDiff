@@ -1,0 +1,21 @@
+----------- Tiff Informations ----------- 
+Number of cell: 47444298 
+
+----------- R interval ----------- 
+[ -0.754794478416443 , 6.86949825286865 ] 
+
+----------- C++ interval ----------- 
+[ -0.75478817385133 , 6.86949671926889 ] 
+
+----------- Absolute error ----------- 
+Max absolute error: 2.96337583007705e-05 
+
+----------- Percentual error ----------- 
+Max percentual error: 1425.77099217368 
+       equals 0       0% ~ 0.1%       0.1% ~ 1%        1% ~ 10% bigger than 10%              NA 
+      0.0000000      40.0332765       0.0162949       0.0014965       0.0001623      59.9487698 
+
+----------- Percentual error ignoring values less than 1e-4 ----------- 
+Max percentual error: 8.53265876261641 
+       equals 0       0% ~ 0.1%       0.1% ~ 1%        1% ~ 10% bigger than 10%              NA 
+      0.0000000      40.0328971       0.0162464       0.0012288       0.0000000      59.9496277 
