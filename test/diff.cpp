@@ -26,7 +26,7 @@ void setup(TIFF* new_tif, TIFF* base_tif){
     TIFFSetField(new_tif, TIFFTAG_PLANARCONFIG   , PLANARCONFIG_CONTIG);
 };
 
-double diff_tifs(string compare_path_tiff1, string compare_path_tiff2, string diff_tiff_path){
+double diff_tiffs(string compare_path_tiff1, string compare_path_tiff2, string diff_tiff_path){
 
     TIFF *tif1 = TIFFOpen(compare_path_tiff1.c_str(), "rm");
     TIFF *tif2 = TIFFOpen(compare_path_tiff2.c_str(), "rm");
@@ -34,16 +34,16 @@ double diff_tifs(string compare_path_tiff1, string compare_path_tiff2, string di
     TIFF *diff = TIFFOpen(diff_tiff_path.c_str(), "w8m");
     setup(diff, tif1);
 
-    uint32 heigth_band, width_band;
+    uint32 height_band, width_band;
     TIFFGetField(tif1, TIFFTAG_IMAGEWIDTH, &width_band);
-    TIFFGetField(tif1, TIFFTAG_IMAGELENGTH, &heigth_band);
+    TIFFGetField(tif1, TIFFTAG_IMAGELENGTH, &height_band);
 
-    uint32 heigth_band_2, width_band_2;
+    uint32 height_band_2, width_band_2;
     TIFFGetField(tif2, TIFFTAG_IMAGEWIDTH, &width_band_2);
-    TIFFGetField(tif2, TIFFTAG_IMAGELENGTH, &heigth_band_2);
+    TIFFGetField(tif2, TIFFTAG_IMAGELENGTH, &height_band_2);
 
-    if(heigth_band != heigth_band_2 || width_band != width_band_2){
-        cerr << "Diference dimension tif!" << endl;
+    if(height_band != height_band_2 || width_band != width_band_2){
+        cerr << "Difference dimension tif!" << endl;
         exit(2);
     }
 
@@ -54,7 +54,7 @@ double diff_tifs(string compare_path_tiff1, string compare_path_tiff2, string di
 
     double max_diff_relative = 0;
     double relative_error_diff;
-    for(int line = 0; line < heigth_band; line++){
+    for(int line = 0; line < height_band; line++){
 
         if(TIFFReadScanline(tif1, tif1_line, line) < 0){
             cerr << "Read problem" << endl;
@@ -97,12 +97,15 @@ double diff_tifs(string compare_path_tiff1, string compare_path_tiff2, string di
     return max_diff_relative;
 };
 
+/**
+    This code generates a Tiff which each pixel contains the absolute error between two TIFFs given as input.
+ */
 int main(int argc, char *argv[]){
     string compare_path_tiff1 = argv[1];
     string compare_path_tiff2 = argv[2];
     string diff_tiff_path = argv[3];
 
-    double max_diff = diff_tifs(compare_path_tiff1, compare_path_tiff2, diff_tiff_path);
+    double max_diff = diff_tiffs(compare_path_tiff1, compare_path_tiff2, diff_tiff_path);
     printf("Max diff value: %.10lf\n", max_diff);
 
     return 0;

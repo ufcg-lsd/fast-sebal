@@ -1,6 +1,13 @@
-suscess <- require(raster)
+success <- require(raster)
 
-if(suscess) {
+if(success) {
+    
+   # The following code generates a short description of the comparison between two TIFFs.
+   # The resultant file contains information as:
+   #     * interval of values in both TIFFs;
+   #     * maximum absolute error;
+   #     * maximum percentage error;
+   #     * maximum percentage error ignoring pixels with values less than 0.0001.
 
     options(digits = 10)
     options(width = 200)
@@ -16,7 +23,7 @@ if(suscess) {
        sink("out")
     }
 
-    cat("----------- Tiff Informations -----------", "\n")
+    cat("----------- Tiff Information -----------", "\n")
     
     TiffR <- raster(path.tiff.r)
     TiffC <- raster(path.tiff.c)
@@ -52,7 +59,7 @@ if(suscess) {
 
     cat("\n")
 
-    cat("----------- Percentual error -----------", "\n")
+    cat("----------- Percentage error -----------", "\n")
     TiffPer <- (TiffDiff[] / abs(TiffR[])) * 100
     maxDiff <- max(TiffPer[], na.rm = TRUE)
 
@@ -64,7 +71,7 @@ if(suscess) {
 
     }
 
-    cat(paste("Max percentual error:", maxDiff), "\n")
+    cat(paste("Max percentage error:", maxDiff), "\n")
 
     distribution <- c(0, 0, 0, 0, 0, 0)
     names(distribution) <- c("equals 0", "0% ~ 0.1%", "0.1% ~ 1%", "1% ~ 10%", "bigger than 10%", "NA")
@@ -89,7 +96,7 @@ if(suscess) {
 
     cat("\n")
 
-    cat("----------- Percentual error ignoring values less than 1e-4 -----------", "\n")
+    cat("----------- Percentage error ignoring values less than 1e-4 -----------", "\n")
 
     TiffC[TiffC[] < 1e-4] <- NA
     TiffR[TiffR[] < 1e-4] <- NA
@@ -97,7 +104,7 @@ if(suscess) {
     TiffPer <- (TiffDiff[] / abs(TiffR[])) * 100
     maxDiff <- max(TiffPer[], na.rm = TRUE)
 
-    cat(paste("Max percentual error:", maxDiff), "\n")
+    cat(paste("Max percentage error:", maxDiff), "\n")
 
     distribution <- c(0, 0, 0, 0, 0, 0)
     names(distribution) <- c("equals 0", "0% ~ 0.1%", "0.1% ~ 1%", "1% ~ 10%", "bigger than 10%", "NA")
