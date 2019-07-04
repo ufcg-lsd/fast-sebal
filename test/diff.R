@@ -79,7 +79,7 @@ if(suscess) {
        print("Something wrong here!")
     }
 
-    distribution <- distribution * 100 / number.cell
+    distribution <- distribution[1:5] * 100 / (number.cell - distribution[6])
 
     options(digits = 5)
 
@@ -112,7 +112,7 @@ if(suscess) {
        print("Something wrong here!")
     }
 
-    distribution <- distribution * 100 / number.cell
+    distribution <- distribution[1:5] * 100 / (number.cell - distribution[6])
     
     options(digits = 5)
 
