@@ -126,12 +126,12 @@ void Landsat::process_final_products(Station station, MTL mtl){
     TIFFGetField(albedo, TIFFTAG_IMAGEWIDTH, &width_band);
 
     // Selecting hot and cold pixels
-    printf("PHASE 2 - PIXEL SELECTION, %d", int(time(NULL)));
+    printf("PHASE 2 - PIXEL SELECTION, %d\n", int(time(NULL)));
     Candidate hot_pixel = select_hot_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, height_band, width_band);
     Candidate cold_pixel = select_cold_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, height_band, width_band);
-    printf("PHASE 2 - PIXEL SELECTION, %d", int(time(NULL)));
+    printf("PHASE 2 - PIXEL SELECTION, %d\n", int(time(NULL)));
 
-    printf("PHASE 2 - BEFORE RAH CYCLE, %d", int(time(NULL)));
+    printf("PHASE 2 - BEFORE RAH CYCLE, %d\n", int(time(NULL)));
     //Intermediaries products
     double sensible_heat_flux_line[width_band];
     double zom_line[width_band];
@@ -201,9 +201,9 @@ void Landsat::process_final_products(Station station, MTL mtl){
     TIFFClose(ustar);
     TIFFClose(aerodynamic_resistance);
 
-    printf("PHASE 2 - BEFORE RAH CYCLE, %d", int(time(NULL)));
+    printf("PHASE 2 - BEFORE RAH CYCLE, %d\n", int(time(NULL)));
 
-    printf("PHASE 2 - RAH CYCLE, %d", int(time(NULL)));
+    printf("PHASE 2 - RAH CYCLE, %d\n", int(time(NULL)));
 
     aerodynamic_resistance = TIFFOpen(aerodynamic_resistance_path.c_str(), "rm");
 
@@ -316,9 +316,9 @@ void Landsat::process_final_products(Station station, MTL mtl){
     
     TIFFClose(zom);
     
-    printf("PHASE 2 - RAH CYCLE, %d", int(time(NULL)));
+    printf("PHASE 2 - RAH CYCLE, %d\n", int(time(NULL)));
 
-    printf("PHASE 2 - AFTER RAH CYCLE, %d", int(time(NULL)));
+    printf("PHASE 2 - AFTER RAH CYCLE, %d\n", int(time(NULL)));
 
     if(i%2) {
 
@@ -404,7 +404,7 @@ void Landsat::process_final_products(Station station, MTL mtl){
     TIFFClose(evapotranspiration_fraction);
     TIFFClose(evapotranspiration_24h);
 
-    printf("PHASE 2 - AFTER RAH CYCLE, %d", int(time(NULL)));
+    printf("PHASE 2 - AFTER RAH CYCLE, %d\n", int(time(NULL)));
 
 };
 

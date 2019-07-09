@@ -52,12 +52,12 @@ int main(int argc, char *argv[]){
     }
 
     Landsat landsat = Landsat(tal_path, output_path);
-    printf("PHASE 1 - START, %d", int(time(NULL)));
+    printf("PHASE 1 - START, %d\n", int(time(NULL)));
     landsat.process_partial_products(bands_resampled, mtl, station, sensor);
-    printf("PHASE 1 - END, %d", int(time(NULL)));
-    printf("PHASE 2 - START, %d", int(time(NULL)));
+    printf("PHASE 1 - END, %d\n", int(time(NULL)));
+    printf("PHASE 2 - START, %d\n", int(time(NULL)));
     landsat.process_final_products(station, mtl);
     close_tiffs(bands_resampled, 8);
-    printf("PHASE 2 - END, %d", int(time(NULL)));
+    printf("PHASE 2 - END, %d\n", int(time(NULL)));
     return 0;
 }
