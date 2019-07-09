@@ -57,16 +57,10 @@ int main(int argc, char *argv[]){
 
     Landsat landsat = Landsat(tal_path, output_path);
 
-    time(&end);
-
-    printf("Input Phase\n");
-    printf("Input Start: %.5f", double(start));
-    printf("Input End: %.5f", double(end));
-
-    printf("Phase One\n");
-    time(&start);
     landsat.process_partial_products(bands_resampled, mtl, station, sensor);
     time(&end);
+    
+    printf("Phase One\n");
     printf("Phase One Start: %.5f", double(start));
     printf("Phase One End: %.5f", double(end));
 
