@@ -26,6 +26,10 @@ using namespace std;
 
 */
 int main(int argc, char *argv[]){
+
+    time_t start, end;
+    time(&start);
+
     string output_path = argv[11];
 
     string metadata_path = argv[8];
@@ -52,8 +56,26 @@ int main(int argc, char *argv[]){
     }
 
     Landsat landsat = Landsat(tal_path, output_path);
+
+    time(&end);
+
+    printf("Input Phase\n");
+    printf("Input Start: %.5f", double(start));
+    printf("Input End: %.5f", double(end));
+
+    printf("Phase One\n");
+    time(&start);
     landsat.process_partial_products(bands_resampled, mtl, station, sensor);
+    time(&end);
+    printf("Phase One Start: %.5f", double(start));
+    printf("Phase One End: %.5f", double(end));
+
+    printf("Phase Two\n");
+    time(&start);
     landsat.process_final_products(station, mtl);
+    time(&end);
+    printf("Phase Two Start: %.5f", double(start));
+    printf("Phase Two End: %.5f", double(end));
 
     close_tiffs(bands_resampled, 8);
     return 0;
