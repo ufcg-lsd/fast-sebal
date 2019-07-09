@@ -33,7 +33,7 @@ def main():
 
 		kb_rw = [float(a_line[3]), float(a_line[4])]
 
-		if(cmd == "R"):
+		if(cmd == "run"):
 			if(ts in filtered_disk_usage_dict.keys()):
 				filtered_disk_usage_dict[ts][0] += kb_rw[0]
 				filtered_disk_usage_dict[ts][1] += kb_rw[1]
@@ -45,7 +45,7 @@ def main():
 
 	for x in filtered_disk_usage_list:
 		filtered_disk_usage.write(x + ", " + str(filtered_disk_usage_dict[x][0]) + ", " + str(filtered_disk_usage_dict[x][1]) + "\n")
-
+	
 	disk_usage_file.close()
 	filtered_disk_usage.close()
 
