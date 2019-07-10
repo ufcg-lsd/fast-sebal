@@ -1,67 +1,10 @@
 #include "utils.h"
 
-bool analisy_shadow(TIFF* read_bands[], TIFF* write_bands[], int number_sensor){
-    int mask = set_mask(number_sensor);
-    uint32 heigth_band, width_band;
-    long long quant_pixels_valid = 0, quant_pixel_zero = 0;
-
-    PixelReader pixel_read_bands[9];
-    tdata_t line_bands[9];
-    double *line_write_bands[9];
-
-    for(int i = 1; i < 9; i++){
-        uint16 sample_band;
-        
-        TIFFGetField(read_bands[i], TIFFTAG_SAMPLEFORMAT, &sample_band);
-        TIFFGetField(read_bands[i], TIFFTAG_IMAGEWIDTH, &width_band);
-
-        unsigned short byte_size_band = TIFFScanlineSize(read_bands[i]) / width_band;
-
-        line_bands[i] = _TIFFmalloc(TIFFScanlineSize(read_bands[i]));
-        line_write_bands[i] = new double[width_band];
-
-        pixel_read_bands[i] = PixelReader(sample_band, byte_size_band, line_bands[i]);
-    }
-
-    TIFFGetField(read_bands[1], TIFFTAG_IMAGEWIDTH, &width_band);
-    TIFFGetField(read_bands[1], TIFFTAG_IMAGELENGTH, &heigth_band);
-
-    for(int line = 0; line < heigth_band; line ++){
-        for(int i = 1; i < 9; i++)
-            read_line_tiff(read_bands[i], line_bands[i], line);
-
-        for(int col = 0; col < width_band; col ++){
-            for(int i = 1; i < 9; i++)
-                line_write_bands[i][col] = pixel_read_bands[i].read_pixel(col);
-
-            if(fabs(line_write_bands[8][col] - 0) <= EPS){
-                quant_pixel_zero ++;
-                for(int i = 1; i < 9; i++)
-                    line_write_bands[i][col] = NaN;
-            }
-            else if(fabs(line_write_bands[8][col] - mask) <= EPS || fabs(line_write_bands[8][col] - 20480) <= EPS)
-                quant_pixels_valid ++;
-            else{
-                for(int i = 1; i < 9; i++)
-                    line_write_bands[i][col] = NaN;
-            }
-        }
-
-        for(int i = 1; i < 9; i++)
-            write_line_tiff(write_bands[i], line_write_bands[i], line);
-        
-    }
-
-    return (((double)quant_pixels_valid)/(heigth_band*width_band - quant_pixel_zero)) >= 0.01;
-};
-
-int set_mask(int number_sensor){
-    if(number_sensor != 8)
-        return 672;
-    else
-        return 2720;
-};
-
+/**
+ * @brief  Configures a TIFF based on a second TIFF.
+ * @param  new_tif: TIFF to be configured.
+ * @param  base_tif: TIFF used to provide the configurations.
+ */
 void setup(TIFF* new_tif, TIFF* base_tif){
     uint32 image_width, image_length;
 
@@ -82,6 +25,11 @@ void setup(TIFF* new_tif, TIFF* base_tif){
     TIFFSetField(new_tif, TIFFTAG_PLANARCONFIG   , PLANARCONFIG_CONTIG);
 };
 
+/**
+ * @brief  Verifies if a TIFF was open correctly. 
+ * @param  tif: TIFF to be verified
+ * @throws Throw an error with exit code 1 if the TIFF isn't open.
+ */
 void check_open_tiff(TIFF* tif){
     if(!tif){
         cerr << "Open tiff problem" << endl;
@@ -89,6 +37,13 @@ void check_open_tiff(TIFF* tif){
     }
 };
 
+/**
+ * @brief  Reads the values of a line in a TIFF saving them into an array.
+ * @param  tif: TIFF who line should be read.
+ * @param  tif_line[]: Array where the data will be saved.
+ * @param  line: Number of the line to be read.
+ * @throws Throw an error with exit code 3 if the read couldn't be done.
+ */
 void read_line_tiff(TIFF* tif, double tif_line[], int line){
     if(TIFFReadScanline(tif, tif_line, line) < 0){
         cerr << "Read problem" << endl;
@@ -96,6 +51,13 @@ void read_line_tiff(TIFF* tif, double tif_line[], int line){
     }
 };
 
+/**
+ * @brief  Reads the values of a line in a TIFF saving them into an array.
+ * @param  tif: TIFF who line should be read.
+ * @param  tif_line: image data ref
+ * @param  line: Number of the line to be read.
+ * @throws Throw an error with exit code 3 if the read couldn't be done.
+ */
 void read_line_tiff(TIFF* tif, tdata_t tif_line, int line){
     if(TIFFReadScanline(tif, tif_line, line) < 0){
         cerr << "Read problem" << endl;
@@ -103,6 +65,31 @@ void read_line_tiff(TIFF* tif, tdata_t tif_line, int line){
     }
 };
 
+/**
+ * @brief  Reads the value contained in a specific position of a TIFF.
+ * @param  tif: TIFF who value should be read.
+ * @param  col: Number of the column to be read.
+ * @param  line: Number of the line to be read.
+ * @throws Throw an error with exit code 3 if the read couldn't be done. 
+ */
+double read_position_tiff(TIFF* tif, int col, int line){
+    uint32 width_band;
+    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width_band);
+
+    double tif_line[width_band];
+
+    read_line_tiff(tif, tif_line, line);
+
+    return tif_line[col];
+};
+
+/**
+ * @brief  Writes values from an array to a specific line in a TIFF.
+ * @param  tif: TIFF who line should be written.
+ * @param  tif_line[]: Array containing the values to be written.
+ * @param  line: Number of the line to be read.
+ * @throws Throw an error with exit code 4 if the write couldn't be done.
+ */
 void write_line_tiff(TIFF* tif, double tif_line[], int line){
 
     if (TIFFWriteScanline(tif, tif_line, line) < 0){
@@ -112,7 +99,56 @@ void write_line_tiff(TIFF* tif, double tif_line[], int line){
 
 };
 
-void close_tifs(TIFF* tifs[], int quant_tifs){
-    for(int i = 1; i < quant_tifs; i++)
-        TIFFClose(tifs[i]);
+/**
+ * @brief  Closes open TIFFs.
+ * @param  tiffs[]: Array containing opened tiffs to be closed.
+ * @param  quant_tiffs: Length of the array or number of tiffs.
+ */
+void close_tiffs(TIFF* tiffs[], int quant_tiffs){
+    for(int i = 1; i < quant_tiffs; i++)
+        TIFFClose(tiffs[i]);
 };
+
+/*
+The following definitions are from The art of computer programming by Knuth
+*/
+
+/**
+ * @brief  Determines if a and b are approximately equals based on a epsilon.
+ * @param  a: First value.
+ * @param  b: Second value.
+ * @retval TRUE if they are approximately equals, and FALSE otherwise.
+ */
+bool approximatelyEqual(double a, double b){
+    return fabs(a - b) <= ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * EPS);
+}
+
+/**
+ * @brief  Determines if a and b are essentially equals based on a epsilon.
+ * @param  a: First value.
+ * @param  b: Second value.
+ * @retval TRUE if they are essentially equals, and FALSE otherwise.
+ */
+bool essentiallyEqual(double a, double b){
+    return fabs(a - b) <= ( (fabs(a) > fabs(b) ? fabs(b) : fabs(a)) * EPS);
+}
+
+/**
+ * @brief  Determines if a is definitely greater than b based on a epsilon.
+ * @param  a: First value.
+ * @param  b: Second value.
+ * @retval TRUE if a is definitely greater than b, and FALSE otherwise.
+ */
+bool definitelyGreaterThan(double a, double b){
+    return (a - b) > ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * EPS);
+}
+
+/**
+ * @brief  Determines if a is definitely less than b based on a epsilon.
+ * @param  a: First value.
+ * @param  b: Second value.
+ * @retval TRUE if a is definitely less than b, and FALSE otherwise.
+ */
+bool definitelyLessThan(double a, double b){
+    return (b - a) > ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * EPS);
+}

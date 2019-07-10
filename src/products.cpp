@@ -1,62 +1,43 @@
 #include "products.h"
 
-string tal_function(TIFF *raster_elevation, string output_path){
-    uint32 heigth_band, width_band;
-    uint16 sample_band;
-
-    TIFFGetField(raster_elevation, TIFFTAG_IMAGEWIDTH, &width_band);
-    TIFFGetField(raster_elevation, TIFFTAG_IMAGELENGTH, &heigth_band);
-    TIFFGetField(raster_elevation, TIFFTAG_SAMPLEFORMAT, &sample_band);
-
-    string tal_path = output_path + "/tal.tif";
-    TIFF *tal = TIFFOpen(tal_path.c_str(), "w8m");
-    setup(tal, raster_elevation);
-
-    PixelReader pixel_read_band;
-    tdata_t line_band;
-    double tal_line_band[width_band];
-
-    unsigned short byte_size_band = TIFFScanlineSize(raster_elevation) / width_band;
-    line_band = _TIFFmalloc(TIFFScanlineSize(raster_elevation));
-    pixel_read_band = PixelReader(sample_band, byte_size_band, line_band);
-
-    for (int line = 0; line < heigth_band; line++){
-        read_line_tiff(raster_elevation, line_band, line);
-
-        for (int col = 0; col < width_band; col++){
-            double pixel_read = pixel_read_band.read_pixel(col);
-
-            if (fabs(pixel_read - 0) <= EPS)
-                tal_line_band[col] = NaN;
-            else
-                tal_line_band[col] = 0.75 + 2 * 1e-5 * pixel_read;
-        }
-
-        write_line_tiff(tal, tal_line_band, line);
-    }
-
-    TIFFClose(tal);
-
-    return tal_path;
-}; //tal
-
+/**
+ * @brief  The spectral radiance for each band is computed.
+ * @param  read_bands[]: Satellite bands.
+ * @param  mtl: MTL struct.
+ * @param  sensor: Sensor struct.
+ * @param  width_band: Band width.
+ * @param  line: Line to be calculated.
+ * @param  radiance_line[][8]: Auxiliary array for save the calculated value of radiance for each band.
+ */
 void radiance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, int width_band, int line, double radiance_line[][8]){
     double line_band[width_band];
 
     if (mtl.number_sensor == 8){
         read_line_tiff(read_bands[7], line_band, line);
-        for (int col = 0; col < width_band; col++)
+        for (int col = 0; col < width_band; col++) {
             radiance_line[col][7] = line_band[col] * mtl.rad_mult_10 + mtl.rad_add_10;
+        }
     }
     else{
         for (int i = 1; i < 8; i++){
             read_line_tiff(read_bands[i], line_band, line);
             for (int col = 0; col < width_band; col++)
-                radiance_line[col][i] = line_band[col] * sensor.parameters[i][sensor.GRESCALE] + sensor.parameters[i][sensor.BRESCALE];
+                radiance_line[col][i] = min(line_band[col] * sensor.parameters[i][sensor.GRESCALE] + sensor.parameters[i][sensor.BRESCALE], 0.0);
         }
     }
-}; //rad
 
+};
+
+/**
+ * @brief  The reflectivity for each band (ρλ) is computed (model F02). 
+ * @param  read_bands[]: Satellite bands.
+ * @param  mtl: MTL struct.
+ * @param  sensor: Sensor struct.
+ * @param  radiance_line[][8]: Radiance for the specific line for each band.
+ * @param  width_band: Band width.
+ * @param  line: Line to be calculated.
+ * @param  reflectance_line[][8]: Auxiliary array for save the calculated value of reflectance for each band.
+ */
 void reflectance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, double radiance_line[][8], int width_band, int line, double reflectance_line[][8]){
     double costheta = sin(mtl.sun_elevation * PI / 180);
     double line_band[width_band];
@@ -71,8 +52,18 @@ void reflectance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, double rad
                                            (sensor.parameters[i][sensor.ESUN] * costheta);
         }
     }
-}; //ref
 
+};
+
+/**
+ * @brief  The surface albedo is computed.
+ * @param  reflectance_line[][8]: Reflectance for the specific line for each band.
+ * @param  sensor: Sensor struct.
+ * @param  tal_line[]: Array containing the specified line from the tal TIFF.
+ * @param  width_band: Band width.
+ * @param  number_sensor: Number of the satellite sensor.
+ * @param  albedo_line[]: Auxiliary array for save the calculated value of albedo for the line.
+ */
 void albedo_function(double reflectance_line[][8], Sensor sensor, double tal_line[], int width_band, int number_sensor, double albedo_line[]){
     int final_tif_calc = number_sensor == 8 ? 6 : 7;
 
@@ -86,8 +77,15 @@ void albedo_function(double reflectance_line[][8], Sensor sensor, double tal_lin
         albedo_line[col] = (albedo_line[col] - 0.03) / (tal_line[col] * tal_line[col]);
     }
 
-}; //alb
+};
 
+/**
+ * @brief  Normalized Difference Vegetation Index (NDVI) is computed.
+ * @note   Values for NDVI range between -1 and 1.
+ * @param  reflectance_line[][8]: Reflectance for the specific line for each band.
+ * @param  width_band: Band width.
+ * @param  ndvi_line[]: Auxiliary array for save the calculated value of NDVI for the line.
+ */
 void ndvi_function(double reflectance_line[][8], int width_band, double ndvi_line[]){
 
     for (int col = 0; col < width_band; col++){
@@ -95,8 +93,14 @@ void ndvi_function(double reflectance_line[][8], int width_band, double ndvi_lin
                          (reflectance_line[col][4] + reflectance_line[col][3]);
     }
 
-}; //ndvi
+};
 
+/**
+ * @brief  Leaf Area Index (LAI) is computed.
+ * @param  reflectance_line[][8]: Reflectance for the specific line for each band.
+ * @param  width_band: Band width.
+ * @param  lai_line[]: Auxiliary array for save the calculated value of LAI for the line.
+ */
 void lai_function(double reflectance_line[][8], int width_band, double lai_line[]){
     double savi_line[width_band];
     double L = 0.05;
@@ -106,17 +110,23 @@ void lai_function(double reflectance_line[][8], int width_band, double lai_line[
         savi_line[col] = ((1 + L) * (reflectance_line[col][4] - reflectance_line[col][3])) /
                          (L + (reflectance_line[col][4] + reflectance_line[col][3]));
         
-        if (!isnan(savi_line[col]) && savi_line[col] > 0.687)
+        if (!isnan(savi_line[col]) && definitelyGreaterThan(savi_line[col], 0.687))
             lai_line[col] = 6;
-        else if (!isnan(savi_line[col]) && savi_line[col] < 0.1)
+        else if (!isnan(savi_line[col]) && definitelyLessThan(savi_line[col], 0.1))
             lai_line[col] = 0;
         else
             lai_line[col] = -log((0.69 - savi_line[col]) / 0.59) / 0.91;
         
     }
 
-}; //lai
+};
 
+/**
+ * @brief  Enhanced Vegetation Index (EVI) is computed.
+ * @param  reflectance_line[][8]: Reflectance for the specific line for each band.
+ * @param  width_band: Band width.
+ * @param  evi_line[]: Auxiliary array for save the calculated value of EVI for the line.
+ */
 void evi_function(double reflectance_line[][8], int width_band, double evi_line[]){
 
     for (int col = 0; col < width_band; col++){
@@ -124,38 +134,67 @@ void evi_function(double reflectance_line[][8], int width_band, double evi_line[
                         (reflectance_line[col][4] + 6 * reflectance_line[col][3] - 7.5 * reflectance_line[col][1] + 1));
     }
 
-}; //evi
+};
 
+/**
+ * @brief  Calculates emissivity representing surface behavior for thermal emission in the relatively narrow band 6 of Landsat (10.4 to 12.5 µm),
+           expressed as enb.
+ * @param  lai_line[]: Array containing the specified line from the LAI computation.
+ * @param  ndvi_line[]: Array containing the specified line from the NDVI computation.
+ * @param  width_band: Band width.
+ * @param  enb_emissivity_line[]: Auxiliary array for save the calculated value of Enb for the line.
+ */
 void enb_emissivity_function(double lai_line[], double ndvi_line[], int width_band, double enb_emissivity_line[]){
 
     for(int col = 0; col < width_band; col++){
-        if(ndvi_line[col] < 0 || lai_line[col] > 2.99)
+        if(definitelyLessThan(ndvi_line[col], 0) || definitelyGreaterThan(lai_line[col], 2.99))
             enb_emissivity_line[col] = 0.98;
         else
             enb_emissivity_line[col] = 0.97 + 0.0033 * lai_line[col];
     }
 
     
-}; //enb
+};
 
+/**
+ * @brief  Calculates emissivity representing surface behavior for thermal emission in the broad thermal spectrum (6 to 14 µm), expressed as eο.  
+ * @param  lai_line[]: Array containing the specified line from the LAI computation.
+ * @param  ndvi_line[]: Array containing the specified line from the NDVI computation.
+ * @param  width_band: Band width.
+ * @param  eo_emissivity_line[]: Auxiliary array for save the calculated value of Eo for the line.
+ */
 void eo_emissivity_function(double lai_line[], double ndvi_line[], int width_band, double eo_emissivity_line[]){
 
     for(int col = 0; col < width_band; col++){
-        if(ndvi_line[col] < 0 || lai_line[col] > 2.99)
+        if(definitelyLessThan(ndvi_line[col], 0) || definitelyGreaterThan(lai_line[col], 2.99))
             eo_emissivity_line[col] = 0.98;
         else
             eo_emissivity_line[col] = 0.95 + 0.01 * lai_line[col];
     }
 
-}; //eo
+};
 
+/**
+ * @brief  Calculates the atmospheric emissivity (ea).
+ * @param  tal_line[]: Array containing the specified line from the tal computation.
+ * @param  width_band: Band width.
+ * @param  ea_emissivity_line[]: Auxiliary array for save the calculated value of Ea for the line.
+ */
 void ea_emissivity_function(double tal_line[], int width_band, double ea_emissivity_line[]){
 
     for (int col = 0; col < width_band; col++)
         ea_emissivity_line[col] = 0.85 * pow((-1 * log(tal_line[col])), 0.09);
 
-}; //ea
+};
 
+/**
+ * @brief  The surface temperature (TS) is computed.
+ * @param  radiance_line[][8]: Radiance for the specific line for each band.
+ * @param  enb_emissivity_line[]: Array containing the specified line from the Enb computation.
+ * @param  number_sensor: Number of the satellite sensor.
+ * @param  width_band: Band width.
+ * @param  surface_temperature_line[]: Auxiliary array for save the calculated value of TS for the line.
+ */
 void surface_temperature_function(double radiance_line[][8], double enb_emissivity_line[], int number_sensor, int width_band, double surface_temperature_line[]){
     double k1, k2;
 
@@ -186,8 +225,15 @@ void surface_temperature_function(double radiance_line[][8], double enb_emissivi
         surface_temperature_line[col] = k2 / (log( (enb_emissivity_line[col] * k1 / radiance_line[col][radiance_number]) + 1));
     
 
-}; //Ts
+};
 
+/**
+ * @brief  Computes Short Wave Radiation (Rs).
+ * @param  tal_line[]: Array containing the specified line from the tal computation.
+ * @param  mtl: MTL Struct.
+ * @param  width_band: Band width.
+ * @param  short_wave_radiation_line[]: Auxiliary array for save the calculated value of Rs for the line.
+ */
 void short_wave_radiation_function(double tal_line[], MTL mtl, int width_band, double short_wave_radiation_line[]){
     double costheta = sin(mtl.sun_elevation * PI / 180);
 
@@ -195,8 +241,15 @@ void short_wave_radiation_function(double tal_line[], MTL mtl, int width_band, d
         short_wave_radiation_line[col] = (1367 * costheta * tal_line[col]) /
                                         (mtl.distance_earth_sun * mtl.distance_earth_sun);
     }
-}; //Rs
+};
 
+/**
+ * @brief  Computes Large Wave Radiation from Surface (RLSup)
+ * @param  eo_emissivity_line[]: Array containing the specified line from the Eo computation.
+ * @param  surface_temperature_line[]: Array containing the specified line from the TS computation.
+ * @param  width_band: Band width.
+ * @param  large_wave_radiation_surface_line[]: Auxiliary array for save the calculated value of RLSup for the line.
+ */
 void large_wave_radiation_surface_function(double eo_emissivity_line[], double surface_temperature_line[], int width_band, double large_wave_radiation_surface_line[]){
 
     for(int col = 0; col < width_band; col++){
@@ -205,8 +258,15 @@ void large_wave_radiation_surface_function(double eo_emissivity_line[], double s
         large_wave_radiation_surface_line[col] = eo_emissivity_line[col] * 5.67 * 1e-8 * surface_temperature_pow_4;
     }
 
-}; //RLsup
+};
 
+/**
+ * @brief  Computes Large Wave Radiation from Atmosphere (RLatm)
+ * @param  ea_emissivity_line[]: Array containing the specified line from the Ea computation.
+ * @param  width_band: Band width.
+ * @param  temperature: Near surface air temperature in Kelvin.
+ * @param  large_wave_radiation_atmosphere_line[]: Auxiliary array for save the calculated value of RLatm for the line.
+ */
 void large_wave_radiation_atmosphere_function(double ea_emissivity_line[], int width_band, double temperature, double large_wave_radiation_atmosphere_line[]){
 
     double temperature_kelvin = temperature + 273.15;
@@ -215,8 +275,18 @@ void large_wave_radiation_atmosphere_function(double ea_emissivity_line[], int w
     for(int col = 0; col < width_band; col++)
         large_wave_radiation_atmosphere_line[col] = ea_emissivity_line[col] * 5.67 * 1e-8 * temperature_kelvin_pow_4;
 
-}; //RLatm
+};
 
+/**
+ * @brief  The net surface radiation flux (Rn) is computed.
+ * @param  short_wave_radiation_line[]: Array containing the specified line from the Rs computation.
+ * @param  large_wave_radiation_surface_line[]: Array containing the specified line from the RLSup computation.
+ * @param  large_wave_radiation_atmosphere_line[]: Array containing the specified line from the RLatm computation.
+ * @param  albedo_line[]: Array containing the specified line from the albedo computation.
+ * @param  eo_emissivity_line[]: Array containing the specified line from the Eo computation.
+ * @param  width_band: Band width.
+ * @param  net_radiation_line[]: Auxiliary array for save the calculated value of Rn for the line.
+ */
 void net_radiation_function(double short_wave_radiation_line[], double large_wave_radiation_surface_line[],
                             double large_wave_radiation_atmosphere_line[], double albedo_line[],
                             double eo_emissivity_line[], int width_band, double net_radiation_line[]){
@@ -226,256 +296,396 @@ void net_radiation_function(double short_wave_radiation_line[], double large_wav
                                 large_wave_radiation_atmosphere_line[col] - large_wave_radiation_surface_line[col] -
                                 (1 - eo_emissivity_line[col]) * large_wave_radiation_atmosphere_line[col];
 
-        if(net_radiation_line[col] < 0)
+        if(definitelyLessThan(net_radiation_line[col], 0))
             net_radiation_line[col] = 0;
     }
 
-}; //Rn
+};
 
+/**
+ * @brief  Computes the Soil heat flux (G).    
+ * @param  ndvi_line[]: Array containing the specified line from the NDVI computation.
+ * @param  surface_temperature_line[]: Array containing the specified line from the TS computation.
+ * @param  albedo_line[]: Array containing the specified line from the albedo computation.
+ * @param  net_radiation_line[]: Array containing the specified line from the Rn computation.
+ * @param  width_band: Band width.
+ * @param  soil_heat_flux[]: Auxiliary array for save the calculated value of G for the line.
+ */
 void soil_heat_flux_function(double ndvi_line[], double surface_temperature_line[], double albedo_line[], double net_radiation_line[], int width_band, double soil_heat_line[]){
 
     for(int col = 0; col < width_band; col ++){
-        if(ndvi_line[col] >= 0){
+        if(essentiallyEqual(ndvi_line[col], 0) || definitelyGreaterThan(ndvi_line[col], 0)){
             double ndvi_pixel_pow_4 = ndvi_line[col] * ndvi_line[col] * ndvi_line[col] * ndvi_line[col];
             soil_heat_line[col] = (surface_temperature_line[col] - 273.15) * (0.0038 + 0.0074 * albedo_line[col]) *
                                 (1 - 0.98 * ndvi_pixel_pow_4) * net_radiation_line[col];
         }else
             soil_heat_line[col] = 0.5 * net_radiation_line[col];
         
-        if(soil_heat_line[col] < 0)
+        if(definitelyLessThan(soil_heat_line[col], 0))
             soil_heat_line[col] = 0;
 
     }
 
-}; //G
+};
 
-void ho_fuction(double net_radiation_line[], double soil_heat_flux[], int width_band, double ho_line[]){
+/**
+ * @brief  Computes the HO.
+ * @param  net_radiation_line[]: Array containing the specified line from the Rn computation.
+ * @param  soil_heat_flux[]: Array containing the specified line from the G computation.
+ * @param  width_band: Band width.
+ * @param  ho_line[]: Auxiliary array for save the calculated value of HO for the line.
+ */
+void ho_function(double net_radiation_line[], double soil_heat_flux[], int width_band, double ho_line[]){
 
     for(int col = 0; col < width_band; col++)
         ho_line[col] = net_radiation_line[col] - soil_heat_flux[col];
 
-}; //HO
+};
 
-Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_radiation, TIFF** soil_heat, int heigth_band, int width_band){
-
+/**
+ * @brief  Select the hot pixel.
+ * @param  ndvi: NDVI TIFF.
+ * @param  surface_temperature: TS TIFF.
+ * @param  net_radiation: Rn TIFF.
+ * @param  soil_heat: G TIFF.
+ * @param  height_band: Band height.
+ * @param  width_band: Band width.
+ * @retval Candidate struct containing the hot pixel.
+ */
+Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_radiation, TIFF** soil_heat, int height_band, int width_band){
+    
+    //Auxiliary arrays
     double ndvi_line[width_band], surface_temperature_line[width_band];
     double net_radiation_line[width_band], soil_heat_line[width_band];
     double ho_line[width_band];
 
+    //Contains the candidates with NDVI between 0.15 and 0.20, which surface temperature is greater than 273.16
     vector<Candidate> pre_candidates;
 
-    for(int line = 0; line < heigth_band; line ++){
-
+    for(int line = 0; line < height_band; line ++){
         read_line_tiff(*net_radiation, net_radiation_line, line);
         read_line_tiff(*soil_heat, soil_heat_line, line);
 
-        ho_fuction(net_radiation_line, soil_heat_line, width_band, ho_line);
+        ho_function(net_radiation_line, soil_heat_line, width_band, ho_line);
 
         read_line_tiff(*ndvi, ndvi_line, line);
         read_line_tiff(*surface_temperature, surface_temperature_line, line);
 
         for(int col = 0; col < width_band; col ++){
-            if(!isnan(ndvi_line[col]) && ndvi_line[col] > 0.15 && ndvi_line[col] < 0.20 && surface_temperature_line[col] > 273.16){
+            if(!isnan(ndvi_line[col]) && definitelyGreaterThan(ndvi_line[col], 0.15) && definitelyLessThan(ndvi_line[col], 0.20) && definitelyGreaterThan(surface_temperature_line[col], 273.16)){
                 pre_candidates.push_back(Candidate(ndvi_line[col],
                                     surface_temperature_line[col],
                                     net_radiation_line[col],
                                     soil_heat_line[col],
-                                    ho_line[col]));
+                                    ho_line[col],
+                                    line, col));
             }
         }
+
     }
-    
+
+    //Sort the candidates by their temperatures and choose the surface temperature of the hot pixel
     sort(pre_candidates.begin(), pre_candidates.end(), compare_candidate_temperature);
     int pos = floor(0.95 * pre_candidates.size());
-    double surface_temperature_hot_pixel = pre_candidates[pos].temperature;
+    double surfaceTempHot = pre_candidates[pos].temperature;
 
-    vector<Candidate> candidates;
+    //Select only the ones with temperature equals the surface temperature of the hot pixel
+    vector<double> ho_candidates;
+    Candidate lastHOCandidate;
     for(Candidate c : pre_candidates){
-        if(c.temperature == surface_temperature_hot_pixel)
-            candidates.push_back(c);
-    }
-
-    Candidate choosen;
-    if(candidates.size() == 1){
-        choosen = candidates[0];
-    } else {
-        sort(candidates.begin(), candidates.end(), compare_candidate_ho); 
-        int posmin = floor(0.25 * candidates.size()), posmax = floor(0.75 * candidates.size());
-        choosen = candidates[posmin+1];
-
-        for(int i = posmin+2; i < posmax; i++){
-            if(candidates[i].ndvi < choosen.ndvi)
-                choosen = candidates[i];
+        if(essentiallyEqual(c.temperature, surfaceTempHot)){
+            ho_candidates.push_back(c.ho);
+            lastHOCandidate = c;
         }
     }
 
-    return choosen;
-};
+    if(ho_candidates.size() == 1){
+        return lastHOCandidate;
+    }
 
-Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_radiation, TIFF** soil_heat, int heigth_band, int width_band){
-    double ndvi_line[width_band], surface_temperature_line[width_band];
-    double net_radiation_line[width_band], soil_heat_line[width_band];
-    double ho_line[width_band];
+    //Select the limits of HOs
+    sort(ho_candidates.begin(), ho_candidates.end());
+    double HO_min = ho_candidates[floor(0.25 * ho_candidates.size())];
+    double HO_max = ho_candidates[floor(0.75 * ho_candidates.size())];
 
-    vector<Candidate> pre_candidates;
+    //Contains the final candidates which HO is in (HO_min, HO_max) and surface temperature is greater than 273.16
+    vector<Candidate> final_candidates;
 
-    for(int line = 0; line < heigth_band; line ++){
+    for(int line = 0; line < height_band; line ++){
 
         read_line_tiff(*net_radiation, net_radiation_line, line);
         read_line_tiff(*soil_heat, soil_heat_line, line);
 
-        ho_fuction(net_radiation_line, soil_heat_line, width_band, ho_line);
+        ho_function(net_radiation_line, soil_heat_line, width_band, ho_line);
 
         read_line_tiff(*ndvi, ndvi_line, line);
         read_line_tiff(*surface_temperature, surface_temperature_line, line);
 
         for(int col = 0; col < width_band; col ++){
-            if(!isnan(ndvi_line[col]) && !isnan(ho_line[col]) && ndvi_line[col] < 0 && surface_temperature_line[col] > 273.16){
+            if(definitelyGreaterThan(ho_line[col], HO_min) && definitelyLessThan(ho_line[col], HO_max) && essentiallyEqual(surface_temperature_line[col], surfaceTempHot)){
+                final_candidates.push_back(Candidate(ndvi_line[col],
+                                    surface_temperature_line[col],
+                                    net_radiation_line[col],
+                                    soil_heat_line[col],
+                                    ho_line[col],
+                                    line, col));
+            }
+        }
+
+    }
+    
+    //Calculate the coefficient of variation, after the extract
+    for(int i = 0; i < final_candidates.size(); i++){
+        final_candidates[i].extract_coefficient_variation(*ndvi);
+    }
+
+    //Choose as candidate the pixel with the minor CV
+    Candidate choosen = final_candidates[0];
+
+    for(int i = 1; i < final_candidates.size(); i++){
+        
+        if(definitelyLessThan(final_candidates[i].coefficient_variation, choosen.coefficient_variation))
+            choosen = final_candidates[i];
+
+    }
+
+    return choosen;
+}
+
+/**
+ * @brief  Select the cold pixel.
+ * @param  ndvi: NDVI TIFF.
+ * @param  surface_temperature: TS TIFF.
+ * @param  net_radiation: Rn TIFF.
+ * @param  soil_heat: G TIFF.
+ * @param  height_band: Band height.
+ * @param  width_band: Band width.
+ * @retval Candidate struct containing the cold pixel.
+ */
+Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_radiation, TIFF** soil_heat, int height_band, int width_band){
+    
+    //Auxiliary arrays
+    double ndvi_line[width_band], surface_temperature_line[width_band];
+    double net_radiation_line[width_band], soil_heat_line[width_band];
+    double ho_line[width_band];
+
+    //Contains the candidates with NDVI less than 0, which surface temperature is greater than 273.16
+    vector<Candidate> pre_candidates;
+
+    for(int line = 0; line < height_band; line ++){
+
+        read_line_tiff(*net_radiation, net_radiation_line, line);
+        read_line_tiff(*soil_heat, soil_heat_line, line);
+
+        ho_function(net_radiation_line, soil_heat_line, width_band, ho_line);
+
+        read_line_tiff(*ndvi, ndvi_line, line);
+        read_line_tiff(*surface_temperature, surface_temperature_line, line);
+
+        for(int col = 0; col < width_band; col ++){
+            if(!isnan(ndvi_line[col]) && !isnan(ho_line[col]) && definitelyLessThan(ndvi_line[col], 0) && definitelyGreaterThan(surface_temperature_line[col], 273.16)){
                 pre_candidates.push_back(Candidate(ndvi_line[col],
                                     surface_temperature_line[col],
                                     net_radiation_line[col],
                                     soil_heat_line[col],
-                                    ho_line[col]));
+                                    ho_line[col],
+                                    line, col));
             }
         }
+
     }
-    
+
+    //Sort the candidates by their temperatures and choose the surface temperature of the hot pixel
     sort(pre_candidates.begin(), pre_candidates.end(), compare_candidate_temperature);
     int pos = floor(0.5 * pre_candidates.size());
-    double surface_temperature_cold_pixel = pre_candidates[pos].temperature;
+    double surfaceTempCold = pre_candidates[pos].temperature;
 
-    vector<Candidate> candidates;
+    //Select only the ones with temperature equals the surface temperature of the Cold pixel
+    vector<double> ho_candidates;
+    Candidate lastHOCandidate;
     for(Candidate c : pre_candidates){
-        if(c.temperature == surface_temperature_cold_pixel)
-            candidates.push_back(c);
+        if(essentiallyEqual(c.temperature, surfaceTempCold)){
+            ho_candidates.push_back(c.ho);
+            lastHOCandidate = c;
+        }
     }
 
-    Candidate choosen;
-    if(candidates.size() == 1){
-        choosen = candidates[0];
-    } else {
-        sort(candidates.begin(), candidates.end(), compare_candidate_ho); 
-        int posmin = floor(0.25 * candidates.size()), posmax = floor(0.75 * candidates.size());
-        choosen = candidates[posmin+1];
+    if(ho_candidates.size() == 1){
+        return lastHOCandidate;
+    }
 
-        for(int i = posmin+2; i < posmax; i++){
-            if(candidates[i].ndvi > choosen.ndvi)
-                choosen = candidates[i];
+    //Select the limits of HOs
+    sort(ho_candidates.begin(), ho_candidates.end());
+    double HO_min = ho_candidates[floor(0.25 * ho_candidates.size())];
+    double HO_max = ho_candidates[floor(0.75 * ho_candidates.size())];
+
+    //Contains the final candidates which HO is in (HO_min, HO_max) and surface temperature is greater than 273.16
+    vector<Candidate> final_candidates;
+
+    for(int line = 0; line < height_band; line ++){
+
+        read_line_tiff(*net_radiation, net_radiation_line, line);
+        read_line_tiff(*soil_heat, soil_heat_line, line);
+
+        ho_function(net_radiation_line, soil_heat_line, width_band, ho_line);
+
+        read_line_tiff(*ndvi, ndvi_line, line);
+        read_line_tiff(*surface_temperature, surface_temperature_line, line);
+
+        for(int col = 0; col < width_band; col ++){
+            if(definitelyGreaterThan(ho_line[col], HO_min) && definitelyLessThan(ho_line[col], HO_max) && essentiallyEqual(surface_temperature_line[col], surfaceTempCold)){
+                final_candidates.push_back(Candidate(ndvi_line[col],
+                                    surface_temperature_line[col],
+                                    net_radiation_line[col],
+                                    soil_heat_line[col],
+                                    ho_line[col],
+                                    line, col));
+            }
         }
+
+    }
+    
+    //Calculate the coefficient of variation, after the extract
+    for(int i = 0; i < final_candidates.size(); i++){
+        final_candidates[i].extract_negative_neighbour(*ndvi);
+    }
+
+    //Choose as candidate the pixel with the minor CV
+    Candidate choosen = final_candidates[0];
+    for(int i = 1; i < final_candidates.size(); i++){
+        if(final_candidates[i].negative_neighbour > choosen.negative_neighbour)
+            choosen = final_candidates[i];
     }
 
     return choosen;
-};
+}
 
+/**
+ * @brief  Computes the momentum roughness length (zom).
+ * @param  A_ZOM: Correlation constant a.
+ * @param  B_ZOM: Correlation constant b.
+ * @param  ndvi_line[]: Array containing the specified line from the NDVI computation.
+ * @param  width_band: Band width.
+ * @param  zom_line[]: Auxiliary array for save the calculated value of zom for the line.
+ */
 void zom_fuction(double A_ZOM, double B_ZOM, double ndvi_line[], int width_band, double zom_line[]){
 
     for(int col = 0; col < width_band; col++)
         zom_line[col] = exp(A_ZOM + B_ZOM * ndvi_line[col]);
 
-}; //zom
+};
 
+/**
+ * @brief  The friction velocity (u*) is computed.
+ * @param  u200: Wind speed at 200 m.
+ * @param  zom_line[]: Array containing the specified line from the zom computation.
+ * @param  width_band: Band width.
+ * @param  ustar_line[]: Auxiliary array for save the calculated value of ustar for the line.
+ */
 void ustar_fuction(double u200, double zom_line[], int width_band, double ustar_line[]){
 
     for(int col = 0; col < width_band; col++)
         ustar_line[col] = (VON_KARMAN * u200)/log(200/zom_line[col]);
 
-}; //ustar
+};
 
-void aerodynamic_resistence_fuction(double ustar_line[], int width_band, double aerodynamic_resistence_line[]){
+/**
+ * @brief  Computes the aerodynamic resistance (Rah).   
+ * @param  ustar_line[]: Array containing the specified line from the ustar computation.
+ * @param  width_band: Band width.
+ * @param  aerodynamic_resistance_line[]: Auxiliary array for save the calculated value of Rah for the line.
+ */
+void aerodynamic_resistance_fuction(double ustar_line[], int width_band, double aerodynamic_resistance_line[]){
 
     for(int col = 0; col < width_band; col++)
-        aerodynamic_resistence_line[col] = log(2/0.1)/(ustar_line[col] * VON_KARMAN);
+        aerodynamic_resistance_line[col] = log(20)/(ustar_line[col] * VON_KARMAN);
 
-}; //rah
+};
 
-void sensible_heat_flux_function(Candidate hot_pixel, Candidate cold_pixel, double u200, double zom_line[], double ustar_line[], double aerodynamic_resistence_line[], double surface_temperature_line[], int width_band, double sensible_heat_flux_line[]){
-    double H_hot = hot_pixel.net_radiation - hot_pixel.soil_heat_flux;
-    double rah_hot0;
-
-    //LINE PIXEL CALCULATION
-    double L[width_band];
-    double y_01_line[width_band], y_2_line[width_band], x_200_line[width_band];
-    double psi_01_line[width_band], psi_2_line[width_band], psi_200_line[width_band];
-    
-    for(unsigned i = 0; i < hot_pixel.aerodynamic_resistance.size(); i++){
-        rah_hot0 = hot_pixel.aerodynamic_resistance[i];
-
-        double dt_hot = (H_hot * rah_hot0)/(RHO * SPECIFIC_HEAT_AIR);
-        double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
-        double a = -b * (cold_pixel.temperature - 273.15);
-
-        for(int col = 0; col < width_band; col++){
-            sensible_heat_flux_line[col] = (RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15)))/aerodynamic_resistence_line[col];
-            double ustar_pow_3 = ustar_line[col] * ustar_line[col] * ustar_line[col];
-            L[col] = -1 * ((RHO * SPECIFIC_HEAT_AIR * ustar_pow_3 * surface_temperature_line[col])/(VON_KARMAN * GRAVITY * sensible_heat_flux_line[col]));
-            
-            y_01_line[col] = pow((1 - 16*0.1/L[col]), 0.25);
-            y_2_line[col] = pow((1 - 16*2/L[col]), 0.25);
-            x_200_line[col] = pow((1 - 16*200/L[col]), 0.25);
-
-            if(!isnan(L[col]) && L[col] > 0) psi_01_line[col] = -5 * (0.1/L[col]);
-            else psi_01_line[col] = 2 * log((1 + y_01_line[col]*y_01_line[col])/2);
-
-            if(!isnan(L[col]) && L[col] > 0) psi_2_line[col] = -5 * (2/L[col]);
-            else psi_2_line[col] = 2 * log((1 + y_2_line[col]*y_2_line[col])/2);
-
-            if(!isnan(L[col]) && L > 0) psi_200_line[col] = -5 * (2/L[col]);
-            else psi_200_line[col] = 2 * log((1 + x_200_line[col])/2) + log((1 + x_200_line[col]*x_200_line[col])/2) - 2 * atan(x_200_line[col]) + 0.5 * PI;
-
-            ustar_line[col] = (VON_KARMAN * u200) / (log(200/zom_line[col]) - psi_200_line[col]);
-            aerodynamic_resistence_line[col] = (log(2/0.1) - psi_2_line[col] + psi_01_line[col])/(ustar_line[col] * VON_KARMAN);
-        }
-        
-    }
-
-    double dt_hot = (H_hot * rah_hot0)/(RHO * SPECIFIC_HEAT_AIR);
-    double b = dt_hot/(hot_pixel.temperature - cold_pixel.temperature);
-    double a = -b * (cold_pixel.temperature - 273.15);
-
-    for(int col = 0; col < width_band; col ++)
-        sensible_heat_flux_line[col] = (RHO * SPECIFIC_HEAT_AIR * (a + b * (surface_temperature_line[col] - 273.15)))/aerodynamic_resistence_line[col];
-
-}; //H
-
+/**
+ * @brief  Computes Latent Heat Flux (LE).  
+ * @param  net_radiation_line[]: Array containing the specified line from the Rn computation.
+ * @param  soil_heat_flux_line[]: Array containing the specified line from the G computation.
+ * @param  sensible_heat_flux_line[]: Array containing the specified line from the H computation.
+ * @param  width_band: Band width.
+ * @param  latent_heat_flux[]: Auxiliary array for save the calculated value of LE for the line.
+ */
 void latent_heat_flux_function(double net_radiation_line[], double soil_heat_flux_line[], double sensible_heat_flux_line[], int width_band, double latent_heat_flux[]){
 
     for(int col = 0; col < width_band; col++)
-        latent_heat_flux[col] = max(net_radiation_line[col] - soil_heat_flux_line[col] - sensible_heat_flux_line[col], 0.0);
+        latent_heat_flux[col] = net_radiation_line[col] - soil_heat_flux_line[col] - sensible_heat_flux_line[col];
 
-}; //LE
+};
 
+/**
+ * @brief  Calculates the Net Radiation for 24 hours (Rn24h).
+ * @param  albedo_line[]: Array containing the specified line from the albedo computation.
+ * @param  Ra24h: Extraterrestrial Radiation defined as solar short wave radiation in the absence of an atmosphere (Ra24h).
+ * @param  Rs24h: Short wave radiation incident in 24 hours (Rs24h).
+ * @param  width_band: Band width.
+ * @param  net_radiation_24h_line[]: Auxiliary array for save the calculated value of Rn24h for the line.
+ */
 void net_radiation_24h_function(double albedo_line[], double Ra24h, double Rs24h, int width_band, double net_radiation_24h_line[]){
     int FL = 110;
 
     for(int col = 0; col < width_band; col++)
         net_radiation_24h_line[col] = (1 - albedo_line[col])*Rs24h - FL * Rs24h/Ra24h;
 
-}; //Rn24h_dB
+};
 
+/**
+ * @brief  The Reference ET Fraction (EF) is computed.
+ * @param  latent_heat_flux_line[]: Array containing the specified line from the LE computation.
+ * @param  net_radiation_line[]: Array containing the specified line from the Rn computation.
+ * @param  soil_heat_line[]: Array containing the specified line from the G computation.
+ * @param  width_band: Band width.
+ * @param  evapotranspiration_fraction_line[]: Auxiliary array for save the calculated value of EF for the line.
+ */
 void evapotranspiration_fraction_fuction(double latent_heat_flux_line[], double net_radiation_line[], double soil_heat_line[], int width_band, double evapotranspiration_fraction_line[]){
 
     for(int col = 0; col < width_band; col++)
         evapotranspiration_fraction_line[col] = latent_heat_flux_line[col]/(net_radiation_line[col] - soil_heat_line[col]);
 
-}; //EF
+};
 
+/**
+ * @brief  Computes Sensible Heat Flux for 24 hours (H24h).
+ * @param  evapotranspiration_fraction_line[]: Array containing the specified line from the EF computation.
+ * @param  net_radiation_24h_line[]: Array containing the specified line from the Rn24h computation.
+ * @param  width_band: Band width.
+ * @param  sensible_heat_flux_24h_line[]: Auxiliary array for save the calculated value of H24h for the line.
+ */
 void sensible_heat_flux_24h_fuction(double evapotranspiration_fraction_line[], double net_radiation_24h_line[], int width_band, double sensible_heat_flux_24h_line[]){
 
     for(int col = 0; col < width_band; col++)
         sensible_heat_flux_24h_line[col] = (1 - evapotranspiration_fraction_line[col]) * net_radiation_24h_line[col];
         
-}; //H24h_dB
+};
 
+/**
+ * @brief  Calculates Latente Heat Flux for 24 hours (LE24h).
+ * @param  evapotranspiration_fraction_line[]: Array containing the specified line from the EF computation.
+ * @param  net_radiation_24h_line[]: Array containing the specified line from the Rn24h computation.
+ * @param  width_band: Band width.
+ * @param  latent_heat_flux_24h_line[]: Auxiliary array for save the calculated value of LE24h for the line.
+ */
 void latent_heat_flux_24h_function(double evapotranspiration_fraction_line[], double net_radiation_24h_line[], int width_band, double latent_heat_flux_24h_line[]){
 
     for(int col = 0; col < width_band; col++)
         latent_heat_flux_24h_line[col] = evapotranspiration_fraction_line[col] * net_radiation_24h_line[col];
         
-}; //LE24h_db
+};
 
+/**
+ * @brief  Computes the Evapotranspiration for 24 hours (ET24h)
+ * @param  latent_heat_flux_24h_line[]: Array containing the specified line from the LE24h computation.
+ * @param  station: Station struct.
+ * @param  width_band: Band width.
+ * @param  evapotranspiration_24h_line[]: Auxiliary array for save the calculated value of ET24h for the line.
+ */
 void evapotranspiration_24h_function(double latent_heat_flux_24h_line[], Station station, int width_band, double evapotranspiration_24h_line[]){
 
     for(int col = 0; col < width_band; col++)
         evapotranspiration_24h_line[col] = (latent_heat_flux_24h_line[col] * 86400)/((2.501 - 0.00236 * (station.v7_max + station.v7_min) / 2) * 1e+6);
 
-}; //ET24h_dB
+};

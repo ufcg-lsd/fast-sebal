@@ -18,7 +18,7 @@ struct PixelReader{
 	PixelReader();
 	PixelReader(uint16 _sampleFormat, uint8 _byteSize,tdata_t _buffer);
 
-	double read_pixel(uint32 colunm);
+	double read_pixel(uint32 column);
 };
 
 PixelReader::PixelReader() {
@@ -33,20 +33,20 @@ PixelReader::PixelReader(uint16 _sampleFormat, uint8 _byteSize, tdata_t _buffer)
 	buffer = _buffer;
 };
 
-double PixelReader::read_pixel(uint32 colunm){
+double PixelReader::read_pixel(uint32 column){
 	double ret = 0;
 	switch(sampleFormat){
 		case 1:
 			{
 				uint64 value = 0;
-				memcpy(&value, buffer + (colunm * byteSize), byteSize);
+				memcpy(&value, buffer + (column * byteSize), byteSize);
 				ret = value;
 			}
 			break;
 		case 2:
 			{
 				int64 value = 0;
-				memcpy(&value, buffer + (colunm * byteSize), byteSize);
+				memcpy(&value, buffer + (column * byteSize), byteSize);
 				ret = value;
 			}
 			break;
@@ -55,21 +55,21 @@ double PixelReader::read_pixel(uint32 colunm){
 				case 4:
 					{
 						float value = 0;
-						memcpy(&value, buffer + (colunm * byteSize), byteSize);
+						memcpy(&value, buffer + (column * byteSize), byteSize);
 						ret = value;
 					}
 					break;
 				case 8:
 					{
 						double value = 0;
-						memcpy(&value, buffer + (colunm * byteSize), byteSize);
+						memcpy(&value, buffer + (column * byteSize), byteSize);
 						ret = value;
 					}
 					break;
 				case 16:
 					{
 						long double value = 0;
-						memcpy(&value, buffer + (colunm * byteSize), byteSize);
+						memcpy(&value, buffer + (column * byteSize), byteSize);
 						ret = value;
 					}
 					break;
@@ -106,12 +106,12 @@ void setup(TIFF* new_tif, TIFF* base_tif){
 };
 
 void converter_tif(string base_tif_path, string output_tif_path, double mask = 0.0){
-    uint32 heigth_band, width_band;
+    uint32 height_band, width_band;
     uint16 sample_band;
 
     TIFF *base = TIFFOpen(base_tif_path.c_str(), "rm");
     TIFFGetField(base, TIFFTAG_IMAGEWIDTH, &width_band);
-    TIFFGetField(base, TIFFTAG_IMAGELENGTH, &heigth_band);
+    TIFFGetField(base, TIFFTAG_IMAGELENGTH, &height_band);
     TIFFGetField(base, TIFFTAG_SAMPLEFORMAT, &sample_band);
 
     TIFF *output = TIFFOpen(output_tif_path.c_str(), "w8m");
@@ -125,7 +125,7 @@ void converter_tif(string base_tif_path, string output_tif_path, double mask = 0
     line_band = _TIFFmalloc(TIFFScanlineSize(base));
     pixel_read_band = PixelReader(sample_band, byte_size_band, line_band);
 
-    for(int line = 0; line < heigth_band; line ++){
+    for(int line = 0; line < height_band; line ++){
         if(TIFFReadScanline(base, line_band, line) < 0){
             cerr << "Read problem" << endl;
             exit(3);

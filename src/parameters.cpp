@@ -1,5 +1,8 @@
 #include "parameters.h"
 
+/**
+ * @brief  Empty constructor. Setting all attributes to 0.
+ */
 MTL::MTL(){
     this->number_sensor = 0;
     this->julian_day = 0;
@@ -9,6 +12,10 @@ MTL::MTL(){
     this->rad_mult_10 = 0;
 };
 
+/**
+ * @brief  Constructor receiving the metadata path.
+ * @param  metadata_path: Metadata file path.
+ */
 MTL::MTL(string metadata_path){
     map<string, string> mtl;
 
@@ -58,11 +65,22 @@ MTL::MTL(string metadata_path){
     }
 };
 
+/**
+ * @brief  Constructor.
+ * @param  number_sensor: Number of the satellite sensor.
+ * @param  year: Year of image.
+ */
 Sensor::Sensor(int number_sensor, int year){
     string sensor_path = capture_parameter_path(number_sensor, year);
     load_parameter_values(sensor_path);
 }
 
+/**
+ * @brief  Get the path of the correct sensor parameters based on his number.
+ * @param  number_sensor: Number of the satellite sensor.
+ * @param  year: Year of image. 
+ * @retval Path to sensor parameter file.
+ */
 string Sensor::capture_parameter_path(int number_sensor, int year){
     switch(number_sensor){
         case 8:
@@ -83,6 +101,10 @@ string Sensor::capture_parameter_path(int number_sensor, int year){
     }
 }
 
+/**
+ * @brief  Loads the sensor parameters.
+ * @param  sensor_path: Path to sensor parameter file.
+ */
 void Sensor::load_parameter_values(string sensor_path){
     ifstream in(sensor_path);
     if(!in.is_open() || !in) {
@@ -107,10 +129,18 @@ void Sensor::load_parameter_values(string sensor_path){
     in.close();
 };
 
+/**
+ * @brief  Empty constructor. Set temperature_image to 0.
+ */
 Station::Station(){
     this->temperature_image = 0;
 };
 
+/**
+ * @brief  Constructor.
+ * @param  station_data_path: Weather station data file.
+ * @param  image_hour: Image hour.
+ */
 Station::Station(string station_data_path, double image_hour){
     ifstream in(station_data_path);
     if(!in.is_open() || !in){
