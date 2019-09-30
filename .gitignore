@@ -1,6 +1,7 @@
 input*
 wrs2_asc_desc
 run
+test/barplot.R
 shapes/
 diff
 conv
