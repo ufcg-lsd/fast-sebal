@@ -5,5 +5,28 @@ rm -f run
 rm -rf *.o
 rm -rf src/*.o
 g++ -o run src/candidate.cpp src/products.cpp src/parameters.cpp src/landsat.cpp src/utils.cpp src/main.cpp src/pixel_reader.cpp -std=c++14 -ltiff
-itallo    9584  0.0  0.0  30924  8500 pts/6    R    15:25   0:00 ./run input/_B2_converted.tif input/_B3_converted.tif input/_B4_converted.tif input/_B5_converted.tif input/_B6_converted.tif input/_B7_converted.tif input/_B10_converted.tif input/MTL.txt input/tal_converted.tif input/station.csv DataExecution/execution1 -dist=0.98330
-itallo    9587  0.0  0.0  14228   932 pts/6    S    15:25   0:00 grep 9584
+geoclue   1755  0.0  0.0 328544  9196 ?        Ssl  15:32   0:00 /usr/lib/geoclue-2.0/geoclue -t 5
+itallo    3285  0.0  0.0  29460  6112 pts/3    D    15:34   0:00 ./run input/_B2_converted.tif input/_B3_converted.tif input/_B4_converted.tif input/_B5_converted.tif input/_B6_converted.tif input/_B7_converted.tif input/_B10_converted.tif input/MTL.txt input/tal_converted.tif input/station.csv DataExecution/execution1 -dist=0.98330
+itallo    3288  0.0  0.0  14228   936 pts/3    S    15:34   0:00 grep 3285
+Execution finished
+Tarzing TIFs
+Completing 1th experiment
+Executing 2th experiment
+Output repository created and starting execution
+rm -f run
+rm -rf *.o
+rm -rf src/*.o
+g++ -o run src/candidate.cpp src/products.cpp src/parameters.cpp src/landsat.cpp src/utils.cpp src/main.cpp src/pixel_reader.cpp -std=c++14 -ltiff
+itallo    5149  0.0  0.0  30920  8540 pts/3    R    15:36   0:00 ./run input/_B2_converted.tif input/_B3_converted.tif input/_B4_converted.tif input/_B5_converted.tif input/_B6_converted.tif input/_B7_converted.tif input/_B10_converted.tif input/MTL.txt input/tal_converted.tif input/station.csv DataExecution/execution2 -dist=0.98330
+itallo    5152  0.0  0.0  14228  1012 pts/3    S    15:36   0:00 grep 5149
+Execution finished
+Tarzing TIFs
+Completing 2th experiment
+Executing 3th experiment
+Output repository created and starting execution
+rm -f run
+rm -rf *.o
+rm -rf src/*.o
+g++ -o run src/candidate.cpp src/products.cpp src/parameters.cpp src/landsat.cpp src/utils.cpp src/main.cpp src/pixel_reader.cpp -std=c++14 -ltiff
+itallo    6025  0.0  0.0  30916  8480 pts/3    R    15:37   0:00 ./run input/_B2_converted.tif input/_B3_converted.tif input/_B4_converted.tif input/_B5_converted.tif input/_B6_converted.tif input/_B7_converted.tif input/_B10_converted.tif input/MTL.txt input/tal_converted.tif input/station.csv DataExecution/execution3 -dist=0.98330
+itallo    6028  0.0  0.0  14228   928 pts/3    S    15:37   0:00 grep 6025
