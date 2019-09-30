@@ -1,0 +1,9 @@
+g++ -o run src/candidate.cpp src/products.cpp src/parameters.cpp src/landsat.cpp src/utils.cpp src/main.cpp src/pixel_reader.cpp -std=c++14 -ltiff
+Executing 1th experiment
+Output repository created and starting execution
+rm -f run
+rm -rf *.o
+rm -rf src/*.o
+g++ -o run src/candidate.cpp src/products.cpp src/parameters.cpp src/landsat.cpp src/utils.cpp src/main.cpp src/pixel_reader.cpp -std=c++14 -ltiff
+itallo    9584  0.0  0.0  30924  8500 pts/6    R    15:25   0:00 ./run input/_B2_converted.tif input/_B3_converted.tif input/_B4_converted.tif input/_B5_converted.tif input/_B6_converted.tif input/_B7_converted.tif input/_B10_converted.tif input/MTL.txt input/tal_converted.tif input/station.csv DataExecution/execution1 -dist=0.98330
+itallo    9587  0.0  0.0  14228   932 pts/6    S    15:25   0:00 grep 9584
