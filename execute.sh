@@ -1,10 +1,11 @@
 #!/bin/bash
 
-OUTPUT_PATH=$1
+INPUT_PATH=$1
+OUTPUT_PATH=$2
 
 make clean
 make
-./run input/_B2_converted.tif input/_B3_converted.tif input/_B4_converted.tif input/_B5_converted.tif input/_B6_converted.tif input/_B7_converted.tif input/_B10_converted.tif input/MTL.txt input/tal_converted.tif input/station.csv $OUTPUT_PATH -dist=0.98330 > $OUTPUT_PATH/out.txt &
+./run $INPUT_PATH/_B2_converted.tif $INPUT_PATH/_B3_converted.tif $INPUT_PATH/_B4_converted.tif $INPUT_PATH/_B5_converted.tif $INPUT_PATH/_B6_converted.tif $INPUT_PATH/_B7_converted.tif $INPUT_PATH/_B10_converted.tif $INPUT_PATH/MTL.txt $INPUT_PATH/tal_converted.tif $INPUT_PATH/station.csv $OUTPUT_PATH -dist=0.98330 > $OUTPUT_PATH/out.txt &
 PID=$(pidof ./run)
 ps -aux | grep $PID
 sh scripts/collect-cpu-usage.sh $PID > $OUTPUT_PATH/cpu.csv &

@@ -1,3 +1,5 @@
+scripts/*.png
+scripts/*.csv
 DataExecution/
 input*
 wrs2_asc_desc
