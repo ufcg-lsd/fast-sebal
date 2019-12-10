@@ -364,7 +364,12 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     double ho_line[width_band];
 
     //Contains the candidates with NDVI between 0.15 and 0.20, which surface temperature is greater than 273.16
-    vector<Candidate> pre_candidates;
+    //vector<Candidate> pre_candidates;
+    const int MAXZ = 5000000;
+	Candidate* pre_candidates;
+	pre_candidates = (Candidate*) malloc(MAXZ * sizeof(Candidate));
+    int valid = 0;
+
     begin = chrono::steady_clock::now();
     //printf("PHASE 2 - PSH NDVI FILTER BEGIN, %d\n", int(time(NULL)));
     for(int line = 0; line < height_band; line ++){
@@ -378,12 +383,14 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
 
         for(int col = 0; col < width_band; col ++){
             if(!isnan(ndvi_line[col]) && definitelyGreaterThan(ndvi_line[col], 0.15) && definitelyLessThan(ndvi_line[col], 0.20) && definitelyGreaterThan(surface_temperature_line[col], 273.16)){
-                pre_candidates.push_back(Candidate(ndvi_line[col],
+                pre_candidates[valid] = Candidate(ndvi_line[col],
                                     surface_temperature_line[col],
                                     net_radiation_line[col],
                                     soil_heat_line[col],
                                     ho_line[col],
-                                    line, col));
+                                    line, col);
+                
+                valid++;
             }
         }
 
@@ -395,11 +402,11 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     begin = chrono::steady_clock::now();
 	//printf("PHASE 2 - PSH SORT BY TEMP BEGIN, %d\n", int(time(NULL)));
     //Sort the candidates by their temperatures and choose the surface temperature of the hot pixel
-    sort(pre_candidates.begin(), pre_candidates.end(), compare_candidate_temperature);
+    sort(pre_candidates, pre_candidates + valid, compare_candidate_temperature);
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
     printf("PHASE 2 - PSH SORT BY TEMP DURATION, %.5f\n", time_span_us);
-    int pos = floor(0.95 * pre_candidates.size());
+    int pos = floor(0.95 * valid);
     double surfaceTempHot = pre_candidates[pos].temperature;
 
     begin = chrono::steady_clock::now();
@@ -407,12 +414,14 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     //Select only the ones with temperature equals the surface temperature of the hot pixel
     vector<double> ho_candidates;
     Candidate lastHOCandidate;
-    for(Candidate c : pre_candidates){
-        if(essentiallyEqual(c.temperature, surfaceTempHot)){
-            ho_candidates.push_back(c.ho);
-            lastHOCandidate = c;
+    for(int i = 0; i < valid; i++){
+        if(essentiallyEqual(pre_candidates[i].temperature, surfaceTempHot)){
+            ho_candidates.push_back(pre_candidates[i].ho);
+            lastHOCandidate = pre_candidates[i];
         }
     }
+
+    free(pre_candidates);
 
     if(ho_candidates.size() == 1){
         return lastHOCandidate;
@@ -507,7 +516,12 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     double ho_line[width_band];
 
     //Contains the candidates with NDVI less than 0, which surface temperature is greater than 273.16
-    vector<Candidate> pre_candidates;
+    //vector<Candidate> pre_candidates;
+    const int MAXZ = 5000000;
+	Candidate* pre_candidates;
+	pre_candidates = (Candidate*) malloc(MAXZ * sizeof(Candidate));
+    int valid = 0;
+
     begin = chrono::steady_clock::now();
     //printf("PHASE 2 - PSC NDVI FILTER BEGIN, %d\n", int(time(NULL)));
     for(int line = 0; line < height_band; line ++){
@@ -522,12 +536,14 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
 
         for(int col = 0; col < width_band; col ++){
             if(!isnan(ndvi_line[col]) && !isnan(ho_line[col]) && definitelyLessThan(ndvi_line[col], 0) && definitelyGreaterThan(surface_temperature_line[col], 273.16)){
-                pre_candidates.push_back(Candidate(ndvi_line[col],
+                pre_candidates[valid] = Candidate(ndvi_line[col],
                                     surface_temperature_line[col],
                                     net_radiation_line[col],
                                     soil_heat_line[col],
                                     ho_line[col],
-                                    line, col));
+                                    line, col);
+
+                valid++;
             }
         }
 
@@ -539,11 +555,11 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     begin = chrono::steady_clock::now();
 	//printf("PHASE 2 - PSC SORT BY TEMP BEGIN, %d\n", int(time(NULL)));
     //Sort the candidates by their temperatures and choose the surface temperature of the hot pixel
-    sort(pre_candidates.begin(), pre_candidates.end(), compare_candidate_temperature);
+    sort(pre_candidates, pre_candidates + valid, compare_candidate_temperature);
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
     printf("PHASE 2 - PSC SORT BY TEMP DURATION, %.5f\n", time_span_us);
-    int pos = floor(0.5 * pre_candidates.size());
+    int pos = floor(0.5 * valid);
     double surfaceTempCold = pre_candidates[pos].temperature;
 
     begin = chrono::steady_clock::now();
@@ -551,12 +567,14 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     //Select only the ones with temperature equals the surface temperature of the Cold pixel
     vector<double> ho_candidates;
     Candidate lastHOCandidate;
-    for(Candidate c : pre_candidates){
-        if(essentiallyEqual(c.temperature, surfaceTempCold)){
-            ho_candidates.push_back(c.ho);
-            lastHOCandidate = c;
+    for(int i = 0; i < valid; i++){
+        if(essentiallyEqual(pre_candidates[i].temperature, surfaceTempCold)){
+            ho_candidates.push_back(pre_candidates[i].ho);
+            lastHOCandidate = pre_candidates[i];
         }
     }
+
+    free(pre_candidates);
 
     if(ho_candidates.size() == 1){
         return lastHOCandidate;
