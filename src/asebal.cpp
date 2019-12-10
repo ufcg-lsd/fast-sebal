@@ -24,6 +24,8 @@ void quartile(TIFF** target, double* vQuartile){
 
     }
 
+    sort(target_values, target_values + SIZE);
+
     //First quartile
     vQuartile[0] = target_values[int(floor(0.25 * SIZE))];
 
