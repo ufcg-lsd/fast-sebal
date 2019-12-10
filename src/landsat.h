@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "products.h"
 #include "parameters.h"
+#include "asebal.h"
 
 /**
  * @brief  Struct to manage the products calculation.
