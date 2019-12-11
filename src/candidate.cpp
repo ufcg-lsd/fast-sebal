@@ -17,6 +17,20 @@ Candidate::Candidate(){
     this->ustar = 0;
 }
 
+Candidate::Candidate(const Candidate& c){
+    this->ndvi = c.ndvi;
+    this->temperature = c.temperature;
+    this->net_radiation = c.net_radiation;
+    this->soil_heat_flux = c.soil_heat_flux;
+    this->ho = c.ho;
+    this->line = c.line;
+    this->col = c.col;
+    this->negative_neighbour = c.negative_neighbour;
+    this->coefficient_variation = c.coefficient_variation;
+    this->zom = c.zom;
+    this->ustar = c.ustar;
+};
+
 /**
  * @brief  Constructor with initialization values to attributes.
  * @param  ndvi: Pixel's NDVI.
@@ -143,8 +157,8 @@ void Candidate::toString(){
     printf("HO: %.10lf\n", this->ho);
     printf("Negative neighbour: %d\n", this->negative_neighbour);
     printf("Coefficient variation: %.10lf\n", this->coefficient_variation);
-    printf("Line: %d", this->line);
-    printf("Col: %d", this->col);
+    printf("Line: %d\n", this->line);
+    printf("Col: %d\n", this->col);
     
     if(this->aerodynamic_resistance.size() > 0){
         printf("Aerodynamic resistance:\n");

@@ -19,6 +19,8 @@ struct Candidate{
 	 */
 	Candidate();
 
+	Candidate(const Candidate& c);
+
 	/**
 	 * @brief  Constructor with initialization values to attributes.
 	 * @param  ndvi: Pixel's NDVI.

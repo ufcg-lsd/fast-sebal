@@ -48,6 +48,7 @@ int main(int argc, char *argv[]){
     for(int i = 1; i < 8; i++){
         string path_tiff_base = argv[i];
         bands_resampled[i] = TIFFOpen(path_tiff_base.c_str(), "rm");
+        TIFFSetField(bands_resampled[i], 42113, NaN);
         check_open_tiff(bands_resampled[i]);
     }
 
