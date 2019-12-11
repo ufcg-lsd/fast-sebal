@@ -11,7 +11,7 @@ Landsat::Landsat(){
  * @param  tal_path: Path to tal TIFF.
  * @param  output_path: Output path where TIFF should be saved.
  */
-Landsat::Landsat(string tal_path, string output_path){
+Landsat::Landsat(string tal_path, string output_path, double noData){
     this->tal_path = tal_path;
     this->output_path = output_path;
 
@@ -36,6 +36,7 @@ Landsat::Landsat(string tal_path, string output_path){
     this->latent_heat_flux_path = output_path + "/LatentHF.tif";
     this->net_radiation_24h_path = output_path + "/Rn24h.tif";
     this->latent_heat_flux_24h_path = output_path + "/LatentHF24h.tif";
+    this->noData = noData;
 };
 
 /**
@@ -76,8 +77,8 @@ void Landsat::process_partial_products(TIFF* read_bands[], MTL mtl, Station stat
 
     //Calculating the partial products for each line
     for(int line = 0; line < height_band; line ++){
-        radiance_function(read_bands, mtl, sensor, width_band, line, radiance_line);
-        reflectance_function(read_bands, mtl, sensor, radiance_line, width_band, line, reflectance_line);
+        radiance_function(read_bands, mtl, sensor, width_band, line, radiance_line, this->noData);
+        reflectance_function(read_bands, mtl, sensor, radiance_line, width_band, line, reflectance_line, this->noData);
 
         read_line_tiff(tal, tal_line, line);
 

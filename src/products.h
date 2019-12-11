@@ -15,7 +15,7 @@
  * @param  line: Line to be calculated.
  * @param  radiance_line[][8]: Auxiliary array for save the calculated value of radiance for each band.
  */
-void radiance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, int width_band, int line, double radiance_line[][8]);
+void radiance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, int width_band, int line, double radiance_line[][8], double noData);
 
 /**
  * @brief  The reflectivity for each band (ρλ) is computed (model F02). 
@@ -27,7 +27,7 @@ void radiance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, int width_ban
  * @param  line: Line to be calculated.
  * @param  reflectance_line[][8]: Auxiliary array for save the calculated value of reflectance for each band.
  */
-void reflectance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, double radiance_line[][8], int width_band, int line, double reflectance_line[][8]);
+void reflectance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, double radiance_line[][8], int width_band, int line, double reflectance_line[][8], double noData);
 
 /**
  * @brief  The surface albedo is computed.

@@ -21,6 +21,7 @@ struct Landsat{
     string zom_path, ustar_path, aerodynamic_resistance_path, sensible_heat_flux_path;
     string ustar_tif0_path, ustar_tif1_path, aerodynamic_resistance_tif0_path, aerodynamic_resistance_tif1_path;
     string latent_heat_flux_path, net_radiation_24h_path, latent_heat_flux_24h_path;
+    double noData;
 
     /**
      * @brief  Empty constructor.
@@ -32,7 +33,7 @@ struct Landsat{
      * @param  tal_path: Path to tal TIFF.
      * @param  output_path: Output path where TIFF should be saved.
      */
-    Landsat(string tal_path, string output_path);
+    Landsat(string tal_path, string output_path, double noData);
 
 	/**
 	 * @brief  Calculates the partials products (e. g. Albedo, NDVI, Rn, G) of the SEBAL execution.

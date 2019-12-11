@@ -41,6 +41,13 @@ int main(int argc, char *argv[]){
         if(dist_flag.substr(0, 6) == "-dist=")
             mtl.distance_earth_sun = atof(dist_flag.substr(6, dist_flag.size()).c_str());
     }
+
+    double noData = NaN;
+    if(argc == 14){
+        string noData_flag = argv[13];
+        if(noData_flag.substr(0,5) == "-nan=")
+            noData = atof(noData_flag.substr(5, noData_flag.size()).c_str());
+    }
     
     string tal_path = argv[9];
 
@@ -48,7 +55,6 @@ int main(int argc, char *argv[]){
     for(int i = 1; i < 8; i++){
         string path_tiff_base = argv[i];
         bands_resampled[i] = TIFFOpen(path_tiff_base.c_str(), "rm");
-        TIFFSetField(bands_resampled[i], 42113, NaN);
         check_open_tiff(bands_resampled[i]);
     }
 
@@ -56,7 +62,7 @@ int main(int argc, char *argv[]){
     chrono::steady_clock::time_point begin, end;
     chrono::duration< double, micro > time_span_us;
 
-    Landsat landsat = Landsat(tal_path, output_path);
+    Landsat landsat = Landsat(tal_path, output_path, noData);
     //printf("PHASE 1 - START, %d\n", int(time(NULL)));
     begin = chrono::steady_clock::now();
     landsat.process_partial_products(bands_resampled, mtl, station, sensor);

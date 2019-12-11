@@ -38,8 +38,6 @@ void quartile(TIFF* target, double* vQuartile, int height_band, int width_band){
     //Fourth quartile
     vQuartile[3] = target_values[pos-1];
 
-    printf("%.3f %.3f %.3f %.3f\n", vQuartile[0], vQuartile[1], vQuartile[2], vQuartile[3]);
-
     free(target_values);
 
 }
@@ -80,7 +78,7 @@ Candidate getHotPixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** albedo, TI
         for(int col = 0; col < width_band; col++){
 
             bool albedoValid = !isnan(albedo_line[col]) && albedo_line[col] > albedoQuartile[2];
-            bool ndviValid = !isnan(ndvi_line[col]) && ndvi_line[col] < ndviQuartile[0]; //ndvi_line[col] > 0.10 && 
+            bool ndviValid = !isnan(ndvi_line[col]) && ndvi_line[col] > 0.10 && ndvi_line[col] < ndviQuartile[0]; 
             bool tsValid = !isnan(surface_temperature_line[col]) && surface_temperature_line[col] > tsQuartile[2];
 
             if(albedoValid && ndviValid && tsValid){
@@ -106,8 +104,6 @@ Candidate getHotPixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** albedo, TI
     free(ndviQuartile);
     free(tsQuartile);
     free(albedoQuartile);
-
-    hotPixel.toString();
 
     return hotPixel;
 }
@@ -147,14 +143,6 @@ Candidate getColdPixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** albedo, T
 
             if(albedoValid && ndviValid && tsValid){
 
-                // printf("NDVI: %.10lf\n", ndvi_line[col]);
-                // printf("TS: %.10lf\n", surface_temperature_line[col]);
-                // printf("Rn: %.10lf\n", net_radiation_line[col]);
-                // printf("G: %.10lf\n", soil_heat_line[col]);
-                // printf("HO: %.10lf\n", ho_line[col]);
-                // printf("Line: %d\n", line);
-                // printf("Col: %d\n", col);
-
                 candidatesGroupI.push_back(Candidate(ndvi_line[col],
                                     surface_temperature_line[col],
                                     net_radiation_line[col],
@@ -162,36 +150,22 @@ Candidate getColdPixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** albedo, T
                                     ho_line[col],
                                     line, col));
 
-                //candidatesGroupI[candidatesGroupI.size()-1].toString();
             }
         }
 
     }
-    std::cout << "GROUP1: " << candidatesGroupI.size() << std::endl;
+    
     //Creating second pixel group, all pixels with values higher than the 1 st quartile are excluded
     sort(candidatesGroupI.begin(), candidatesGroupI.end(), compare_candidate_temperature);
-
-    // for(unsigned int i = 0; i < candidatesGroupI.size(); i++) {
-
-    //     candidatesGroupI[i].toString();
-
-    // }
     unsigned int pos = int(floor(candidatesGroupI.size() * 0.25));
     vector<Candidate> candidatesGroupII(candidatesGroupI.begin(), candidatesGroupI.begin() + pos);
-    std::cout << "GROUP2: " << candidatesGroupII.size() << std::endl;
-    // for(unsigned int i = 0; i < candidatesGroupII.size(); i++) {
-
-    //     candidatesGroupII[i].toString();
-
-    // }
+   
     pos = int(floor(candidatesGroupII.size() * 0.5));
     Candidate coldPixel = candidatesGroupII[pos];
 
     free(ndviQuartile);
     free(tsQuartile);
     free(albedoQuartile);
-
-    coldPixel.toString();
 
     return coldPixel;
 }

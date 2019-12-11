@@ -9,20 +9,20 @@
  * @param  line: Line to be calculated.
  * @param  radiance_line[][8]: Auxiliary array for save the calculated value of radiance for each band.
  */
-void radiance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, int width_band, int line, double radiance_line[][8]){
+void radiance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, int width_band, int line, double radiance_line[][8], double noData){
     double line_band[width_band];
 
     if (mtl.number_sensor == 8){
         read_line_tiff(read_bands[7], line_band, line);
         for (int col = 0; col < width_band; col++) {
-            radiance_line[col][7] = line_band[col] != -3.39999995214436425e+38 ? line_band[col] * mtl.rad_mult_10 + mtl.rad_add_10 : NaN;
+            radiance_line[col][7] = line_band[col] != noData ? line_band[col] * mtl.rad_mult_10 + mtl.rad_add_10 : NaN;
         }
     }
     else{
         for (int i = 1; i < 8; i++){
             read_line_tiff(read_bands[i], line_band, line);
             for (int col = 0; col < width_band; col++)
-                radiance_line[col][i] = min(line_band[col] != -3.39999995214436425e+38 ? line_band[col] * sensor.parameters[i][sensor.GRESCALE] + sensor.parameters[i][sensor.BRESCALE] : NaN, 0.0);
+                radiance_line[col][i] = min(line_band[col] != noData ? line_band[col] * sensor.parameters[i][sensor.GRESCALE] + sensor.parameters[i][sensor.BRESCALE] : NaN, 0.0);
         }
     }
 
@@ -38,17 +38,17 @@ void radiance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, int width_ban
  * @param  line: Line to be calculated.
  * @param  reflectance_line[][8]: Auxiliary array for save the calculated value of reflectance for each band.
  */
-void reflectance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, double radiance_line[][8], int width_band, int line, double reflectance_line[][8]){
+void reflectance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, double radiance_line[][8], int width_band, int line, double reflectance_line[][8], double noData){
     double costheta = sin(mtl.sun_elevation * PI / 180);
     double line_band[width_band];
-
+    //-3.39999995214436425e+38
     for (int i = 1; i < 8; i++){
         read_line_tiff(read_bands[i], line_band, line);
         for (int col = 0; col < width_band; col++){
             if (mtl.number_sensor == 8)
-                reflectance_line[col][i] = line_band[col] != -3.39999995214436425e+38 ? (line_band[col] * sensor.parameters[i][sensor.GRESCALE] + sensor.parameters[i][sensor.BRESCALE]) / costheta : NaN;
+                reflectance_line[col][i] = line_band[col] != noData ? (line_band[col] * sensor.parameters[i][sensor.GRESCALE] + sensor.parameters[i][sensor.BRESCALE]) / costheta : NaN;
             else
-                reflectance_line[col][i] = line_band[col] != -3.39999995214436425e+38 ? (PI * radiance_line[col][i] * mtl.distance_earth_sun * mtl.distance_earth_sun) /
+                reflectance_line[col][i] = line_band[col] != noData ? (PI * radiance_line[col][i] * mtl.distance_earth_sun * mtl.distance_earth_sun) /
                                            (sensor.parameters[i][sensor.ESUN] * costheta) : NaN;
         }
     }
