@@ -13,26 +13,34 @@ void quartile(TIFF* target, double* vQuartile, int height_band, int width_band){
 
         for(int col = 0; col < width_band; col++){
 
-            target_values[pos] = target_line[col];
-            pos++;
+            if(!isnan(target_line[col]) && !isinf(target_line[col])) {
+
+                target_values[pos] = target_line[col];
+                pos++;
+
+            }
 
         }
 
     }
 
-    sort(target_values, target_values + SIZE);
+    sort(target_values, target_values + pos);
 
     //First quartile
-    vQuartile[0] = target_values[int(floor(0.25 * SIZE))];
+    vQuartile[0] = target_values[int(floor(0.25 * pos))];
 
     //Second quartile
-    vQuartile[1] = target_values[int(floor(0.5 * SIZE))];
+    vQuartile[1] = target_values[int(floor(0.5 * pos))];
 
     //Third quartile
-    vQuartile[2] = target_values[int(floor(0.75 * SIZE))];
+    vQuartile[2] = target_values[int(floor(0.75 * pos))];
 
     //Fourth quartile
-    vQuartile[3] = target_values[SIZE-1];
+    vQuartile[3] = target_values[pos-1];
+
+    printf("%.3f %.3f %.3f %.3f/n", vQuartile[0], vQuartile[1], vQuartile[2], vQuartile[3]);
+
+    free(target_values);
 
 }
 
@@ -54,9 +62,8 @@ Candidate getHotPixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** albedo, TI
     double* albedoQuartile = (double*) malloc(sizeof(double) * 4);
 
     quartile(*ndvi, ndviQuartile, height_band, width_band);
-    quartile(*surface_temperature, ndviQuartile, height_band, width_band);
-    quartile(*albedo, ndviQuartile, height_band, width_band);
-
+    quartile(*surface_temperature, tsQuartile, height_band, width_band);
+    quartile(*albedo, albedoQuartile, height_band, width_band);
     //Creating first pixel group
     vector<Candidate> candidatesGroupI;
 
@@ -68,21 +75,30 @@ Candidate getHotPixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** albedo, TI
 
         read_line_tiff(*ndvi, ndvi_line, line);
         read_line_tiff(*surface_temperature, surface_temperature_line, line);
-        read_line_tiff(*albedo, albedo, line);
+        read_line_tiff(*albedo, albedo_line, line);
 
-        for(int col = 0; col < width_band; col ++){
+        for(int col = 0; col < width_band; col++){
 
             bool albedoValid = !isnan(albedo_line[col]) && albedo_line[col] > albedoQuartile[2];
             bool ndviValid = !isnan(ndvi_line[col]) && ndvi_line[col] > 0.10 && ndvi_line[col] < ndviQuartile[0];
             bool tsValid = !isnan(surface_temperature_line[col]) && surface_temperature_line[col] > tsQuartile[2];
 
             if(albedoValid && ndviValid && tsValid){
+
+                printf("NDVI: %.10lf\n", ndvi_line[col]);
+                printf("TS: %.10lf\n", surface_temperature_line[col]);
+                printf("Rn: %.10lf\n", net_radiation_line[col]);
+                printf("G: %.10lf\n", soil_heat_line[col]);
+                printf("HO: %.10lf\n", ho_line[col]);
+                printf("Line: %d", line);
+                printf("Col: %d", col);
+
                 candidatesGroupI.push_back(Candidate(ndvi_line[col],
-                                    surface_temperature_line[col],
-                                    net_radiation_line[col],
-                                    soil_heat_line[col],
-                                    ho_line[col],
-                                    line, col));
+                                           surface_temperature_line[col],
+                                           net_radiation_line[col],
+                                           soil_heat_line[col],
+                                           ho_line[col],
+                                           line, col));
             }
         }
 
@@ -95,6 +111,11 @@ Candidate getHotPixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** albedo, TI
 
     pos = int(floor(candidatesGroupII.size() * 0.5));
     Candidate hotPixel = candidatesGroupII[pos];
+
+    free(ndviQuartile);
+    free(tsQuartile);
+    free(albedoQuartile);
+
     return hotPixel;
 }
 
@@ -109,8 +130,8 @@ Candidate getColdPixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** albedo, T
     double* albedoQuartile = (double*) malloc(sizeof(double) * 4);
 
     quartile(*ndvi, ndviQuartile, height_band, width_band);
-    quartile(*surface_temperature, ndviQuartile, height_band, width_band);
-    quartile(*albedo, ndviQuartile, height_band, width_band);
+    quartile(*surface_temperature, tsQuartile, height_band, width_band);
+    quartile(*albedo, albedoQuartile, height_band, width_band);
 
     //Creating first pixel group
     vector<Candidate> candidatesGroupI;
@@ -150,5 +171,10 @@ Candidate getColdPixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** albedo, T
 
     pos = int(floor(candidatesGroupII.size() * 0.5));
     Candidate coldPixel = candidatesGroupII[pos];
+
+    free(ndviQuartile);
+    free(tsQuartile);
+    free(albedoQuartile);
+
     return coldPixel;
 }
