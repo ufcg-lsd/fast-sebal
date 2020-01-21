@@ -491,6 +491,9 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
     printf("PHASE 2 - PSH FINAL DURATION, %.5f\n", time_span_us);
+
+    choosen.toString();
+
     return choosen;
 }
 
@@ -577,6 +580,9 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     free(pre_candidates);
 
     if(ho_candidates.size() == 1){
+
+        lastHOCandidate.toString();
+
         return lastHOCandidate;
     }
 
@@ -641,6 +647,9 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
     printf("PHASE 2 - PSC FINAL DURATION, %.5f\n", time_span_us);
+
+    choosen.toString();
+
     return choosen;
 }
 

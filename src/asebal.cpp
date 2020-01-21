@@ -105,6 +105,8 @@ Candidate getHotPixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** albedo, TI
     free(tsQuartile);
     free(albedoQuartile);
 
+    hotPixel.toString();
+
     return hotPixel;
 }
 
@@ -166,6 +168,8 @@ Candidate getColdPixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** albedo, T
     free(ndviQuartile);
     free(tsQuartile);
     free(albedoQuartile);
+
+    coldPixel.toString();
 
     return coldPixel;
 }
