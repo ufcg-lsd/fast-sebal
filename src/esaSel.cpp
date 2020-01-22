@@ -18,7 +18,7 @@ void testLandCoverHomogeneity(TIFF* landCover, TIFF* mask){
 
             mask_line[column] = false;
 
-            if(pixel_value == AGR) { //Verify if the pixel passed the land cover test
+            if(pixel_value == AGR) { //Verify if the pixel is an AGR pixel
 
                 mask_line[column] = true;
 
@@ -26,7 +26,7 @@ void testLandCoverHomogeneity(TIFF* landCover, TIFF* mask){
 
                     for(int j = -3; j <= 3 && mask_line[column]; j++){
 
-                        // Add for the NDVI, TS and Albedo the value of neighbors pixels into the respective vector
+                        // Check if the neighbor is AGR too
 
                         if (column + i >= 0 && column + i < width_band && line + j >= 0 && line + j < height_band) {
 
