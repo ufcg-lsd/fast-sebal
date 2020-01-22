@@ -6,6 +6,8 @@
 #include "pixel_reader.h"
 #include "candidate.h"
 
+void testLandCoverHomogeneity(TIFF* landCover, TIFF* mask);
+
 void testHomogeneity(TIFF* ndvi, TIFF* surface_temperature, TIFF* albedo, TIFF* mask);
 
 void testMorphological(TIFF* target, TIFF* mask, int windowSize);

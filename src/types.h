@@ -41,3 +41,6 @@ const double SPECIFIC_HEAT_AIR = 1004;
 
 // Solar constant
 const double GSC = 0.082;
+
+// Agricultural field land cover value
+const int AGR = 18;
