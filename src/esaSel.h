@@ -6,7 +6,7 @@
 #include "pixel_reader.h"
 #include "candidate.h"
 
-void testHomogeneity(TIFF* target, TIFF* mask, int windowSize);
+void testHomogeneity(TIFF* ndvi, TIFF* surface_temperature, TIFF* albedo, TIFF* mask);
 
 void testMorphological(TIFF* target, TIFF* mask, int windowSize);
 
