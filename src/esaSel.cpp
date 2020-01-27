@@ -30,7 +30,7 @@ void testLandCoverHomogeneity(TIFF* landCover, TIFF* mask){
 
                         if (column + i >= 0 && column + i < width_band && line + j >= 0 && line + j < height_band) {
 
-                            pixel_value = read_position_tiff(ndvi, column + i, line + j);
+                            pixel_value = read_position_tiff(landCover, column + i, line + j);
                             if(!isnan(pixel_value))
                                 if(pixel_value != AGR)
                                     mask_line[column] = false;
@@ -102,7 +102,7 @@ void testHomogeneity(TIFF* ndvi, TIFF* surface_temperature, TIFF* albedo, TIFF* 
                 // Do the calculation of the dispersion measures from the NDVI, TS and Albedo
 
                 double mean, sd, coefficient_variation;
-                double meanNDVI, meanTS, menAlb;
+                double meanNDVI, meanTS, meanAlb;
                 double sdNDVI, sdTS, sdAlb;
                 double cvNDVI, cvAlb;
                 double sumNDVI = 0, sumTS = 0, sumAlb = 0;
@@ -145,6 +145,141 @@ void testHomogeneity(TIFF* ndvi, TIFF* surface_temperature, TIFF* albedo, TIFF* 
         }
 
         write_line_tiff(mask, mask_line, line);
+
+    }
+
+}
+
+void testMorphological(TIFF* input, TIFF* output, int groupSize){
+
+    // Read the entire TIFF to the memory
+    // Create an same size matrix to serve as output
+
+    uint32 height_band, width_band;
+    TIFFGetField(input, TIFFTAG_IMAGELENGTH, &height_band);
+    TIFFGetField(input, TIFFTAG_IMAGEWIDTH, &width_band);
+
+    int** inputM = (int **) malloc(height_band * sizeof(int *));
+    int** outputM = (int **) malloc(height_band * sizeof(int *));
+
+    for(int i = 0; i < height_band; i++){
+
+        inputM[i] = (int *) malloc(width_band * sizeof(int));
+        outputM[i] = (int *) malloc(width_band * sizeof(int));
+
+    }
+
+    for(int i = 0; i < height_band; i++){
+
+        read_line_tiff(input, inputM[i], i);
+        read_line_tiff(input, outputM[i], i);
+
+    }
+
+    // Apply the routine
+
+    queue< pair<int, int> > fila;
+    set< pair<int, int> > cont;
+
+    for(int line = 0; line < height_band; line++) {
+
+        for(int col = 0; col < width_band; col++) {
+
+            if(inputM[line][col] == 1) {
+
+                fila.push({line, col});
+                cont.insert({line, col});
+                inputM[line][col] = -1;
+
+                while (!fila.empty()) {
+                    
+                    int i = fila.front().first;
+                    int j = fila.front().second;
+                    fila.pop();
+
+                    if(j + 1 < width_band){
+                        
+                        if(inputM[i][j+1] == 1) {
+                            fila.push({i, j+1});
+                            cont.insert({i, j+1});
+                            inputM[i][j+1] = -1;
+                        }
+
+                        if(i + 1 < height_band && inputM[i+1][j+1] == 1){
+                            fila.push({i+1, j+1});
+                            cont.insert({i+1, j+1});
+                            inputM[i+1][j+1] = -1;
+                        }
+
+                        if(i > 0 && inputM[i-1][j+1] == 1){
+                            fila.push({i-1, j+1});
+                            cont.insert({i-1, j+1});
+                            inputM[i-1][j+1] = -1;
+                        }
+
+                    }
+
+                    if(j > 0){
+
+                        if(inputM[i][j-1] == 1){
+                            fila.push({i, j-1});
+                            cont.insert({i, j-1});
+                            inputM[i][j-1] = -1;
+                        }
+
+                        if(i + 1 < height_band && inputM[i+1][j-1] == 1){
+                            fila.push({i+1, j-1});
+                            cont.insert({i+1, j-1});
+                            inputM[i+1][j-1] = -1;
+                        }
+
+                        if(i > 0 && inputM[i-1][j-1] == 1){
+                            fila.push({i-1, j-1});
+                            cont.insert({i-1, j-1});
+                            inputM[i-1][j-1] = -1;
+                        }
+
+                    }
+
+                    if(i + 1 < height_band && inputM[i+1][j] == 1){
+                        fila.push({i+1, j});
+                        cont.insert({i+1, j});
+                        inputM[i+1][j] = -1;
+                    }
+
+                    if(i > 0 && inputM[i-1][j] == 1){
+                        fila.push({i-1, j});
+                        cont.insert({i-1, j});
+                        inputM[i-1][j] = -1;
+                    }
+
+                }
+                
+                int group = cont.size();
+
+                for(auto elem : cont) {
+
+                    outputM[elem.first][elem.second] = (group > groupSize) ? group : 0;
+
+                }
+
+                cont.clear();
+
+            } else if (inputM[line][col] == 0) {
+
+                outputM[line][col] = 0;
+
+            }
+
+        }
+
+    }
+
+    // Write output TIFF
+
+    for(int i = 0; i < height_band; i++){
+
+        write_line_tiff(output, outputM[i], i);
 
     }
 

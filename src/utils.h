@@ -29,6 +29,15 @@ void read_line_tiff(TIFF* tif, double tif_line[], int line);
 /**
  * @brief  Reads the values of a line in a TIFF saving them into an array.
  * @param  tif: TIFF who line should be read.
+ * @param  tif_line[]: Array where the data will be saved.
+ * @param  line: Number of the line to be read.
+ * @throws Throw an error with exit code 3 if the read couldn't be done.
+ */
+void read_line_tiff(TIFF* tif, int tif_line[], int line);
+
+/**
+ * @brief  Reads the values of a line in a TIFF saving them into an array.
+ * @param  tif: TIFF who line should be read.
  * @param  tif_line: image data ref
  * @param  line: Number of the line to be read.
  * @throws Throw an error with exit code 3 if the read couldn't be done.
@@ -52,6 +61,15 @@ double read_position_tiff(TIFF* tif, int col, int line);
  * @throws Throw an error with exit code 4 if the write couldn't be done.
  */
 void write_line_tiff(TIFF* tif, double tif_line[], int line);
+
+/**
+ * @brief  Writes values from an array to a specific line in a TIFF.
+ * @param  tif: TIFF who line should be written.
+ * @param  tif_line[]: Array containing the values to be written.
+ * @param  line: Number of the line to be read.
+ * @throws Throw an error with exit code 4 if the write couldn't be done.
+ */
+void write_line_tiff(TIFF* tif, int tif_line[], int line);
 
 /**
  * @brief  Closes open TIFFs.
