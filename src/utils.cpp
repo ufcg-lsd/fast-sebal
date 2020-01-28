@@ -26,6 +26,28 @@ void setup(TIFF* new_tif, TIFF* base_tif){
 };
 
 /**
+ * @brief  Configures a TIFF based on a second TIFF.
+ * @param  new_tif: TIFF to be configured.
+ * @param  base_tif: TIFF used to provide the configurations.
+ */
+void setup(TIFF* new_tif, int width, int length, int bitsPerSample, int sampleFormat){
+
+    TIFFSetField(new_tif, TIFFTAG_IMAGEWIDTH     , width); 
+    TIFFSetField(new_tif, TIFFTAG_IMAGELENGTH    , length);
+    TIFFSetField(new_tif, TIFFTAG_BITSPERSAMPLE  , bitsPerSample);
+    TIFFSetField(new_tif, TIFFTAG_SAMPLEFORMAT   , sampleFormat);
+    TIFFSetField(new_tif, TIFFTAG_COMPRESSION    , 1);
+    TIFFSetField(new_tif, TIFFTAG_PHOTOMETRIC    , 1);
+    TIFFSetField(new_tif, TIFFTAG_SAMPLESPERPIXEL, 1);
+    TIFFSetField(new_tif, TIFFTAG_ROWSPERSTRIP   , 1);
+    TIFFSetField(new_tif, TIFFTAG_RESOLUTIONUNIT , 1);
+    TIFFSetField(new_tif, TIFFTAG_XRESOLUTION    , 1);
+    TIFFSetField(new_tif, TIFFTAG_YRESOLUTION    , 1);
+    TIFFSetField(new_tif, TIFFTAG_PLANARCONFIG   , PLANARCONFIG_CONTIG);
+    
+};
+
+/**
  * @brief  Verifies if a TIFF was open correctly. 
  * @param  tif: TIFF to be verified
  * @throws Throw an error with exit code 1 if the TIFF isn't open.

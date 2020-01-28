@@ -51,7 +51,7 @@ void testLandCoverHomogeneity(TIFF* landCover, TIFF* mask){
 
 }
 
-void testHomogeneity(TIFF* ndvi, TIFF* surface_temperature, TIFF* albedo, TIFF* mask){
+void testHomogeneity(TIFF* ndvi, TIFF* surface_temperature, TIFF* albedo, TIFF* maskLC, TIFF* output){
 
     uint32 height_band, width_band;
     TIFFGetField(ndvi, TIFFTAG_IMAGELENGTH, &height_band);
@@ -61,7 +61,7 @@ void testHomogeneity(TIFF* ndvi, TIFF* surface_temperature, TIFF* albedo, TIFF* 
 
         // Create the respective line of the binary map of eligibles pixels
         double mask_line[width_band];
-        read_line_tiff(mask, mask_line, line);
+        read_line_tiff(maskLC, mask_line, line);
 
         for(int column = 0; column < width_band; column++) {
 
@@ -144,7 +144,7 @@ void testHomogeneity(TIFF* ndvi, TIFF* surface_temperature, TIFF* albedo, TIFF* 
 
         }
 
-        write_line_tiff(mask, mask_line, line);
+        write_line_tiff(output, mask_line, line);
 
     }
 
@@ -259,7 +259,7 @@ void testMorphological(TIFF* input, TIFF* output, int groupSize){
 
                 for(auto elem : cont) {
 
-                    outputM[elem.first][elem.second] = (group > groupSize) ? group : 0;
+                    outputM[elem.first][elem.second] = (group >= groupSize);
 
                 }
 
@@ -283,4 +283,152 @@ void testMorphological(TIFF* input, TIFF* output, int groupSize){
 
     }
 
+    for(int i = 0; i < height_band; i++){
+
+        free(inputM[i]);
+        free(outputM[i]);
+
+    }
+
+    free(inputM);
+    free(outputM);
+
+}
+
+void hoCalc(double net_radiation_line[], double soil_heat_flux[], int width_band, double ho_line[]){
+
+    for(int col = 0; col < width_band; col++)
+        ho_line[col] = net_radiation_line[col] - soil_heat_flux[col];
+
+};
+
+pair<Candidate, Candidate> esaPixelSelect(TIFF** ndvi, TIFF** surface_temperature, TIFF** albedo, TIFF** net_radiation, TIFF** soil_heat, TIFF** landCover, int height_band, int width_band, string output_path){
+
+    //Testing land cover homogeneity
+    TIFF* outputLC = TIFFOpen((output_path + "/outLC.tif").c_str(), "w8m");
+    setup(outputLC, width_band, height_band, 32, 2);
+    testLandCoverHomogeneity(*landCover, outputLC);
+    TIFFClose(outputLC);
+
+    //Testing the other params homogeneity
+    outputLC = TIFFOpen((output_path + "/outLC.tif").c_str(), "r");
+    TIFF* outputH = TIFFOpen((output_path + "/outH.tif").c_str(), "w8m");
+    setup(outputH, width_band, height_band, 32, 2);
+    testHomogeneity(*ndvi, *surface_temperature, *albedo, outputLC, outputH);
+    TIFFClose(outputLC);
+    TIFFClose(outputH);
+
+    //Morphological test
+    outputH = TIFFOpen((output_path + "/outH.tif").c_str(), "r");
+    TIFF* outputAll = TIFFOpen((output_path + "/outAll.tif").c_str(), "w8m");
+    setup(outputAll, width_band, height_band, 32, 2);
+    testMorphological(outputH, outputAll, 50);
+    TIFFClose(outputH);
+    TIFFClose(outputAll);
+
+    //Getting the candidates
+    outputAll = TIFFOpen((output_path + "/outAll.tif").c_str(), "r");
+    int all_condition[width_band];
+    vector<Candidate> histTS;
+
+    //Auxiliary arrays
+    double ndvi_line[width_band], surface_temperature_line[width_band];
+    double net_radiation_line[width_band], soil_heat_line[width_band];
+    double ho_line[width_band];
+
+    //Creating candidates array for TS and then for NDVI as a copy
+    for(int line = 0; line < height_band; line++){
+
+        read_line_tiff(outputAll, all_condition, line);
+
+        read_line_tiff(*net_radiation, net_radiation_line, line);
+        read_line_tiff(*soil_heat, soil_heat_line, line);
+
+        hoCalc(net_radiation_line, soil_heat_line, width_band, ho_line);
+
+        read_line_tiff(*ndvi, ndvi_line, line);
+        read_line_tiff(*surface_temperature, surface_temperature_line, line);
+
+        for(int col = 0; col < width_band; col++) {
+
+            if(all_condition[col]){
+
+                histTS.push_back(Candidate(ndvi_line[col],
+                                           surface_temperature_line[col],
+                                           net_radiation_line[col],
+                                           soil_heat_line[col],
+                                           ho_line[col],
+                                           line, col));
+
+            }
+
+        }
+
+    }
+
+    vector<Candidate> histNDVI (histTS);
+
+    sort(histTS.begin(), histTS.end(), compare_candidate_temperature);
+    sort(histNDVI.begin(), histNDVI.end(), compare_candidate_ndvi);
+
+    cout << "TS SIZE: " << histTS.size() << ", NDVI SIZE: " << histNDVI.size() << endl;
+
+
+    // Select cold pixel
+    int pixel_count = 0, n1 = 1, n2 = 1, ts_pos, ndvi_pos;
+    vector<Candidate> coldPixels;
+    while (pixel_count < 10 && !(n2 == 10 && n1 == 10)) {
+        
+        ts_pos = int(floor(n1/100.0 * histTS.size()));
+        ndvi_pos = int(floor((100 - n2)/100.0 * histNDVI.size()));
+
+        cout << "TS POS: " << ts_pos << ", NDVI POS: " << ndvi_pos << endl;
+
+        for(int i = 0; i <= ts_pos; i++) {
+
+            for(int j = histNDVI.size() - 1; j >= ndvi_pos; j--) {
+
+                if(equals(histTS[i], histNDVI[j])) coldPixels.push_back(histTS[i]);
+
+            }
+
+        }
+
+        if(n2 < 10) n2++;
+        else if(n1 < 10) n1++;
+
+    }
+
+    //Select hot pixel
+    pixel_count = 0, n1 = 1, n2 = 1;
+    vector<Candidate> hotPixels;
+    while (pixel_count < 10 && !(n2 == 10 && n1 == 10)) {
+        
+        ts_pos = int(floor((100 - n1)/100.0 * histTS.size()));
+        ndvi_pos = int(floor(n2/100.0 * histNDVI.size()));
+
+        cout << "TS POS: " << ts_pos << ", NDVI POS: " << ndvi_pos << endl;
+
+        for(int i = 0; i <= ndvi_pos; i++) {
+
+            for(int j = histTS.size() - 1; j >= ts_pos; j--) {
+
+                if(equals(histTS[j], histNDVI[i])) coldPixels.push_back(histTS[j]);
+
+            }
+
+        }
+
+        if(n2 < 10) n2++;
+        else if(n1 < 10) n1++;
+
+    }
+
+    cout << "COLD SIZE: " << coldPixels.size() << ", HOT SIZE: " << hotPixels.size() << endl;
+
+    sort(coldPixels.begin(), coldPixels.end(), compare_candidate_ndvi);
+    sort(hotPixels.begin(), hotPixels.end(), compare_candidate_temperature);
+
+    return {hotPixels[hotPixels.size() - 1], coldPixels[0]};
+   
 }

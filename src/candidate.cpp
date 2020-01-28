@@ -170,6 +170,12 @@ void Candidate::toString(){
     printf("\n");
 }
 
+bool equals(Candidate a, Candidate b){
+
+    return (a.col == b.col) && (a.line == b.line);
+
+}
+
 /**
  * @brief  Compares two Candidates based upon their surface temperature.
  * @param  a: First candidate.
@@ -178,6 +184,16 @@ void Candidate::toString(){
  */
 bool compare_candidate_temperature(Candidate a, Candidate b){
     return a.temperature < b.temperature;
+}
+
+/**
+ * @brief  Compares two Candidates based upon their surface temperature.
+ * @param  a: First candidate.
+ * @param  b: Second candidate.
+ * @retval TRUE if second candidate is greater than first one, and FALSE otherwise.
+ */
+bool compare_candidate_ndvi(Candidate a, Candidate b){
+    return a.ndvi < b.ndvi;
 }
 
 /**

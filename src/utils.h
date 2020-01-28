@@ -10,6 +10,8 @@
  */
 void setup(TIFF* new_tif, TIFF* base_tif);
 
+void setup(TIFF* new_tif, int width, int length, int bitsPerSample, int sampleFormat);
+
 /**
  * @brief  Verifies if a TIFF was open correctly. 
  * @param  tif: TIFF to be verified
