@@ -11,9 +11,10 @@ Landsat::Landsat(){
  * @param  tal_path: Path to tal TIFF.
  * @param  output_path: Output path where TIFF should be saved.
  */
-Landsat::Landsat(string tal_path, string output_path, double noData){
+Landsat::Landsat(string tal_path, string output_path, double noData, string land_cover_path){
     this->tal_path = tal_path;
     this->output_path = output_path;
+    this->land_cover_path = land_cover_path;
 
     //Initialize the path of products TIFF based on the output path.
     this->albedo_path = output_path + "/alb.tif";
@@ -134,10 +135,21 @@ void Landsat::process_final_products(Station station, MTL mtl){
     // Selecting hot and cold pixels
     begin = chrono::steady_clock::now();
     //printf("PHASE 2 - PIXEL SELECTION, %d\n", int(time(NULL)));
-    Candidate hot_pixel = select_hot_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, height_band, width_band);
-    Candidate cold_pixel = select_cold_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, height_band, width_band);
+
+    //Our SEBAL
+    //Candidate hot_pixel = select_hot_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, height_band, width_band);
+    //Candidate cold_pixel = select_cold_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, height_band, width_band);
+
+    //ASEBAL
     // Candidate hot_pixel = getHotPixel(&ndvi, &surface_temperature, &albedo, &net_radiation, &soil_heat, height_band, width_band);
     // Candidate cold_pixel = getColdPixel(&ndvi, &surface_temperature, &albedo, &net_radiation, &soil_heat, height_band, width_band);
+
+    //ESA SEBAL
+    TIFF* land_cover = TIFFOpen(this->land_cover_path.c_str(), "r");
+    pair<Candidate, Candidate> pixels = esaPixelSelect(&ndvi, &surface_temperature, &albedo, &net_radiation, &soil_heat, &land_cover, height_band, width_band, this->output_path);
+
+    Candidate hot_pixel = pixels.first, cold_pixel = pixels.second;
+
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
     printf("PHASE 2 - PIXEL SELECTION DURATION, %.5f\n", time_span_us);
