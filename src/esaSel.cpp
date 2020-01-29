@@ -12,6 +12,14 @@ void testLandCoverHomogeneity(TIFF* landCover, TIFF* mask){
     TIFFGetField(landCover, TIFFTAG_IMAGELENGTH, &height_band);
     TIFFGetField(landCover, TIFFTAG_IMAGEWIDTH, &width_band);
 
+    double** buffer = (double **) malloc(7 * sizeof(double *));
+
+    for(int i = 0; i < 7; i++){
+        buffer[i] = (double *) malloc(width_band * sizeof(double));
+    }
+
+    int relation[7] = {-1, -1, -1, -1, -1, -1, -1}, aux;
+
     for(int line = 0; line < height_band; line++) {
 
         // Create the respective line of the binary map of eligibles pixels
@@ -19,8 +27,18 @@ void testLandCoverHomogeneity(TIFF* landCover, TIFF* mask){
 
         for(int column = 0; column < width_band; column++) {
 
-            double pixel_value;
-            pixel_value = read_position_tiff(landCover, column, line);
+            int pixel_value;
+
+            aux = line % 7;
+
+            if(relation[aux] != line) {
+                
+                read_line_tiff(landCover, buffer[aux], line);
+                relation[aux] = line;
+
+            }
+
+            pixel_value = buffer[aux][column];
 
             mask_line[column] = false;
 
@@ -36,7 +54,17 @@ void testLandCoverHomogeneity(TIFF* landCover, TIFF* mask){
 
                         if (column + i >= 0 && column + i < width_band && line + j >= 0 && line + j < height_band) {
 
-                            pixel_value = read_position_tiff(landCover, column + i, line + j);
+                            aux = (line + j) % 7;
+
+                            if(relation[aux] != (line + j)) {
+
+                                read_line_tiff(landCover, buffer[aux], line + j);
+                                relation[aux] = (line + j);
+
+                            }
+
+                            pixel_value = buffer[aux][column + i];
+
                             if(!isnan(pixel_value))
                                 if(!checkLandCode(pixel_value))
                                     mask_line[column] = false;
@@ -55,6 +83,11 @@ void testLandCoverHomogeneity(TIFF* landCover, TIFF* mask){
 
     }
 
+    for(int i = 0; i < 7; i++){
+        free(buffer[i]);
+    }
+    free(buffer);
+
 }
 
 void testHomogeneity(TIFF* ndvi, TIFF* surface_temperature, TIFF* albedo, TIFF* maskLC, TIFF* output){
@@ -62,6 +95,18 @@ void testHomogeneity(TIFF* ndvi, TIFF* surface_temperature, TIFF* albedo, TIFF* 
     uint32 height_band, width_band;
     TIFFGetField(ndvi, TIFFTAG_IMAGELENGTH, &height_band);
     TIFFGetField(ndvi, TIFFTAG_IMAGEWIDTH, &width_band);
+
+    double **bufferTS = (double **) malloc(10 * sizeof(double *));
+    double **bufferNDVI = (double **) malloc(10 * sizeof(double *));
+    double **bufferAlb = (double **) malloc(10 * sizeof(double *));
+
+    for(int i = 0; i < 7; i++){
+        bufferTS[i] = (double *) malloc(width_band * sizeof(double));
+        bufferNDVI[i] = (double *) malloc(width_band * sizeof(double));
+        bufferAlb[i] = (double *) malloc(width_band * sizeof(double));
+    }
+
+    int relation[7] = {-1, -1, -1, -1, -1, -1, -1}, aux;
 
     for(int line = 0; line < height_band; line++) {
 
@@ -79,7 +124,18 @@ void testHomogeneity(TIFF* ndvi, TIFF* surface_temperature, TIFF* albedo, TIFF* 
 
                 double pixel_value;
 
-                if(!isnan(read_position_tiff(ndvi, column, line))){
+                aux = line % 7;
+
+                if(relation[aux] != line) {
+
+                    read_line_tiff(surface_temperature, bufferTS[aux], line);
+                    read_line_tiff(ndvi, bufferNDVI[aux], line);
+                    read_line_tiff(albedo, bufferAlb[aux], line);
+                    relation[aux] = line;
+
+                }
+
+                if(!isnan(bufferNDVI[aux][column])){
 
                     for(int i = -3; i <= 3; i++){
 
@@ -89,15 +145,26 @@ void testHomogeneity(TIFF* ndvi, TIFF* surface_temperature, TIFF* albedo, TIFF* 
 
                             if (column + i >= 0 && column + i < width_band && line + j >= 0 && line + j < height_band) {
 
-                                pixel_value = read_position_tiff(ndvi, column + i, line + j);
+                                aux = (line + j) % 7;
+
+                                if(relation[aux] != (line + j)) {
+
+                                    read_line_tiff(surface_temperature, bufferTS[aux], line + j);
+                                    read_line_tiff(ndvi, bufferNDVI[aux], line + j);
+                                    read_line_tiff(albedo, bufferAlb[aux], line + j);
+                                    relation[aux] = line + j;
+
+                                }
+
+                                pixel_value = bufferNDVI[aux][column+i]; // read_position_tiff(ndvi, column + i, line + j);
                                 if(!isnan(pixel_value))
                                     ndvi_neighbors.push_back(pixel_value);
                                 
-                                pixel_value = read_position_tiff(surface_temperature, column + i, line + j);
+                                pixel_value = bufferTS[aux][column + i]; //read_position_tiff(surface_temperature, column + i, line + j);
                                 if(!isnan(pixel_value))
                                     ts_neighbors.push_back(pixel_value);
 
-                                pixel_value = read_position_tiff(albedo, column + i, line + j);
+                                pixel_value = bufferAlb[aux][column + i]; //read_position_tiff(albedo, column + i, line + j);
                                 if(!isnan(pixel_value))
                                     albedo_neighbors.push_back(pixel_value);
 
@@ -161,6 +228,15 @@ void testHomogeneity(TIFF* ndvi, TIFF* surface_temperature, TIFF* albedo, TIFF* 
         write_line_tiff(output, mask_line, line);
 
     }
+
+    for(int i = 0; i < 7; i++){
+        free(bufferTS[i]);
+        free(bufferNDVI[i]);
+        free(bufferAlb[i]);
+    }
+    free(bufferAlb);
+    free(bufferNDVI);
+    free(bufferTS);
 
 }
 
@@ -398,7 +474,7 @@ pair<Candidate, Candidate> esaPixelSelect(TIFF** ndvi, TIFF** surface_temperatur
 
         cout << "TS POS: " << ts_pos << ", NDVI POS: " << ndvi_pos << endl;
 
-        for(int i = beginTS; i <= ts_pos; i++) {
+        for(int i = beginTs; i <= ts_pos; i++) {
 
             for(int j = beginNDVI; j >= ndvi_pos; j--) {
 
@@ -408,7 +484,7 @@ pair<Candidate, Candidate> esaPixelSelect(TIFF** ndvi, TIFF** surface_temperatur
 
         }
 	
-	beginTS = ts_pos;
+	beginTs = ts_pos;
 	beginNDVI = ndvi_pos;
 
         if(n2 < 10) n2++;
@@ -429,7 +505,7 @@ pair<Candidate, Candidate> esaPixelSelect(TIFF** ndvi, TIFF** surface_temperatur
 
         for(int i = beginNDVI; i <= ndvi_pos; i++) {
 
-            for(int j = beginTS; j >= ts_pos; j--) {
+            for(int j = beginTs; j >= ts_pos; j--) {
 
                 if(equals(histTS[j], histNDVI[i])) coldPixels.push_back(histTS[j]);
 
@@ -437,7 +513,7 @@ pair<Candidate, Candidate> esaPixelSelect(TIFF** ndvi, TIFF** surface_temperatur
 
         }
 
-	beginTS = ts_pos;
+	beginTs = ts_pos;
 	beginNDVI = ndvi_pos;
 
         if(n2 < 10) n2++;
