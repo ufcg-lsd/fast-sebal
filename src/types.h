@@ -45,4 +45,5 @@ const double SPECIFIC_HEAT_AIR = 1004;
 const double GSC = 0.082;
 
 // Agricultural field land cover value
-const int AGR = 18;
+// Available at https://mapbiomas.org/downloads_codigos
+const int AGP = 14, PAS = 15, AGR = 18, CAP = 19, CSP = 20, MAP = 21;

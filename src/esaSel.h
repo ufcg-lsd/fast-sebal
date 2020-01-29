@@ -6,6 +6,8 @@
 #include "pixel_reader.h"
 #include "candidate.h"
 
+bool checkLandCode(int value);
+
 void testLandCoverHomogeneity(TIFF* landCover, TIFF* mask);
 
 void testHomogeneity(TIFF* ndvi, TIFF* surface_temperature, TIFF* albedo, TIFF* maskLC, TIFF* output);

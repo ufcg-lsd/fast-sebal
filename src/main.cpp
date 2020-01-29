@@ -36,20 +36,21 @@ int main(int argc, char *argv[]){
     
     Sensor sensor = Sensor(mtl.number_sensor, mtl.year);
 
-    if(argc == 13){
-        string dist_flag = argv[12];
+    string landCoverPath = (argc >= 13) ? argv[12] : "";
+    printf("PATH: %s\n", landCoverPath.c_str());
+
+    if(argc >= 14){
+        string dist_flag = argv[13];
         if(dist_flag.substr(0, 6) == "-dist=")
             mtl.distance_earth_sun = atof(dist_flag.substr(6, dist_flag.size()).c_str());
     }
 
     double noData = NaN;
-    if(argc == 14){
-        string noData_flag = argv[13];
+    if(argc >= 15){
+        string noData_flag = argv[14];
         if(noData_flag.substr(0,5) == "-nan=")
             noData = atof(noData_flag.substr(5, noData_flag.size()).c_str());
     }
-
-    string landCoverPath = (argc == 15) ? argv[14] : "";
     
     string tal_path = argv[9];
 
