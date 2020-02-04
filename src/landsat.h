@@ -24,6 +24,7 @@ struct Landsat{
     string latent_heat_flux_path, net_radiation_24h_path, latent_heat_flux_24h_path;
     string land_cover_path;
     double noData;
+    int method;
 
     /**
      * @brief  Empty constructor.
@@ -35,7 +36,7 @@ struct Landsat{
      * @param  tal_path: Path to tal TIFF.
      * @param  output_path: Output path where TIFF should be saved.
      */
-    Landsat(string tal_path, string output_path, double noData, string land_cover_path);
+    Landsat(string tal_path, string output_path, int method, double noData, string land_cover_path);
 
 	/**
 	 * @brief  Calculates the partials products (e. g. Albedo, NDVI, Rn, G) of the SEBAL execution.

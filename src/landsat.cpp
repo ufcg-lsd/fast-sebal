@@ -11,7 +11,7 @@ Landsat::Landsat(){
  * @param  tal_path: Path to tal TIFF.
  * @param  output_path: Output path where TIFF should be saved.
  */
-Landsat::Landsat(string tal_path, string output_path, double noData, string land_cover_path){
+Landsat::Landsat(string tal_path, string output_path, int method, double noData, string land_cover_path){
     this->tal_path = tal_path;
     this->output_path = output_path;
     this->land_cover_path = land_cover_path;
@@ -38,6 +38,7 @@ Landsat::Landsat(string tal_path, string output_path, double noData, string land
     this->net_radiation_24h_path = output_path + "/Rn24h.tif";
     this->latent_heat_flux_24h_path = output_path + "/LatentHF24h.tif";
     this->noData = noData;
+    this->method = method;
 };
 
 /**
@@ -136,6 +137,21 @@ void Landsat::process_final_products(Station station, MTL mtl){
     begin = chrono::steady_clock::now();
     //printf("PHASE 2 - PIXEL SELECTION, %d\n", int(time(NULL)));
 
+    Candidate hot_pixel, cold_pixel;
+    cout << this->method << endl;
+    if (this->method == 0) {
+        hot_pixel = select_hot_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, height_band, width_band);
+        cold_pixel = select_cold_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, height_band, width_band);
+    } else if (this->method == 1) {
+        hot_pixel = getHotPixel(&ndvi, &surface_temperature, &albedo, &net_radiation, &soil_heat, height_band, width_band);
+        cold_pixel = getColdPixel(&ndvi, &surface_temperature, &albedo, &net_radiation, &soil_heat, height_band, width_band);
+    } else if (this->method == 2) {
+        TIFF* land_cover = TIFFOpen(this->land_cover_path.c_str(), "r");
+        pair<Candidate, Candidate> pixels = esaPixelSelect(&ndvi, &surface_temperature, &albedo, &net_radiation, &soil_heat, &land_cover, height_band, width_band, this->output_path);
+
+        hot_pixel = pixels.first, cold_pixel = pixels.second;
+    }
+
     //Our SEBAL
     //Candidate hot_pixel = select_hot_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, height_band, width_band);
     //Candidate cold_pixel = select_cold_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, height_band, width_band);
@@ -145,10 +161,10 @@ void Landsat::process_final_products(Station station, MTL mtl){
     // Candidate cold_pixel = getColdPixel(&ndvi, &surface_temperature, &albedo, &net_radiation, &soil_heat, height_band, width_band);
 
     //ESA SEBAL
-    TIFF* land_cover = TIFFOpen(this->land_cover_path.c_str(), "r");
-    pair<Candidate, Candidate> pixels = esaPixelSelect(&ndvi, &surface_temperature, &albedo, &net_radiation, &soil_heat, &land_cover, height_band, width_band, this->output_path);
+    // TIFF* land_cover = TIFFOpen(this->land_cover_path.c_str(), "r");
+    // pair<Candidate, Candidate> pixels = esaPixelSelect(&ndvi, &surface_temperature, &albedo, &net_radiation, &soil_heat, &land_cover, height_band, width_band, this->output_path);
 
-    Candidate hot_pixel = pixels.first, cold_pixel = pixels.second;
+    // Candidate hot_pixel = pixels.first, cold_pixel = pixels.second;
 
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);

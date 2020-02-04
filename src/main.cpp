@@ -39,10 +39,11 @@ int main(int argc, char *argv[]){
     string landCoverPath = (argc >= 13) ? argv[12] : "";
     printf("PATH: %s\n", landCoverPath.c_str());
 
+    int method = 0;
     if(argc >= 14){
-        string dist_flag = argv[13];
-        if(dist_flag.substr(0, 6) == "-dist=")
-            mtl.distance_earth_sun = atof(dist_flag.substr(6, dist_flag.size()).c_str());
+        string flag = argv[13];
+        if(flag.substr(0, 6) == "-meth=")
+            method = flag[6] - '0';
     }
 
     double noData = NaN;
@@ -65,7 +66,7 @@ int main(int argc, char *argv[]){
     chrono::steady_clock::time_point begin, end;
     chrono::duration< double, micro > time_span_us;
 
-    Landsat landsat = Landsat(tal_path, output_path, noData, landCoverPath);
+    Landsat landsat = Landsat(tal_path, output_path, method, noData, landCoverPath);
     //printf("PHASE 1 - START, %d\n", int(time(NULL)));
     begin = chrono::steady_clock::now();
     landsat.process_partial_products(bands_resampled, mtl, station, sensor);
