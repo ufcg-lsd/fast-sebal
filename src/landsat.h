@@ -35,6 +35,9 @@ struct Landsat{
      * @brief  Constructor of the struct.
      * @param  tal_path: Path to tal TIFF.
      * @param  output_path: Output path where TIFF should be saved.
+     * @param  method: Pixel selection method.
+     * @param  noData: TIFFs no data value.
+     * @param  land_cover_path: Path to Land Cover TIFF.
      */
     Landsat(string tal_path, string output_path, int method, double noData, string land_cover_path);
 

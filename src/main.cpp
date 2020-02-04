@@ -70,7 +70,7 @@ int main(int argc, char *argv[]){
     chrono::duration< double, micro > time_span_us;
 
     Landsat landsat = Landsat(tal_path, output_path, method, noData, landCoverPath);
-    //printf("PHASE 1 - START, %d\n", int(time(NULL)));
+    
     begin = chrono::steady_clock::now();
     landsat.process_partial_products(bands_resampled, mtl, station, sensor);
     end = chrono::steady_clock::now();
@@ -78,7 +78,7 @@ int main(int argc, char *argv[]){
     printf("PHASE 1 - DURATION, %.5f\n", time_span_us);
 
     begin = chrono::steady_clock::now();
-    //printf("PHASE 2 - START, %d\n", int(time(NULL)));
+    
     landsat.process_final_products(station, mtl);
     close_tiffs(bands_resampled, 8);
     end = chrono::steady_clock::now();

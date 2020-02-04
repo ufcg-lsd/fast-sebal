@@ -10,6 +10,14 @@
  */
 void setup(TIFF* new_tif, TIFF* base_tif);
 
+/**
+ * @brief  Configures a TIFF based user parameters.
+ * @param  new_tif: TIFF to be configured.
+ * @param  width: New TIFF width.
+ * @param  length: New TIFF length.
+ * @param  bitsPerSample: Number of bits per component. For further information, see https://www.awaresystems.be/imaging/tiff/tifftags/bitspersample.html.
+ * @param  sampleFormat: Specifies how to interpret each data sample in a pixel. For more information, check https://www.awaresystems.be/imaging/tiff/tifftags/sampleformat.html.
+ */
 void setup(TIFF* new_tif, int width, int length, int bitsPerSample, int sampleFormat);
 
 /**

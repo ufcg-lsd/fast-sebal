@@ -10,6 +10,9 @@ Landsat::Landsat(){
  * @brief  Constructor of the struct.
  * @param  tal_path: Path to tal TIFF.
  * @param  output_path: Output path where TIFF should be saved.
+ * @param  method: Pixel selection method.
+ * @param  noData: TIFFs no data value.
+ * @param  land_cover_path: Path to Land Cover TIFF.
  */
 Landsat::Landsat(string tal_path, string output_path, int method, double noData, string land_cover_path){
     this->tal_path = tal_path;
@@ -135,43 +138,28 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
     // Selecting hot and cold pixels
     begin = chrono::steady_clock::now();
-    //printf("PHASE 2 - PIXEL SELECTION, %d\n", int(time(NULL)));
 
     Candidate hot_pixel, cold_pixel;
     cout << this->method << endl;
-    if (this->method == 0) {
+    if (this->method == 0) { //Our SEBAL
         hot_pixel = select_hot_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, height_band, width_band);
         cold_pixel = select_cold_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, height_band, width_band);
-    } else if (this->method == 1) {
+    } else if (this->method == 1) { //ASEBAL
         hot_pixel = getHotPixel(&ndvi, &surface_temperature, &albedo, &net_radiation, &soil_heat, height_band, width_band);
         cold_pixel = getColdPixel(&ndvi, &surface_temperature, &albedo, &net_radiation, &soil_heat, height_band, width_band);
-    } else if (this->method == 2) {
+    } else if (this->method == 2) { //ESA SEBAL
         TIFF* land_cover = TIFFOpen(this->land_cover_path.c_str(), "r");
         pair<Candidate, Candidate> pixels = esaPixelSelect(&ndvi, &surface_temperature, &albedo, &net_radiation, &soil_heat, &land_cover, height_band, width_band, this->output_path);
 
         hot_pixel = pixels.first, cold_pixel = pixels.second;
     }
 
-    //Our SEBAL
-    //Candidate hot_pixel = select_hot_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, height_band, width_band);
-    //Candidate cold_pixel = select_cold_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, height_band, width_band);
-
-    //ASEBAL
-    // Candidate hot_pixel = getHotPixel(&ndvi, &surface_temperature, &albedo, &net_radiation, &soil_heat, height_band, width_band);
-    // Candidate cold_pixel = getColdPixel(&ndvi, &surface_temperature, &albedo, &net_radiation, &soil_heat, height_band, width_band);
-
-    //ESA SEBAL
-    // TIFF* land_cover = TIFFOpen(this->land_cover_path.c_str(), "r");
-    // pair<Candidate, Candidate> pixels = esaPixelSelect(&ndvi, &surface_temperature, &albedo, &net_radiation, &soil_heat, &land_cover, height_band, width_band, this->output_path);
-
-    // Candidate hot_pixel = pixels.first, cold_pixel = pixels.second;
-
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
     printf("PHASE 2 - PIXEL SELECTION DURATION, %.5f\n", time_span_us);
 
     begin = chrono::steady_clock::now();
-    //printf("PHASE 2 - BEFORE RAH CYCLE, %d\n", int(time(NULL)));
+    
     //Intermediaries products
     double sensible_heat_flux_line[width_band];
     double zom_line[width_band];
@@ -245,8 +233,7 @@ void Landsat::process_final_products(Station station, MTL mtl){
     printf("PHASE 2 - BEFORE RAH CYCLE DURATION, %.5f\n", time_span_us);
 
     begin = chrono::steady_clock::now();
-    //printf("PHASE 2 - RAH CYCLE, %d\n", int(time(NULL)));
-
+    
     aerodynamic_resistance = TIFFOpen(aerodynamic_resistance_path.c_str(), "rm");
 
     //Extract the hot pixel aerodynamic_resistance
@@ -362,16 +349,13 @@ void Landsat::process_final_products(Station station, MTL mtl){
     printf("PHASE 2 - RAH CYCLE DURATION, %.5f\n", time_span_us);
 
     begin = chrono::steady_clock::now();
-    //printf("PHASE 2 - AFTER RAH CYCLE, %d\n", int(time(NULL)));
-
+    
     if(i%2) {
 
-        //printf("Rah_after is aerodynamic_resistance_tif1_path\n");  
         aerodynamic_resistance_tif0 = TIFFOpen(aerodynamic_resistance_tif1_path.c_str(), "rm");
 
     } else {
         
-        //printf("Rah_after is aerodynamic_resistance_path\n"); 
         aerodynamic_resistance_tif0 = TIFFOpen(aerodynamic_resistance_path.c_str(), "rm");
 
     }
