@@ -18,11 +18,14 @@ using namespace std;
     arg 09 - tal path
     arg 10 - station data path
     arg 11 - output path
+    arg 12 - land cover path
+    arg 13 - selection method
+    arg 14 - tiff nan value
 
     Flag
-    -dist=xxxx - value distance between sun and earth
+    -meth=x - 0 to use our method, 1 to ASEBAL method and 2 for ESA method.
 
-    ./run input/B2_converted.tif input/B3_converted.tif input/B4_converted.tif input/B5_converted.tif input/B6_converted.tif input/B7_converted.tif input/B10_converted.tif input/MTL.txt tal_converted.tif input/station.csv results -dist=0.98330
+    ./run input/B2_converted.tif input/B3_converted.tif input/B4_converted.tif input/B5_converted.tif input/B6_converted.tif input/B7_converted.tif input/B10_converted.tif input/MTL.txt tal_converted.tif input/station.csv results input/land_cover_final.tif -meth=1 -nan=-3.39999995214436425e+38
 
 */
 int main(int argc, char *argv[]){
