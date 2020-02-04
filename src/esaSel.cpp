@@ -156,15 +156,15 @@ void testHomogeneity(TIFF* ndvi, TIFF* surface_temperature, TIFF* albedo, TIFF* 
 
                                 }
 
-                                pixel_value = bufferNDVI[aux][column+i]; // read_position_tiff(ndvi, column + i, line + j);
+                                pixel_value = bufferNDVI[aux][column+i]; 
                                 if(!isnan(pixel_value))
                                     ndvi_neighbors.push_back(pixel_value);
                                 
-                                pixel_value = bufferTS[aux][column + i]; //read_position_tiff(surface_temperature, column + i, line + j);
+                                pixel_value = bufferTS[aux][column + i]; 
                                 if(!isnan(pixel_value))
                                     ts_neighbors.push_back(pixel_value);
 
-                                pixel_value = bufferAlb[aux][column + i]; //read_position_tiff(albedo, column + i, line + j);
+                                pixel_value = bufferAlb[aux][column + i];
                                 if(!isnan(pixel_value))
                                     albedo_neighbors.push_back(pixel_value);
 
@@ -176,7 +176,6 @@ void testHomogeneity(TIFF* ndvi, TIFF* surface_temperature, TIFF* albedo, TIFF* 
 
                     // Do the calculation of the dispersion measures from the NDVI, TS and Albedo
 
-                    double mean, sd, coefficient_variation;
                     double meanNDVI, meanTS, meanAlb;
                     double sdNDVI, sdTS, sdAlb;
                     double cvNDVI, cvAlb;
@@ -198,9 +197,9 @@ void testHomogeneity(TIFF* ndvi, TIFF* surface_temperature, TIFF* albedo, TIFF* 
 
                     for(int i = 0; i < ndvi_neighbors.size(); i++) {
                     
-                        sumNDVI += (ndvi_neighbors[i] - mean) * (ndvi_neighbors[i] - mean);
-                        sumTS += (ts_neighbors[i] - mean) * (ts_neighbors[i] - mean);
-                        sumAlb += (albedo_neighbors[i] - mean) * (albedo_neighbors[i] - mean);
+                        sumNDVI += (ndvi_neighbors[i] - meanNDVI) * (ndvi_neighbors[i] - meanNDVI);
+                        sumTS += (ts_neighbors[i] - meanTS) * (ts_neighbors[i] - meanTS);
+                        sumAlb += (albedo_neighbors[i] - meanAlb) * (albedo_neighbors[i] - meanAlb);
 
                     }
 
@@ -215,11 +214,11 @@ void testHomogeneity(TIFF* ndvi, TIFF* surface_temperature, TIFF* albedo, TIFF* 
                     // Check if the pixel is eligible
                     mask_line[column] = (cvNDVI < 0.25) && (cvAlb < 0.25) && (sdTS < 1.5);
 
+                } else {
+
+                    mask_line[column] = false;
+
                 }
-
-            } else {
-
-                mask_line[column] = false;
 
             }
 
@@ -419,7 +418,7 @@ pair<Candidate, Candidate> esaPixelSelect(TIFF** ndvi, TIFF** surface_temperatur
     //Getting the candidates
     outputAll = TIFFOpen((output_path + "/outAll.tif").c_str(), "r");
     int all_condition[width_band];
-    vector<Candidate> histTS;
+    vector<Candidate> listTS;
 
     //Auxiliary arrays
     double ndvi_line[width_band], surface_temperature_line[width_band];
@@ -441,9 +440,9 @@ pair<Candidate, Candidate> esaPixelSelect(TIFF** ndvi, TIFF** surface_temperatur
 
         for(int col = 0; col < width_band; col++) {
 
-            if(all_condition[col]){
+            if(all_condition[col] && !isnan(ndvi_line[col])){
 
-                histTS.push_back(Candidate(ndvi_line[col],
+                listTS.push_back(Candidate(ndvi_line[col],
                                            surface_temperature_line[col],
                                            net_radiation_line[col],
                                            soil_heat_line[col],
@@ -456,76 +455,127 @@ pair<Candidate, Candidate> esaPixelSelect(TIFF** ndvi, TIFF** surface_temperatur
 
     }
 
-    vector<Candidate> histNDVI (histTS);
+    vector<Candidate> listNDVI (listTS);
 
-    sort(histTS.begin(), histTS.end(), compare_candidate_temperature);
-    sort(histNDVI.begin(), histNDVI.end(), compare_candidate_ndvi);
+    sort(listTS.begin(), listTS.end(), compare_candidate_temperature);
+    sort(listNDVI.begin(), listNDVI.end(), compare_candidate_ndvi);
 
-    cout << "TS SIZE: " << histTS.size() << ", NDVI SIZE: " << histNDVI.size() << endl;
+    double ts_min = listTS[0].temperature, ts_max = listTS[listTS.size() - 1].temperature;
+    double ndvi_min = listNDVI[0].ndvi, ndvi_max = listNDVI[listNDVI.size() - 1].ndvi;
+    int binTS = int(ceil((ts_max - ts_min)/0.25)); //0.25 is TS bin size
+    int binNDVI = int(ceil((ndvi_max - ndvi_min)/0.01)); //0.01 is ndvi bin size
 
+    vector<Candidate> histTS[binTS], final_histTS;
+
+    for(Candidate c : listTS) {
+        
+        int pos = int(ceil((c.temperature - ts_min)/0.25));
+        histTS[pos > 0 ? pos-1 : 0].push_back(c);
+
+    }
+
+    for(int i = 0; i < binTS; i++) {
+
+        if(histTS[i].size() > 50) {
+
+            for(Candidate c : histTS[i])
+                final_histTS.push_back(c);
+
+        }
+
+    }
+
+    vector<Candidate> histNDVI[binNDVI], final_histNDVI;
+    for(Candidate c : listNDVI) {
+        
+        int pos = int(ceil((c.ndvi - ndvi_min)/0.01));
+        histNDVI[pos > 0 ? pos-1 : 0].push_back(c);
+
+    }
+
+    for(int i = 0; i < binNDVI; i++) {
+
+        if(histNDVI[i].size() > 50) {
+
+            for(Candidate c : histNDVI[i])
+                final_histNDVI.push_back(c);
+
+        }
+
+    }
 
     // Select cold pixel
-    int pixel_count = 0, n1 = 1, n2 = 1, ts_pos, ndvi_pos, beginTs = 0, beginNDVI = histNDVI.size() - 1;
+    int pixel_count = 0, n1 = 1, n2 = 1, ts_pos, ndvi_pos, beginTs = 0, beginNDVI = final_histNDVI.size() - 1;
     vector<Candidate> coldPixels;
     while (pixel_count < 10 && !(n2 == 10 && n1 == 10)) {
 
-        ts_pos = int(floor(n1/100.0 * histTS.size()));
-        ndvi_pos = int(floor((100 - n2)/100.0 * histNDVI.size()));
+        ts_pos = int(floor(n1/100.0 * final_histTS.size()));
+        ndvi_pos = int(floor((100 - n2)/100.0 * final_histNDVI.size()));
 
-        cout << "TS POS: " << ts_pos << ", NDVI POS: " << ndvi_pos << endl;
+        for(int i = beginTs; i <= ts_pos && pixel_count < 10; i++) {
 
-        for(int i = beginTs; i <= ts_pos; i++) {
+            for(int j = beginNDVI; j >= ndvi_pos && pixel_count < 10; j--) {
 
-            for(int j = beginNDVI; j >= ndvi_pos; j--) {
+                if(equals(final_histTS[i], final_histNDVI[j])){
+                    
+                    coldPixels.push_back(final_histTS[i]);
+                    pixel_count++;
 
-                if(equals(histTS[i], histNDVI[j])) coldPixels.push_back(histTS[i]);
+                }
 
             }
 
         }
 	
-	beginTs = ts_pos;
-	beginNDVI = ndvi_pos;
+	    beginTs = ts_pos;
+	    beginNDVI = ndvi_pos;
 
         if(n2 < 10) n2++;
-        else if(n1 < 10) n1++;
+        else if(n1 < 10){
+            n1++;
+            beginNDVI = final_histNDVI.size() - 1;
+        }
 
     }
 
     //Select hot pixel
     pixel_count = 0, n1 = 1, n2 = 1;
     vector<Candidate> hotPixels;
-    beginTs = histTS.size() - 1, beginNDVI = 0;
+    beginTs = final_histTS.size() - 1, beginNDVI = 0;
     while (pixel_count < 10 && !(n2 == 10 && n1 == 10)) {
         
-        ts_pos = int(floor((100 - n1)/100.0 * histTS.size()));
-        ndvi_pos = int(floor(n2/100.0 * histNDVI.size()));
+        ts_pos = int(floor((100 - n1)/100.0 * final_histTS.size()));
+        ndvi_pos = int(floor(n2/100.0 * final_histNDVI.size()));
 
-        cout << "TS POS: " << ts_pos << ", NDVI POS: " << ndvi_pos << endl;
+        for(int i = beginNDVI; i <= ndvi_pos && pixel_count < 10; i++) {
 
-        for(int i = beginNDVI; i <= ndvi_pos; i++) {
+            for(int j = beginTs; j >= ts_pos && pixel_count < 10; j--) {
 
-            for(int j = beginTs; j >= ts_pos; j--) {
+                if(equals(final_histTS[j], final_histNDVI[i])){
 
-                if(equals(histTS[j], histNDVI[i])) coldPixels.push_back(histTS[j]);
+                    hotPixels.push_back(final_histTS[j]);
+                    pixel_count++;
+
+                }
 
             }
 
         }
 
-	beginTs = ts_pos;
-	beginNDVI = ndvi_pos;
+	    beginTs = ts_pos;
+	    beginNDVI = ndvi_pos;
 
         if(n2 < 10) n2++;
-        else if(n1 < 10) n1++;
+        else if(n1 < 10){
+            n1++;
+            beginTs = final_histTS.size() - 1;
+        }
 
     }
-
-    cout << "COLD SIZE: " << coldPixels.size() << ", HOT SIZE: " << hotPixels.size() << endl;
 
     sort(coldPixels.begin(), coldPixels.end(), compare_candidate_ndvi);
     sort(hotPixels.begin(), hotPixels.end(), compare_candidate_temperature);
 
-    return {hotPixels[hotPixels.size() - 1], coldPixels[0]};
+    return {hotPixels[hotPixels.size() - 1], coldPixels[coldPixels.size() - 1]};
    
 }
