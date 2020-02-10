@@ -23,7 +23,11 @@ void testLandCoverHomogeneity(TIFF* landCover, TIFF* mask){
     TIFFGetField(landCover, TIFFTAG_IMAGELENGTH, &height_band);
     TIFFGetField(landCover, TIFFTAG_IMAGEWIDTH, &width_band);
 
-    double* buffer = (double *) malloc(7 * width_band * sizeof(double));
+    double** buffer = (double **) malloc(7 * sizeof(double *));
+
+    for(int i = 0; i < 7; i++){
+        buffer[i] = (double *) malloc(width_band * sizeof(double));
+    }
 
     int relation[7] = {-1, -1, -1, -1, -1, -1, -1}, aux;
 
@@ -39,13 +43,13 @@ void testLandCoverHomogeneity(TIFF* landCover, TIFF* mask){
             aux = line % 7;
 
             if(relation[aux] != line) {
-
-                read_line_tiff(landCover, buffer + aux * width_band, line);
+                
+                read_line_tiff(landCover, buffer[aux], line);
                 relation[aux] = line;
 
             }
 
-            pixel_value = buffer[aux * width_band + column];
+            pixel_value = buffer[aux][column];
 
             mask_line[column] = false;
 
@@ -65,14 +69,14 @@ void testLandCoverHomogeneity(TIFF* landCover, TIFF* mask){
 
                             if(relation[aux] != (line + j)) {
 
-                                read_line_tiff(landCover, buffer + aux * width_band, line + j);
+                                read_line_tiff(landCover, buffer[aux], line + j);
                                 relation[aux] = (line + j);
 
                             }
 
-                            pixel_value = buffer[aux * width_band + column];
+                            pixel_value = buffer[aux][column + i];
 
-                            if(!std::isnan(pixel_value))
+                            if(!isnan(pixel_value))
                                 if(!checkLandCode(pixel_value))
                                     mask_line[column] = false;
 
@@ -90,6 +94,9 @@ void testLandCoverHomogeneity(TIFF* landCover, TIFF* mask){
 
     }
 
+    for(int i = 0; i < 7; i++){
+        free(buffer[i]);
+    }
     free(buffer);
 
 }
