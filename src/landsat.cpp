@@ -140,7 +140,7 @@ void Landsat::process_final_products(Station station, MTL mtl){
     begin = chrono::steady_clock::now();
 
     Candidate hot_pixel, cold_pixel;
-    cout << this->method << endl;
+    
     if (this->method == 0) { //Our SEBAL
         hot_pixel = select_hot_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, height_band, width_band);
         cold_pixel = select_cold_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, height_band, width_band);

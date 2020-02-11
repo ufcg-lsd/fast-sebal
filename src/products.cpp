@@ -397,7 +397,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     }
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
-    printf("PHASE 2 - PSH NDVI FILTER DURATION, %.5f\n", time_span_us);
+  //  printf("PHASE 2 - PSH NDVI FILTER DURATION, %.5f\n", time_span_us);
 
     begin = chrono::steady_clock::now();
 	//printf("PHASE 2 - PSH SORT BY TEMP BEGIN, %d\n", int(time(NULL)));
@@ -405,7 +405,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     sort(pre_candidates, pre_candidates + valid, compare_candidate_temperature);
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
-    printf("PHASE 2 - PSH SORT BY TEMP DURATION, %.5f\n", time_span_us);
+  //  printf("PHASE 2 - PSH SORT BY TEMP DURATION, %.5f\n", time_span_us);
     int pos = floor(0.95 * valid);
     double surfaceTempHot = pre_candidates[pos].temperature;
 
@@ -431,7 +431,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     sort(ho_candidates.begin(), ho_candidates.end());
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
-    printf("PHASE 2 - PSH HO MANIPULATION DURATION, %.5f\n", time_span_us);
+ //   printf("PHASE 2 - PSH HO MANIPULATION DURATION, %.5f\n", time_span_us);
 
     begin = chrono::steady_clock::now();
     //printf("PHASE 2 - PSH SELECT FINAL CANDIDATES BEGIN, %d\n", int(time(NULL)));
@@ -465,7 +465,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     }
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
-    printf("PHASE 2 - PSH SELECT FINAL CANDIDATES DURATION, %.5f\n", time_span_us);
+ //   printf("PHASE 2 - PSH SELECT FINAL CANDIDATES DURATION, %.5f\n", time_span_us);
 
     begin = chrono::steady_clock::now();
 	//printf("PHASE 2 - PSH CV EXTRACT BEGIN, %d\n", int(time(NULL)));
@@ -475,7 +475,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     }
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
-    printf("PHASE 2 - PSH CV EXTRACT DURATION, %.5f\n", time_span_us);
+  //  printf("PHASE 2 - PSH CV EXTRACT DURATION, %.5f\n", time_span_us);
 
     begin = chrono::steady_clock::now();
 	//printf("PHASE 2 - PSH FINAL BEGIN, %d\n", int(time(NULL)));
@@ -490,9 +490,9 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     }
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
-    printf("PHASE 2 - PSH FINAL DURATION, %.5f\n", time_span_us);
+   // printf("PHASE 2 - PSH FINAL DURATION, %.5f\n", time_span_us);
 
-    choosen.toString();
+  //  choosen.toString();
 
     return choosen;
 }
@@ -553,7 +553,7 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     }
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
-    printf("PHASE 2 - PSC NDVI FILTER DURATION, %.5f\n", time_span_us);
+   // printf("PHASE 2 - PSC NDVI FILTER DURATION, %.5f\n", time_span_us);
 
     begin = chrono::steady_clock::now();
 	//printf("PHASE 2 - PSC SORT BY TEMP BEGIN, %d\n", int(time(NULL)));
@@ -561,7 +561,7 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     sort(pre_candidates, pre_candidates + valid, compare_candidate_temperature);
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
-    printf("PHASE 2 - PSC SORT BY TEMP DURATION, %.5f\n", time_span_us);
+  //  printf("PHASE 2 - PSC SORT BY TEMP DURATION, %.5f\n", time_span_us);
     int pos = floor(0.5 * valid);
     double surfaceTempCold = pre_candidates[pos].temperature;
 
@@ -581,7 +581,7 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
 
     if(ho_candidates.size() == 1){
 
-        lastHOCandidate.toString();
+        //lastHOCandidate.toString();
 
         return lastHOCandidate;
     }
@@ -590,7 +590,7 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     sort(ho_candidates.begin(), ho_candidates.end());
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
-    printf("PHASE 2 - PSC HO MANIPULATION DURATION, %.5f\n", time_span_us);
+  //  printf("PHASE 2 - PSC HO MANIPULATION DURATION, %.5f\n", time_span_us);
 
     begin = chrono::steady_clock::now();
 	//printf("PHASE 2 - PSC SELECT FINAL CANDIDATES BEGIN, %d\n", int(time(NULL)));
@@ -624,7 +624,7 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     }
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
-    printf("PHASE 2 - PSC SELECT FINAL CANDIDATES DURATION, %.5f\n", time_span_us);
+   // printf("PHASE 2 - PSC SELECT FINAL CANDIDATES DURATION, %.5f\n", time_span_us);
 	
     begin = chrono::steady_clock::now();
     //printf("PHASE 2 - PSC NN EXTRACT BEGIN, %d\n", int(time(NULL)));
@@ -634,7 +634,7 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     }
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
-    printf("PHASE 2 - PSC NN EXTRACT DURATION, %.5f\n", time_span_us);
+    //printf("PHASE 2 - PSC NN EXTRACT DURATION, %.5f\n", time_span_us);
 	
     begin = chrono::steady_clock::now();
     //printf("PHASE 2 - PSC FINAL BEGIN, %d\n", int(time(NULL)));
@@ -646,9 +646,9 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     }
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
-    printf("PHASE 2 - PSC FINAL DURATION, %.5f\n", time_span_us);
+    //printf("PHASE 2 - PSC FINAL DURATION, %.5f\n", time_span_us);
 
-    choosen.toString();
+  //  choosen.toString();
 
     return choosen;
 }

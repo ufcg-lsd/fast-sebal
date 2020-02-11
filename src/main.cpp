@@ -40,7 +40,6 @@ int main(int argc, char *argv[]){
     Sensor sensor = Sensor(mtl.number_sensor, mtl.year);
 
     string landCoverPath = (argc >= 13) ? argv[12] : "";
-    printf("PATH: %s\n", landCoverPath.c_str());
 
     int method = 0;
     if(argc >= 14){
