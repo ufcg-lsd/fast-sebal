@@ -385,7 +385,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
             if(!isnan(ndvi_line[col]) && definitelyGreaterThan(ndvi_line[col], 0.15) && definitelyLessThan(ndvi_line[col], 0.20) && definitelyGreaterThan(surface_temperature_line[col], 273.16)){
                 
                 if(valid >= MAXZ) {
-                    ceer <<< "Pixel problem! - Limit was trespassed";
+                    cerr << "Pixel problem! - Limit was trespassed";
                     exit(15);
                 }
                 
@@ -412,7 +412,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     end = chrono::steady_clock::now();
 
     if(valid < 0) {
-        ceer <<< "Pixel problem! - There are no precandidates";
+        cerr << "Pixel problem! - There are no precandidates";
         exit(15);
     }
 
@@ -446,7 +446,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
  //   printf("PHASE 2 - PSH HO MANIPULATION DURATION, %.5f\n", time_span_us);
     
     if(ho_candidates.size() < 0) {
-        ceer <<< "Pixel problem! - There are no precandidates after HO manipulation";
+        cerr << "Pixel problem! - There are no precandidates after HO manipulation";
         exit(15);
     }
 
@@ -485,7 +485,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
  //   printf("PHASE 2 - PSH SELECT FINAL CANDIDATES DURATION, %.5f\n", time_span_us);
     
     if(final_candidates.size() < 0) {
-        ceer <<< "Pixel problem! - There are no final candidates";
+        cerr << "Pixel problem! - There are no final candidates";
         exit(15);
     }
 
@@ -562,7 +562,7 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
             if(!isnan(ndvi_line[col]) && !isnan(ho_line[col]) && definitelyLessThan(ndvi_line[col], 0) && definitelyGreaterThan(surface_temperature_line[col], 273.16)){
                 
                 if(valid >= MAXZ) {
-                    ceer <<< "Pixel problem! - Limit was trespassed";
+                    cerr << "Pixel problem! - Limit was trespassed";
                     exit(15);
                 }
                 
@@ -583,7 +583,7 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
    // printf("PHASE 2 - PSC NDVI FILTER DURATION, %.5f\n", time_span_us);
 
     if(valid < 0) {
-        ceer <<< "Pixel problem! - There are no precandidates";
+        cerr << "Pixel problem! - There are no precandidates";
         exit(15);
     }
 
@@ -625,7 +625,7 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
   //  printf("PHASE 2 - PSC HO MANIPULATION DURATION, %.5f\n", time_span_us);
 
     if(ho_candidates.size() < 0) {
-        ceer <<< "Pixel problem! - There are no precandidates after HO manipulation";
+        cerr << "Pixel problem! - There are no precandidates after HO manipulation";
         exit(15);
     }
 
@@ -664,7 +664,7 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
    // printf("PHASE 2 - PSC SELECT FINAL CANDIDATES DURATION, %.5f\n", time_span_us);
 	
     if(final_candidates.size() < 0) {
-        ceer <<< "Pixel problem! - There are no final candidates";
+        cerr << "Pixel problem! - There are no final candidates";
         exit(15);
     }
 
