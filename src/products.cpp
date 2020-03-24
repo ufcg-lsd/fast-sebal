@@ -485,11 +485,14 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
 	//printf("PHASE 2 - PSH FINAL BEGIN, %d\n", int(time(NULL)));
     //Choose as candidate the pixel with the minor CV
     Candidate choosen = final_candidates[0];
-
+    choosen.toString(); //DEBUG24032020
+    printf("acho q n achou n hein, quantidade %d!\n", final_candidates.size()); //DEBUG24032020
     for(int i = 1; i < final_candidates.size(); i++){
         
-        if(definitelyLessThan(final_candidates[i].coefficient_variation, choosen.coefficient_variation))
+        if(definitelyLessThan(final_candidates[i].coefficient_variation, choosen.coefficient_variation)) {
             choosen = final_candidates[i];
+            printf("entreeeeei!\n"); //DEBUG24032020
+        }
 
     }
     end = chrono::steady_clock::now();
