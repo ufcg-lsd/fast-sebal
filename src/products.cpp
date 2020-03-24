@@ -402,7 +402,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
   //  printf("PHASE 2 - PSH NDVI FILTER DURATION, %.5f\n", time_span_us);
-
+    printf("Coletou os pre-candidatos!\n"); //DEBUG24032020
     begin = chrono::steady_clock::now();
 	//printf("PHASE 2 - PSH SORT BY TEMP BEGIN, %d\n", int(time(NULL)));
     //Sort the candidates by their temperatures and choose the surface temperature of the hot pixel
@@ -412,7 +412,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
   //  printf("PHASE 2 - PSH SORT BY TEMP DURATION, %.5f\n", time_span_us);
     int pos = floor(0.95 * valid);
     double surfaceTempHot = pre_candidates[pos].temperature;
-
+    printf("Ordenou os pre-candidatos!\n"); //DEBUG24032020
     begin = chrono::steady_clock::now();
     //printf("PHASE 2 - PSH HO MANIPULATION BEGIN, %d\n", int(time(NULL)));
     //Select only the ones with temperature equals the surface temperature of the hot pixel
@@ -430,13 +430,13 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     if(ho_candidates.size() == 1){
         return lastHOCandidate;
     }
-
+    
     //Select the limits of HOs
     sort(ho_candidates.begin(), ho_candidates.end());
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
  //   printf("PHASE 2 - PSH HO MANIPULATION DURATION, %.5f\n", time_span_us);
-
+    printf("HO manipulation pre-candidatos!\n"); //DEBUG24032020
     begin = chrono::steady_clock::now();
     //printf("PHASE 2 - PSH SELECT FINAL CANDIDATES BEGIN, %d\n", int(time(NULL)));
     double HO_min = ho_candidates[floor(0.25 * ho_candidates.size())];
@@ -470,7 +470,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
  //   printf("PHASE 2 - PSH SELECT FINAL CANDIDATES DURATION, %.5f\n", time_span_us);
-
+    printf("Generate final candidatos!\n"); //DEBUG24032020
     begin = chrono::steady_clock::now();
 	//printf("PHASE 2 - PSH CV EXTRACT BEGIN, %d\n", int(time(NULL)));
     //Calculate the coefficient of variation, after the extract
@@ -524,7 +524,7 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
 
     //Contains the candidates with NDVI less than 0, which surface temperature is greater than 273.16
     //vector<Candidate> pre_candidates;
-    const int MAXZ = 5000000;
+    const int MAXZ = 50000000; //DEBUG24032020 add um 0 a mais
 	Candidate* pre_candidates;
 	pre_candidates = (Candidate*) malloc(MAXZ * sizeof(Candidate));
     int valid = 0;
