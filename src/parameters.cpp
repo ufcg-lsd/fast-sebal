@@ -33,6 +33,7 @@ MTL::MTL(string metadata_path){
         while(lineReader >> token)
             nline.push_back(token);
         
+        cout << nline[0] << " -> " << nline[2] << endl;
         mtl[nline[0]] = nline[2];
     }
 
