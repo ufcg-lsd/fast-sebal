@@ -30,10 +30,8 @@ MTL::MTL(string metadata_path){
         stringstream lineReader(line);
         string token;
         vector<string> nline;
-        while(lineReader >> token) {
-            cout << token << endl; //DEBUG24032020
+        while(lineReader >> token)
             nline.push_back(token);
-        }
         
         mtl[nline[0]] = nline[2];
     }
@@ -45,14 +43,20 @@ MTL::MTL(string metadata_path){
     julian_day[1] = mtl["LANDSAT_SCENE_ID"][15];
     julian_day[2] = mtl["LANDSAT_SCENE_ID"][16];
 
+    printf("Julian day: %s", julian_day);
+
     char year[4];
     year[0] = mtl["LANDSAT_SCENE_ID"][10];
     year[1] = mtl["LANDSAT_SCENE_ID"][11];
     year[2] = mtl["LANDSAT_SCENE_ID"][12];
     year[3] = mtl["LANDSAT_SCENE_ID"][13];
 
+    printf("Year: %s", year);
+
     int hours = atoi(mtl["SCENE_CENTER_TIME"].substr(1, 2).c_str());
     int minutes = atoi(mtl["SCENE_CENTER_TIME"].substr(4, 2).c_str());
+
+    printf("%d : %d", hours, minutes);
 
     this->number_sensor = atoi(new char(mtl["LANDSAT_SCENE_ID"][3]));
     this->julian_day = atoi(julian_day);
@@ -60,6 +64,8 @@ MTL::MTL(string metadata_path){
     this->sun_elevation = atof(mtl["SUN_ELEVATION"].c_str());
     this->distance_earth_sun = atof(mtl["EARTH_SUN_DISTANCE"].c_str());
     this->image_hour = (hours + minutes / 60.0) * 100;
+
+    printf("%d : %.2f : %.2f : %f", number_sensor, sun_elevation, distance_earth_sun, image_hour);
 
     if(this->number_sensor == 8){
         rad_mult_10 = atof(mtl["RADIANCE_MULT_BAND_10"].c_str());
