@@ -662,7 +662,7 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
    // printf("PHASE 2 - PSC SELECT FINAL CANDIDATES DURATION, %.5f\n", time_span_us);
-	
+	printf("FINAL CANDIDATES %d", final_candidates.size());
     if(final_candidates.size() < 0) {
         cerr << "Pixel problem! - There are no final candidates";
         exit(15);
