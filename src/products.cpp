@@ -383,6 +383,10 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
 
         for(int col = 0; col < width_band; col ++){
             if(!isnan(ndvi_line[col]) && definitelyGreaterThan(ndvi_line[col], 0.15) && definitelyLessThan(ndvi_line[col], 0.20) && definitelyGreaterThan(surface_temperature_line[col], 273.16)){
+                
+                if(valid >= MAXZ)
+                    printf("Estourou! Boooom!\n"); //DEBUG24032020
+                
                 pre_candidates[valid] = Candidate(ndvi_line[col],
                                     surface_temperature_line[col],
                                     net_radiation_line[col],
