@@ -36,7 +36,9 @@ MTL::MTL(string metadata_path){
         mtl[nline[0]] = nline[2];
     }
 
+    printf("antes de fechar\n");
     in.close();
+    printf("devia ter fechado\n");
 
     char julian_day[3];
     julian_day[0] = mtl["LANDSAT_SCENE_ID"][14];
