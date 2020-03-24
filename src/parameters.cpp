@@ -30,8 +30,10 @@ MTL::MTL(string metadata_path){
         stringstream lineReader(line);
         string token;
         vector<string> nline;
-        while(lineReader >> token)
+        while(lineReader >> token) {
+            cout << token << endl; //DEBUG24032020
             nline.push_back(token);
+        }
         
         mtl[nline[0]] = nline[2];
     }
