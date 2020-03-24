@@ -480,7 +480,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
   //  printf("PHASE 2 - PSH CV EXTRACT DURATION, %.5f\n", time_span_us);
-
+    printf("cv extract final candidatos!\n"); //DEBUG24032020
     begin = chrono::steady_clock::now();
 	//printf("PHASE 2 - PSH FINAL BEGIN, %d\n", int(time(NULL)));
     //Choose as candidate the pixel with the minor CV
@@ -495,9 +495,9 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
    // printf("PHASE 2 - PSH FINAL DURATION, %.5f\n", time_span_us);
-
-  //  choosen.toString();
-
+    printf("sera q achou o pixel\n"); //DEBUG24032020
+    choosen.toString(); //DEBUG24032020
+    
     return choosen;
 }
 
