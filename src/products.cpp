@@ -581,7 +581,7 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
    // printf("PHASE 2 - PSC NDVI FILTER DURATION, %.5f\n", time_span_us);
-
+    printf("PRE CANDIDATES %d", valid);
     if(valid < 0) {
         cerr << "Pixel problem! - There are no precandidates";
         exit(15);
@@ -623,7 +623,7 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
   //  printf("PHASE 2 - PSC HO MANIPULATION DURATION, %.5f\n", time_span_us);
-
+    printf("HO CANDIDATES %d", ho_candidates.size());
     if(ho_candidates.size() < 0) {
         cerr << "Pixel problem! - There are no precandidates after HO manipulation";
         exit(15);
