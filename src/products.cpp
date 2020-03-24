@@ -365,7 +365,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
 
     //Contains the candidates with NDVI between 0.15 and 0.20, which surface temperature is greater than 273.16
     //vector<Candidate> pre_candidates;
-    const int MAXZ = 5000000;
+    const int MAXZ = 50000000; //DEBUG24032020
 	Candidate* pre_candidates;
 	pre_candidates = (Candidate*) malloc(MAXZ * sizeof(Candidate));
     int valid = 0;
