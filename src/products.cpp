@@ -470,7 +470,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
  //   printf("PHASE 2 - PSH SELECT FINAL CANDIDATES DURATION, %.5f\n", time_span_us);
-    printf("Generate final candidatos!\n"); //DEBUG24032020
+    printf("Generate final candidatos! quantidade %d!\n", final_candidates.size()); //DEBUG24032020
     begin = chrono::steady_clock::now();
 	//printf("PHASE 2 - PSH CV EXTRACT BEGIN, %d\n", int(time(NULL)));
     //Calculate the coefficient of variation, after the extract
