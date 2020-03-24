@@ -412,7 +412,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
   //  printf("PHASE 2 - PSH SORT BY TEMP DURATION, %.5f\n", time_span_us);
     int pos = floor(0.95 * valid);
     double surfaceTempHot = pre_candidates[pos].temperature;
-    printf("Ordenou os pre-candidatos!\n"); //DEBUG24032020
+    printf("Ordenou os pre-candidatos! quantidade %d!\n", valid); //DEBUG24032020
     begin = chrono::steady_clock::now();
     //printf("PHASE 2 - PSH HO MANIPULATION BEGIN, %d\n", int(time(NULL)));
     //Select only the ones with temperature equals the surface temperature of the hot pixel
@@ -436,7 +436,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
  //   printf("PHASE 2 - PSH HO MANIPULATION DURATION, %.5f\n", time_span_us);
-    printf("HO manipulation pre-candidatos!\n"); //DEBUG24032020
+    printf("HO manipulation pre-candidatos! quantidade %d!\n", ho_candidates.size()); //DEBUG24032020
     begin = chrono::steady_clock::now();
     //printf("PHASE 2 - PSH SELECT FINAL CANDIDATES BEGIN, %d\n", int(time(NULL)));
     double HO_min = ho_candidates[floor(0.25 * ho_candidates.size())];
