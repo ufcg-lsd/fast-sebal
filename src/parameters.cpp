@@ -128,6 +128,16 @@ void Sensor::load_parameter_values(string sensor_path){
         this->parameters[i][this->WB] = atof(nline[3].c_str());
     }
 
+    for(int i = 1; i < 8; i++){
+
+        cout << "SENSOR PARAMETERS - BAND" << i << endl;
+        cout << "GRESCALE: " << this->parameters[i][this->GRESCALE] << endl;
+        cout << "BRESCALE: " << this->parameters[i][this->BRESCALE] << endl;
+        cout << "ESUN" << this->parameters[i][this->ESUN] << endl;
+        cout << "WB" << this->parameters[i][this->WB] << endl;
+
+    }
+
     in.close();
 };
 
