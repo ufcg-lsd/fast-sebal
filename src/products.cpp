@@ -42,7 +42,9 @@ void radiance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, int width_ban
 void reflectance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, double radiance_line[][8], int width_band, int line, double reflectance_line[][8], double noData){
     double costheta = sin(mtl.sun_elevation * PI / 180);
     double line_band[width_band];
-    cout << "costheta: " << costheta << endl;
+    
+    int cont = 0;
+
     //-3.39999995214436425e+38
 
     for (int i = 1; i < 8; i++){
@@ -53,7 +55,12 @@ void reflectance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, double rad
             else
                 reflectance_line[col][i] = line_band[col] != noData ? (PI * radiance_line[col][i] * mtl.distance_earth_sun * mtl.distance_earth_sun) /
                                            (sensor.parameters[i][sensor.ESUN] * costheta) : NaN;
-        }    
+        
+            if(isnan(reflectance_line[col][i])) cont++;
+        
+        }
+
+        cout << "BAND" << i << ", Line: " << line << ", NaNs: " << cont << endl;
     }
 
 };
