@@ -63,7 +63,7 @@ void reflectance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, double rad
         
         }
 
-        if(i == 1)
+        if(i == 2)
             cout << "BAND" << i << ", Line: " << line << ", NaNs: " << cont << endl;
     }
 
