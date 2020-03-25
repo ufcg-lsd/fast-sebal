@@ -42,6 +42,7 @@ void radiance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, int width_ban
 void reflectance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, double radiance_line[][8], int width_band, int line, double reflectance_line[][8], double noData){
     double costheta = sin(mtl.sun_elevation * PI / 180);
     double line_band[width_band];
+    cout << "costheta: " << costheta << endl;
     //-3.39999995214436425e+38
 
     for (int i = 1; i < 8; i++){
@@ -80,7 +81,7 @@ void albedo_function(double reflectance_line[][8], Sensor sensor, double tal_lin
                             reflectance_line[col][final_tif_calc] * sensor.parameters[final_tif_calc][sensor.WB];
         albedo_line[col] = (albedo_line[col] - 0.03) / (tal_line[col] * tal_line[col]);
 
-        if(albedo_line[col] == NaN) cont++;
+        cout << albedo_line[col] << endl;
     }
 
     cout << "ALBEDO NANs: " << cont << endl;
