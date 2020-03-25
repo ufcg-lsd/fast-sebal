@@ -25,7 +25,7 @@ void radiance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, int width_ban
             read_line_tiff(read_bands[i], line_band, line);
             for (int col = 0; col < width_band; col++) {
                 //radiance_line[col][i] = min(line_band[col] != noData ? line_band[col] * sensor.parameters[i][sensor.GRESCALE] + sensor.parameters[i][sensor.BRESCALE] : NaN, 0.0);
-                radiance_line[col][i] = min(line_band[col] * sensor.parameters[i][sensor.GRESCALE] + sensor.parameters[i][sensor.BRESCALE], 0.0);
+                radiance_line[col][i] = line_band[col] * sensor.parameters[i][sensor.GRESCALE] + sensor.parameters[i][sensor.BRESCALE];
                 maxN = max(maxN, radiance_line[col][i]);
                 minN = min(minN, radiance_line[col][i]);
             }
