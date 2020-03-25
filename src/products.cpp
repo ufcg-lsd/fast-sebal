@@ -96,8 +96,9 @@ void albedo_function(double reflectance_line[][8], Sensor sensor, double tal_lin
 
         if(isinf(albedo_line[col])) cont2++;
 
-        cout << cont1 << " " << cont2 << endl;
     }
+
+    cout << cont1 << " " << cont2 << endl;
 
 };
 
