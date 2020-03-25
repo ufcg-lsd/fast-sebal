@@ -59,12 +59,11 @@ void reflectance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, double rad
                 reflectance_line[col][i] = line_band[col] != noData ? (PI * radiance_line[col][i] * mtl.distance_earth_sun * mtl.distance_earth_sun) /
                                            (sensor.parameters[i][sensor.ESUN] * costheta) : NaN;
         
-            if(isnan(reflectance_line[col][i])) cont++;
+            if(isnan(reflectance_line[col][i]) || isinf(reflectance_line[col][i])) cont++;
         
         }
 
-        if(i == 4)
-            cout << "BAND" << i << ", Line: " << line << ", NaNs: " << cont << endl;
+        cout << "BAND" << i << ", Line: " << line << ", NaNs: " << cont << endl;
     }
 
 };
