@@ -12,7 +12,7 @@
 void radiance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, int width_band, int line, double radiance_line[][8], double noData){
     double line_band[width_band];
 
-    int maxN = -999999, minN = 1e+9;
+    double maxN = -999999, minN = 1e+9;
 
     if (mtl.number_sensor == 8){
         read_line_tiff(read_bands[7], line_band, line);
