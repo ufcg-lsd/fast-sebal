@@ -80,8 +80,6 @@ void albedo_function(double reflectance_line[][8], Sensor sensor, double tal_lin
                             reflectance_line[col][5] * sensor.parameters[5][sensor.WB] +
                             reflectance_line[col][final_tif_calc] * sensor.parameters[final_tif_calc][sensor.WB];
         albedo_line[col] = (albedo_line[col] - 0.03) / (tal_line[col] * tal_line[col]);
-
-        cout << albedo_line[col] << endl;
     }
 
     cout << "ALBEDO NANs: " << cont << endl;
