@@ -48,6 +48,9 @@ void reflectance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, double rad
     //-3.39999995214436425e+38
 
     for (int i = 1; i < 8; i++){
+
+        cont = 0;
+
         read_line_tiff(read_bands[i], line_band, line);
         for (int col = 0; col < width_band; col++){
             if (mtl.number_sensor == 8)
@@ -76,9 +79,7 @@ void reflectance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, double rad
  */
 void albedo_function(double reflectance_line[][8], Sensor sensor, double tal_line[], int width_band, int number_sensor, double albedo_line[]){
     int final_tif_calc = number_sensor == 8 ? 6 : 7;
-
-    int cont = 0;
-
+    
     for (int col = 0; col < width_band; col++){
         albedo_line[col] = reflectance_line[col][1] * sensor.parameters[1][sensor.WB] +
                             reflectance_line[col][2] * sensor.parameters[2][sensor.WB] +
@@ -88,8 +89,6 @@ void albedo_function(double reflectance_line[][8], Sensor sensor, double tal_lin
                             reflectance_line[col][final_tif_calc] * sensor.parameters[final_tif_calc][sensor.WB];
         albedo_line[col] = (albedo_line[col] - 0.03) / (tal_line[col] * tal_line[col]);
     }
-
-    cout << "ALBEDO NANs: " << cont << endl;
 
 };
 
