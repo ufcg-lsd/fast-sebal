@@ -91,11 +91,12 @@ void albedo_function(double reflectance_line[][8], Sensor sensor, double tal_lin
                             reflectance_line[col][final_tif_calc] * sensor.parameters[final_tif_calc][sensor.WB];
 
         if(isinf(albedo_line[col])) cont1++;
-        if(tal_line[col] * tal_line[col] == 0) cont3++;
+        //if(tal_line[col] * tal_line[col] == 0) cont3++;
 
         albedo_line[col] = (albedo_line[col] - 0.03) / (tal_line[col] * tal_line[col]);
 
         if(isinf(albedo_line[col])) cont2++;
+        if(isnan(albedo_line[col])) cont3++;
 
     }
 
