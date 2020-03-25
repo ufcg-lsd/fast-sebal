@@ -24,7 +24,8 @@ void radiance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, int width_ban
         for (int i = 1; i < 8; i++){
             read_line_tiff(read_bands[i], line_band, line);
             for (int col = 0; col < width_band; col++) {
-                radiance_line[col][i] = min(line_band[col] != noData ? line_band[col] * sensor.parameters[i][sensor.GRESCALE] + sensor.parameters[i][sensor.BRESCALE] : NaN, 0.0);
+                //radiance_line[col][i] = min(line_band[col] != noData ? line_band[col] * sensor.parameters[i][sensor.GRESCALE] + sensor.parameters[i][sensor.BRESCALE] : NaN, 0.0);
+                radiance_line[col][i] = min(line_band[col] * sensor.parameters[i][sensor.GRESCALE] + sensor.parameters[i][sensor.BRESCALE], 0.0);
                 maxN = max(maxN, radiance_line[col][i]);
                 minN = min(minN, radiance_line[col][i]);
             }
@@ -57,8 +58,11 @@ void reflectance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, double rad
             if (mtl.number_sensor == 8)
                 reflectance_line[col][i] = line_band[col] != noData ? (line_band[col] * sensor.parameters[i][sensor.GRESCALE] + sensor.parameters[i][sensor.BRESCALE]) / costheta : NaN;
             else
-                reflectance_line[col][i] = line_band[col] != noData ? (PI * radiance_line[col][i] * mtl.distance_earth_sun * mtl.distance_earth_sun) /
-                                           (sensor.parameters[i][sensor.ESUN] * costheta) : NaN;
+                reflectance_line[col][i] = (PI * radiance_line[col][i] * mtl.distance_earth_sun * mtl.distance_earth_sun) /
+                                           (sensor.parameters[i][sensor.ESUN] * costheta);
+            
+            //reflectance_line[col][i] = line_band[col] != noData ? (PI * radiance_line[col][i] * mtl.distance_earth_sun * mtl.distance_earth_sun) /
+              //                             (sensor.parameters[i][sensor.ESUN] * costheta) : NaN;
             
             if(reflectance_line[col][i] == NaN) cont++;
         }
