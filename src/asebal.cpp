@@ -215,7 +215,7 @@ Candidate getColdPixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** albedo, T
     free(tsQuartile);
     free(albedoQuartile);
 
-    coldPixel.toString();
+    //coldPixel.toString();
 
     return coldPixel;
 }

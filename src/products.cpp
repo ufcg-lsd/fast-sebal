@@ -58,7 +58,7 @@ void reflectance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, double rad
                                            (sensor.parameters[i][sensor.ESUN] * costheta) : NaN;
 
         }
-        
+
     }
 
 };
@@ -86,8 +86,6 @@ void albedo_function(double reflectance_line[][8], Sensor sensor, double tal_lin
         albedo_line[col] = (albedo_line[col] - 0.03) / (tal_line[col] * tal_line[col]);
 
     }
-
-    cout << cont1 << " " << cont4 << " " << cont2 << " " << cont3 << " " << cont2 + cont3 << endl;
 
 };
 
