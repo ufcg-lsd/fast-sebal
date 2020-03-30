@@ -203,11 +203,21 @@ Candidate getColdPixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** albedo, T
 
     }
     
+    if(candidatesGroupI.size() <= 0) {
+        cerr << "Pixel problem! - There are no precandidates";
+        exit(15);
+    }
+
     //Creating second pixel group, all pixels with values higher than the 1 st quartile are excluded
     sort(candidatesGroupI.begin(), candidatesGroupI.end(), compare_candidate_temperature);
     unsigned int pos = int(floor(candidatesGroupI.size() * 0.25));
     vector<Candidate> candidatesGroupII(candidatesGroupI.begin(), candidatesGroupI.begin() + pos);
    
+    if(candidatesGroupII.size() <= 0) {
+        cerr << "Pixel problem! - There are no final candidates";
+        exit(15);
+    }
+
     pos = int(floor(candidatesGroupII.size() * 0.5));
     Candidate coldPixel = candidatesGroupII[pos];
 
