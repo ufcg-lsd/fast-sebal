@@ -21,9 +21,9 @@ void radiance_function(TIFF* read_bands[], MTL mtl, Sensor sensor, int width_ban
     else{
         for (int i = 1; i < 8; i++){
             read_line_tiff(read_bands[i], line_band, line);
-            for (int col = 0; col < width_band; col++)
+            for (int col = 0; col < width_band; col++) {
                 radiance_line[col][i] = max(line_band[col] != noData ? line_band[col] * sensor.parameters[i][sensor.GRESCALE] + sensor.parameters[i][sensor.BRESCALE] : NaN, 0.0);
-           
+	    }
         }
     }
 
@@ -421,6 +421,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     sort(pre_candidates, pre_candidates + valid, compare_candidate_temperature);
     end = chrono::steady_clock::now();
     
+    cout << "VALID: " << valid << endl;    
     if(valid <= 0) {
         cerr << "Pixel problem! - There are no precandidates";
         exit(15);
@@ -493,7 +494,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
  //   printf("PHASE 2 - PSH SELECT FINAL CANDIDATES DURATION, %.5f\n", time_span_us);
-    
+    cout << "FINAL: " << final_candidates.size() << endl;
     if(final_candidates.size() <= 0) {
         cerr << "Pixel problem! - There are no final candidates";
         exit(15);
@@ -523,7 +524,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
    // printf("PHASE 2 - PSH FINAL DURATION, %.5f\n", time_span_us);
     
-    // choosen.toString();
+    choosen.toString();
     
     return choosen;
 }
@@ -591,7 +592,7 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
    // printf("PHASE 2 - PSC NDVI FILTER DURATION, %.5f\n", time_span_us);
-    
+    cout << "VALID: " << valid << endl;
     if(valid <= 0) {
         cerr << "Pixel problem! - There are no precandidates";
         exit(15);
@@ -672,7 +673,7 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
    // printf("PHASE 2 - PSC SELECT FINAL CANDIDATES DURATION, %.5f\n", time_span_us);
-	
+    cout << "FINAL: " << final_candidates.size() << endl;
     if(final_candidates.size() <= 0) {
         cerr << "Pixel problem! - There are no final candidates";
         exit(15);

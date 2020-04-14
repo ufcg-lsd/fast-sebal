@@ -54,7 +54,7 @@ int main(int argc, char *argv[]){
         if(noData_flag.substr(0,5) == "-nan=")
             noData = atof(noData_flag.substr(5, noData_flag.size()).c_str());
     }
-    
+        
     string tal_path = argv[9];
 
     TIFF *bands_resampled[8];

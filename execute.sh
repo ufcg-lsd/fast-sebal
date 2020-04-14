@@ -5,8 +5,8 @@ INPUT_PATH=$2
 OUTPUT_PATH=$3
 METHOD=$4
 
-make clean
-make
+#make clean
+#make
 
 if [ $SENSOR == "LC08" ]
 then

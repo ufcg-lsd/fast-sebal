@@ -79,7 +79,7 @@ void Landsat::process_partial_products(TIFF* read_bands[], MTL mtl, Station stat
     double eo_emissivity_line[width_band], ea_emissivity_line[width_band], enb_emissivity_line[width_band];
     double large_wave_radiation_atmosphere_line[width_band], large_wave_radiation_surface_line[width_band];
     double short_wave_radiation_line[width_band];
-
+    
     //Calculating the partial products for each line
     for(int line = 0; line < height_band; line ++){
         radiance_function(read_bands, mtl, sensor, width_band, line, radiance_line, this->noData);
