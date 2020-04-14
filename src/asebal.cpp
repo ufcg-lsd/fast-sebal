@@ -214,6 +214,11 @@ Candidate getColdPixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** albedo, T
     vector<Candidate> candidatesGroupII(candidatesGroupI.begin(), candidatesGroupI.begin() + pos);
     
    
+    if(candidatesGroupII.size() <= 0) {
+        cerr << "Pixel problem! - There are no final candidates";
+        exit(15);
+    }
+
     pos = int(floor(candidatesGroupII.size() * 0.5));
     
     Candidate coldPixel = candidatesGroupII[pos];
