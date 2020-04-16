@@ -420,8 +420,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     //Sort the candidates by their temperatures and choose the surface temperature of the hot pixel
     sort(pre_candidates, pre_candidates + valid, compare_candidate_temperature);
     end = chrono::steady_clock::now();
-    
-    cout << "VALID: " << valid << endl;    
+        
     if(valid <= 0) {
         cerr << "Pixel problem! - There are no precandidates";
         exit(15);
@@ -494,7 +493,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
  //   printf("PHASE 2 - PSH SELECT FINAL CANDIDATES DURATION, %.5f\n", time_span_us);
-    cout << "FINAL: " << final_candidates.size() << endl;
+    
     if(final_candidates.size() <= 0) {
         cerr << "Pixel problem! - There are no final candidates";
         exit(15);
@@ -524,7 +523,7 @@ Candidate select_hot_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_r
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
    // printf("PHASE 2 - PSH FINAL DURATION, %.5f\n", time_span_us);
     
-    choosen.toString();
+   // choosen.toString();
     
     return choosen;
 }
@@ -592,7 +591,7 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
    // printf("PHASE 2 - PSC NDVI FILTER DURATION, %.5f\n", time_span_us);
-    cout << "VALID: " << valid << endl;
+    
     if(valid <= 0) {
         cerr << "Pixel problem! - There are no precandidates";
         exit(15);
@@ -673,7 +672,7 @@ Candidate select_cold_pixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** net_
     end = chrono::steady_clock::now();
     time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
    // printf("PHASE 2 - PSC SELECT FINAL CANDIDATES DURATION, %.5f\n", time_span_us);
-    cout << "FINAL: " << final_candidates.size() << endl;
+   
     if(final_candidates.size() <= 0) {
         cerr << "Pixel problem! - There are no final candidates";
         exit(15);
