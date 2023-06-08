@@ -152,6 +152,9 @@ void Landsat::process_final_products(Station station, MTL mtl){
         pair<Candidate, Candidate> pixels = esaPixelSelect(&ndvi, &surface_temperature, &albedo, &net_radiation, &soil_heat, &land_cover, height_band, width_band, this->output_path);
 
         hot_pixel = pixels.first, cold_pixel = pixels.second;
+    } else if (this->method == 3) { //STEEP
+        hot_pixel = steepGetHotPixel(&ndvi, &surface_temperature, &albedo, &net_radiation, &soil_heat, height_band, width_band);
+        cold_pixel = steepGetColdPixel(&ndvi, &surface_temperature, &albedo, &net_radiation, &soil_heat, height_band, width_band);
     }
 
     end = chrono::steady_clock::now();

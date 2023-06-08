@@ -69,7 +69,7 @@ MTL::MTL(string metadata_path){
 
 /**
  * @brief  Constructor.
- * @param  number_sensor: Number of the satellite sensor.
+ * @param  number_sensor: Number of the satellite sensor.sensor_path
  * @param  year: Year of image.
  */
 Sensor::Sensor(int number_sensor, int year){
@@ -86,16 +86,16 @@ Sensor::Sensor(int number_sensor, int year){
 string Sensor::capture_parameter_path(int number_sensor, int year){
     switch(number_sensor){
         case 8:
-            return "src/parameters/LC.data";
+            return "./parameters/LC.data";
             break;
         case 7:
-            return "src/parameters/ETM.data";
+            return "./parameters/ETM.data";
             break;
         case 5:
             if(year < 1992)
-                return "src/parameters/TM1.data";
+                return "./parameters/TM1.data";
             else
-                return "src/parameters/TM2.data";
+                return "./parameters/TM2.data";
             break;
         default:
             cerr << "Sensor problem" << endl;
