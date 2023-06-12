@@ -503,6 +503,11 @@ pair<Candidate, Candidate> esaPixelSelect(TIFF** ndvi, TIFF** surface_temperatur
 
     }
 
+    if(listTS.size() <= 0) {
+        cerr << "Pixel problem! - There are no precandidates";
+        exit(15);
+    }
+
     vector<Candidate> listNDVI (listTS);
 
     sort(listTS.begin(), listTS.end(), compare_candidate_temperature);
@@ -533,6 +538,11 @@ pair<Candidate, Candidate> esaPixelSelect(TIFF** ndvi, TIFF** surface_temperatur
 
     }
 
+    if(final_histTS.size() <= 0) {
+        cerr << "Pixel problem! - There are no final TS candidates";
+        exit(15);
+    }
+
     vector<Candidate> histNDVI[binNDVI], final_histNDVI;
     for(Candidate c : listNDVI) {
         
@@ -550,6 +560,11 @@ pair<Candidate, Candidate> esaPixelSelect(TIFF** ndvi, TIFF** surface_temperatur
 
         }
 
+    }
+
+    if(final_histNDVI.size() <= 0) {
+        cerr << "Pixel problem! - There are no final NDVI candidates";
+        exit(15);
     }
 
     // Select cold pixel
@@ -586,6 +601,11 @@ pair<Candidate, Candidate> esaPixelSelect(TIFF** ndvi, TIFF** surface_temperatur
 
     }
 
+    if(coldPixels.size() <= 0) {
+        cerr << "Pixel problem! - There are no cold candidates";
+        exit(15);
+    }
+
     //Select hot pixel
     pixel_count = 0, n1 = 1, n2 = 1;
     vector<Candidate> hotPixels;
@@ -619,6 +639,11 @@ pair<Candidate, Candidate> esaPixelSelect(TIFF** ndvi, TIFF** surface_temperatur
             beginTs = final_histTS.size() - 1;
         }
 
+    }
+
+    if(hotPixels.size() <= 0) {
+        cerr << "Pixel problem! - There are no hot candidates";
+        exit(15);
     }
 
     sort(coldPixels.begin(), coldPixels.end(), compare_candidate_ndvi);

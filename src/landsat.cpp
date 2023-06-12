@@ -79,8 +79,11 @@ void Landsat::process_partial_products(TIFF* read_bands[], MTL mtl, Station stat
     double eo_emissivity_line[width_band], ea_emissivity_line[width_band], enb_emissivity_line[width_band];
     double large_wave_radiation_atmosphere_line[width_band], large_wave_radiation_surface_line[width_band];
     double short_wave_radiation_line[width_band];
-
+    
     //Calculating the partial products for each line
+
+    //DEBUG - OLHAR ESSES CARAS AQUI!!
+
     for(int line = 0; line < height_band; line ++){
         radiance_function(read_bands, mtl, sensor, width_band, line, radiance_line, this->noData);
         reflectance_function(read_bands, mtl, sensor, radiance_line, width_band, line, reflectance_line, this->noData);
@@ -141,16 +144,15 @@ void Landsat::process_final_products(Station station, MTL mtl){
 
     Candidate hot_pixel, cold_pixel;
     
-    if (this->method == 0) { //Our SEBAL
-        hot_pixel = select_hot_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, height_band, width_band);
-        cold_pixel = select_cold_pixel(&ndvi, &surface_temperature, &net_radiation, &soil_heat, height_band, width_band);
+    if (this->method == 0) { //STEEP
+        hot_pixel = getHotPixelSTEPP(&ndvi, &surface_temperature, &albedo, &net_radiation, &soil_heat, height_band, width_band);
+        cold_pixel = getColdPixelSTEPP(&ndvi, &surface_temperature, &albedo, &net_radiation, &soil_heat, height_band, width_band);
     } else if (this->method == 1) { //ASEBAL
         hot_pixel = getHotPixel(&ndvi, &surface_temperature, &albedo, &net_radiation, &soil_heat, height_band, width_band);
         cold_pixel = getColdPixel(&ndvi, &surface_temperature, &albedo, &net_radiation, &soil_heat, height_band, width_band);
     } else if (this->method == 2) { //ESA SEBAL
         TIFF* land_cover = TIFFOpen(this->land_cover_path.c_str(), "r");
         pair<Candidate, Candidate> pixels = esaPixelSelect(&ndvi, &surface_temperature, &albedo, &net_radiation, &soil_heat, &land_cover, height_band, width_band, this->output_path);
-
         hot_pixel = pixels.first, cold_pixel = pixels.second;
     }
 

@@ -117,11 +117,21 @@ Candidate getHotPixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** albedo, TI
         }
 
     }
+    
+    if(candidatesGroupI.size() <= 0) {
+        cerr << "Pixel problem! - There are no precandidates";
+        exit(15);
+    }
 
     //Creating second pixel group, all values lower than the 3rd quartile are excluded
     sort(candidatesGroupI.begin(), candidatesGroupI.end(), compare_candidate_temperature);
     unsigned int pos = int(floor(candidatesGroupI.size() * 0.75));
     vector<Candidate> candidatesGroupII(candidatesGroupI.begin() + pos, candidatesGroupI.end());
+
+    if(candidatesGroupII.size() <= 0) {
+        cerr << "Pixel problem! - There are no final candidates";
+        exit(15);
+    }
 
     pos = int(floor(candidatesGroupII.size() * 0.5));
     Candidate hotPixel = candidatesGroupII[pos];
@@ -130,7 +140,7 @@ Candidate getHotPixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** albedo, TI
     free(tsQuartile);
     free(albedoQuartile);
 
-    hotPixel.toString();
+    //hotPixel.toString();
 
     return hotPixel;
 }
@@ -193,19 +203,31 @@ Candidate getColdPixel(TIFF** ndvi, TIFF** surface_temperature, TIFF** albedo, T
 
     }
     
+    if(candidatesGroupI.size() <= 0) {
+        cerr << "Pixel problem! - There are no precandidates";
+        exit(15);
+    }
+
     //Creating second pixel group, all pixels with values higher than the 1 st quartile are excluded
     sort(candidatesGroupI.begin(), candidatesGroupI.end(), compare_candidate_temperature);
     unsigned int pos = int(floor(candidatesGroupI.size() * 0.25));
     vector<Candidate> candidatesGroupII(candidatesGroupI.begin(), candidatesGroupI.begin() + pos);
+    
    
+    if(candidatesGroupII.size() <= 0) {
+        cerr << "Pixel problem! - There are no final candidates";
+        exit(15);
+    }
+
     pos = int(floor(candidatesGroupII.size() * 0.5));
+    
     Candidate coldPixel = candidatesGroupII[pos];
 
     free(ndviQuartile);
     free(tsQuartile);
     free(albedoQuartile);
 
-    coldPixel.toString();
+   // coldPixel.toString();
 
     return coldPixel;
 }

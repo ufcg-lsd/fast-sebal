@@ -54,7 +54,7 @@ int main(int argc, char *argv[]){
         if(noData_flag.substr(0,5) == "-nan=")
             noData = atof(noData_flag.substr(5, noData_flag.size()).c_str());
     }
-    
+        
     string tal_path = argv[9];
 
     TIFF *bands_resampled[8];
@@ -70,11 +70,11 @@ int main(int argc, char *argv[]){
 
     Landsat landsat = Landsat(tal_path, output_path, method, noData, landCoverPath);
     
-    begin = chrono::steady_clock::now();
-    landsat.process_partial_products(bands_resampled, mtl, station, sensor);
-    end = chrono::steady_clock::now();
-    time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
-    printf("PHASE 1 - DURATION, %.5f\n", time_span_us);
+    // begin = chrono::steady_clock::now();
+    // landsat.process_partial_products(bands_resampled, mtl, station, sensor);
+    // end = chrono::steady_clock::now();
+    // time_span_us = chrono::duration_cast< chrono::duration<double, micro> >(end - begin);
+    // printf("PHASE 1 - DURATION, %.5f\n", time_span_us);
 
     begin = chrono::steady_clock::now();
     

@@ -6,6 +6,7 @@
 #include "parameters.h"
 #include "asebal.h"
 #include "esaSel.h"
+#include "STEEP.h"
 
 /**
  * @brief  Struct to manage the products calculation.
